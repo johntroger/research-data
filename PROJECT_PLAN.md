@@ -436,7 +436,8 @@ PDF ─► [A] Trích xuất một lượt (Gemini Pro) ─► [B] Máy đối c
 * **Độ đầy đủ (chống bỏ sót):** quét text tìm mọi mã giả thuyết (`H\d+[a-z]?`) và tiêu đề bảng (`Table \d+`), so với danh mục của Pass 1. Mục nào thiếu thì **tự động trích bổ sung riêng mục đó** (một lời gọi nhỏ); vẫn thiếu thì ghi rõ "bài có H5 nhưng chưa trích được" để người dùng biết mà xem.
 * **Tính lại thống kê (kiểu statcheck, Nuijten et al., 2016):** p từ t / F / z / χ² và df; t từ β và SE; SE từ CI; t / F từ M, SD, n. Lệch lớn, nhất là khi kết luận ý nghĩa bị đảo, thì gắn ⚠. Nếu giá trị khớp PDF mà vẫn lệch khi tính lại, ghi **"có thể là lỗi của bài gốc"**.
 * **Metadata** lấy từ Crossref / Zotero, không để AI sinh.
-* **Xác định `printed_page`** (lưu kèm `printed_page_method`): (1) PDF `/PageLabels`; (2) trang đầu theo Crossref cộng độ lệch; (3) Gemini đọc số trang ở header/footer; (4) annotation Zotero (`annotationPageLabel`) khi có.
+* **Xác định `printed_page`** (lưu kèm `printed_page_method`), theo thứ tự: (1) PDF `/PageLabels`; (2) dãy số trang nhất quán tìm thấy ở header/footer (bằng code, bỏ qua năm / số tập); (3) trang đầu theo Crossref cộng độ lệch; (4) Gemini đọc số trang ở header/footer (chỉ khi 3 cách trên không có kết quả); (5) cuối cùng là số thứ tự trang PDF. Annotation Zotero (`annotationPageLabel`) dùng để đối chiếu khi có.
+* **Đọc text layer:** tách bố cục hai cột (đọc hết cột trái rồi mới sang cột phải); đưa chữ xoay dọc ở lề (watermark "Downloaded from…" của nhà xuất bản) ra khỏi nội dung.
 
 ### 6.4. Lớp C: Kiểm tra chéo trong cùng bài (không dùng AI)
 * n ở phần phương pháp = n trong bảng (khi áp dụng được).

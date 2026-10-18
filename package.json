@@ -18,15 +18,18 @@
     "db:stop": "supabase stop",
     "db:status": "supabase status",
     "db:reset": "supabase db reset",
-    "test:db": "vitest run --config vitest.db.config.ts"
+    "test:db": "vitest run --config vitest.db.config.ts",
+    "pdf:inspect": "pnpm --filter @research-data/worker pdf:inspect"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.6.5",
     "@types/pg": "^8.23.1",
     "eslint": "^10.13.0",
+    "pdf-lib": "^1.17.1",
     "pg": "^8.23.1",
     "supabase": "^2.121.0",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.71.2",
     "vitest": "^5.0.5"
