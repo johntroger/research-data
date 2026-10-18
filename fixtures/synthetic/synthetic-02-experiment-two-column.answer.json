@@ -16,9 +16,7 @@
     ],
     "pagesWithoutText": []
   },
-  "known_issues": {
-    "columns": "A two-column page with fewer than 3 lines per column (PDF 3) is read as one column, interleaving the lines."
-  },
+  "known_issues": {},
   "structure": {
     "paper_type": "empirical_quant",
     "paper_type_evidence": {

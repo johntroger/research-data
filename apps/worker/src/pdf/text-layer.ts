@@ -131,6 +131,49 @@ function buildSegments(items: PositionedText[]): Segment[] {
 
 type Placement = "full" | "left" | "right";
 
+/** Widest a table cell can be (as a share of the page width); column lines are wider. */
+const TABLE_CELL_MAX_WIDTH = 0.35;
+const NARROW_CELL_MAX_WIDTH = 0.2;
+/** x-distance (points) within which line starts count as one column edge. */
+const ALIGN_TOLERANCE = 3;
+
+/**
+ * Segments of table rows that cross the page centre: three or more short cells on one line.
+ * They are kept as full-width lines so a table on a single-column page is not mistaken for columns.
+ */
+function tableRowSegments(segments: Segment[], pageWidth: number): Set<Segment> {
+  const centre = pageWidth / 2;
+  const byY = new Map<number, Segment[]>();
+  for (const s of segments) byY.set(s.y, [...(byY.get(s.y) ?? []), s]);
+  const rows = new Set<Segment>();
+  for (const line of byY.values()) {
+    if (line.length < 3) continue;
+    const crossesCentre =
+      Math.min(...line.map((s) => s.x0)) < centre - CENTRE_TOLERANCE &&
+      Math.max(...line.map((s) => s.x1)) > centre + CENTRE_TOLERANCE;
+    // Three pieces can also be a column line beside a section heading ("3.3", "The … dimension"),
+    // so a three-cell row needs narrow cells; four or more pieces on one line are a table.
+    const maxWidth = pageWidth * (line.length >= 4 ? TABLE_CELL_MAX_WIDTH : NARROW_CELL_MAX_WIDTH);
+    if (crossesCentre && line.every((s) => s.x1 - s.x0 < maxWidth)) {
+      for (const s of line) rows.add(s);
+    }
+  }
+  return rows;
+}
+
+/** Number of lines where a left and a right segment sit at the same height. */
+function sideBySide(left: Segment[], right: Segment[]): number {
+  const rightYs = new Set(right.map((s) => s.y));
+  return new Set(left.filter((s) => rightYs.has(s.y)).map((s) => s.y)).size;
+}
+
+/** True when most segments start at the same x (a column edge). */
+function aligned(segments: Segment[]): boolean {
+  const starts = segments.map((s) => s.x0);
+  const best = Math.max(...starts.map((x) => starts.filter((o) => Math.abs(o - x) <= ALIGN_TOLERANCE).length));
+  return best >= Math.max(2, Math.ceil(segments.length * 0.6));
+}
+
 function place(segment: Segment, centre: number): Placement {
   if (segment.x0 < centre - CENTRE_TOLERANCE && segment.x1 > centre + CENTRE_TOLERANCE) return "full";
   return segment.x1 <= centre + CENTRE_TOLERANCE ? "left" : "right";
@@ -139,23 +182,35 @@ function place(segment: Segment, centre: number): Placement {
 /**
  * Orders segments for reading. Two-column pages are read as: full-width blocks above the
  * columns (title, abstract), the left column, the right column, then full-width blocks below
- * (footnotes). Single-column pages are read top to bottom.
+ * (footnotes). Single-column pages are read top to bottom. Table rows across the page centre
+ * only decide whether the page has columns; they never count as column text.
  */
 function orderForReading(segments: Segment[], pageWidth: number): { lines: Segment[]; columns: 1 | 2 } {
   const topDown = (a: Segment, b: Segment) => b.y - a.y || a.x0 - b.x0;
   const centre = pageWidth / 2;
-  const placed = segments.map((s) => ({ s, p: place(s, centre) }));
+  const tableRows = tableRowSegments(segments, pageWidth);
+  const placed = segments.map((s) => ({ s, p: tableRows.has(s) ? ("full" as const) : place(s, centre) }));
   const left = placed.filter((x) => x.p === "left").map((x) => x.s);
   const right = placed.filter((x) => x.p === "right").map((x) => x.s);
 
-  const isTwoColumn = left.length >= 3 && right.length >= 3 && (left.length + right.length) / segments.length >= 0.4;
+  // Table rows do not count against the columns: a table often sits above two-column text.
+  const share = (left.length + right.length) / Math.max(1, segments.length - tableRows.size);
+  const isTwoColumn =
+    share >= 0.4 &&
+    ((left.length >= 3 && right.length >= 3) ||
+      // A short two-column page (the end of an article): lines side by side, each column aligned.
+      (left.length >= 2 && right.length >= 2 && sideBySide(left, right) >= 2 && aligned(left) && aligned(right)));
   if (!isTwoColumn) return { lines: [...segments].sort(topDown), columns: 1 };
 
-  const full = placed.filter((x) => x.p === "full").map((x) => x.s);
-  const columnTop = Math.max(...left.map((s) => s.y), ...right.map((s) => s.y));
+  // Reading order of two-column pages is unchanged: table cells follow their side of the page.
+  const sides = segments.map((s) => ({ s, p: place(s, centre) }));
+  const full = sides.filter((x) => x.p === "full").map((x) => x.s);
+  const leftSide = sides.filter((x) => x.p === "left").map((x) => x.s);
+  const rightSide = sides.filter((x) => x.p === "right").map((x) => x.s);
+  const columnTop = Math.max(...leftSide.map((s) => s.y), ...rightSide.map((s) => s.y));
   const above = full.filter((s) => s.y > columnTop).sort(topDown);
   const below = full.filter((s) => s.y <= columnTop).sort(topDown);
-  return { lines: [...above, ...left.sort(topDown), ...right.sort(topDown), ...below], columns: 2 };
+  return { lines: [...above, ...leftSide.sort(topDown), ...rightSide.sort(topDown), ...below], columns: 2 };
 }
 
 /** Reads the text layer of a PDF page by page, plus page labels and header/footer lines. */

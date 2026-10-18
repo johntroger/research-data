@@ -320,9 +320,6 @@ const paper01: SyntheticPaper = {
     columns: [1, 1, 1, 1],
     pagesWithoutText: [],
   },
-  knownIssues: {
-    columns: "Tables on single-column pages (PDF 2, 3) are read as two columns, so table rows come out of order.",
-  },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -496,9 +493,6 @@ const paper02: SyntheticPaper = {
     printedPageMethod: "page_labels",
     columns: [2, 2, 2],
     pagesWithoutText: [],
-  },
-  knownIssues: {
-    columns: "A two-column page with fewer than 3 lines per column (PDF 3) is read as one column, interleaving the lines.",
   },
 };
 

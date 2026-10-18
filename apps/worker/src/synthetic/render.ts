@@ -17,8 +17,8 @@ export type Block =
   | { kind: "columns"; left: string[]; right: string[] }
   /** A table: each cell is drawn at its own x, so the text layer sees separate pieces like real PDFs. */
   | { kind: "table"; title: string; header: string[]; rows: string[][]; note?: string; widths: number[] }
-  /** One line made of pieces with their own size and vertical shift (subscripts). */
-  | { kind: "inline"; parts: { text: string; size: number; dy?: number }[] }
+  /** One line made of pieces with their own size and vertical shift (subscripts), optionally at a given x. */
+  | { kind: "inline"; parts: { text: string; size: number; dy?: number; x?: number }[] }
   /** Graphics only (a table embedded as an image): no text layer. */
   | { kind: "image"; height: number };
 
@@ -87,6 +87,7 @@ function drawBlock(page: PDFPage, block: Block, y: number, fonts: Fonts): number
     case "inline": {
       let x = MARGIN;
       for (const part of block.parts) {
+        if (part.x !== undefined) x = part.x;
         page.drawText(part.text, { x, y: y + (part.dy ?? 0), size: part.size, font: fonts.regular });
         x += fonts.regular.widthOfTextAtSize(part.text, part.size);
       }

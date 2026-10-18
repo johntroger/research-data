@@ -1,6 +1,86 @@
 import { describe, expect, it } from "vitest";
+import { renderPdf } from "../synthetic/render.js";
 import { buildPdf, SAMPLE_BODY } from "./test-fixtures.js";
 import { readTextLayer, sha256 } from "./text-layer.js";
+
+describe("column detection (step 0.13b)", () => {
+  const left = ["Left column line one about trust", "Left column line two about value", "Left column line three"];
+  const right = ["Right column line one on loyalty", "Right column line two on intention", "Right column line three"];
+
+  it("keeps column reading order when a column line sits beside a section heading", async () => {
+    // Three pieces on one line across the centre, like Montecchi et al. (2024) p. 6.
+    const pdf = await renderPdf({
+      title: "t",
+      pages: [
+        {
+          blocks: [
+            { kind: "columns", left, right },
+            {
+              kind: "inline",
+              parts: [
+                { text: "consumers experience transparency in relation to brands.", size: 9, x: 45 },
+                { text: "3.3", size: 9, x: 310 },
+                { text: "The comprehensibility dimension", size: 9, x: 335 },
+              ],
+            },
+            { kind: "columns", left, right },
+          ],
+        },
+      ],
+    });
+    const { pages } = await readTextLayer(pdf);
+    expect(pages[0]!.columns).toBe(2);
+    const text = pages[0]!.text;
+    expect(text.indexOf("consumers experience")).toBeLessThan(text.indexOf("Right column line one"));
+  });
+
+  it("reads a full-width table on a single-column page row by row", async () => {
+    const pdf = await renderPdf({
+      title: "t",
+      pages: [
+        {
+          blocks: [
+            { kind: "text", lines: ["A single-column paragraph introduces the table below."] },
+            {
+              kind: "table",
+              title: "Table 1. Results",
+              header: ["Path", "beta", "t", "p", "Result"],
+              widths: [200, 60, 60, 60, 80],
+              rows: [
+                ["A -> B", "0.42", "8.40", "< .001", "Supported"],
+                ["B -> C", "0.35", "6.10", "< .001", "Supported"],
+                ["A -> C", "0.08", "1.21", ".23", "Not supported"],
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    const { pages } = await readTextLayer(pdf);
+    expect(pages[0]!.columns).toBe(1);
+    const lines = pages[0]!.text.split("\n");
+    expect(lines.indexOf("0.42")).toBeLessThan(lines.indexOf("B -> C"));
+    expect(lines.indexOf("Supported")).toBeLessThan(lines.indexOf("B -> C"));
+  });
+
+  it("detects a short two-column page with two lines per column", async () => {
+    const pdf = await renderPdf({
+      title: "t",
+      pages: [{ blocks: [{ kind: "columns", left: left.slice(0, 2), right: right.slice(0, 2) }] }],
+    });
+    const { pages } = await readTextLayer(pdf);
+    expect(pages[0]!.columns).toBe(2);
+    expect(pages[0]!.text.split("\n")).toEqual([...left.slice(0, 2), ...right.slice(0, 2)]);
+  });
+
+  it("does not split a single-column page whose lines merely differ in length", async () => {
+    const pdf = await renderPdf({
+      title: "t",
+      pages: [{ blocks: [{ kind: "text", lines: ["Short.", "A much longer line that runs across the centre of the page.", "End."] }] }],
+    });
+    expect((await readTextLayer(pdf)).pages[0]!.columns).toBe(1);
+  });
+});
 
 describe("readTextLayer", () => {
   it("reads body text page by page", async () => {

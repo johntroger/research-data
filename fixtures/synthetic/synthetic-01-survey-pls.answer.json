@@ -18,9 +18,7 @@
     ],
     "pagesWithoutText": []
   },
-  "known_issues": {
-    "columns": "Tables on single-column pages (PDF 2, 3) are read as two columns, so table rows come out of order."
-  },
+  "known_issues": {},
   "structure": {
     "paper_type": "empirical_quant",
     "paper_type_evidence": {
