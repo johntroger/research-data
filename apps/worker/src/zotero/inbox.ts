@@ -58,7 +58,11 @@ interface ZoteroItem {
     title?: string;
     DOI?: string;
     date?: string;
-    creators?: { lastName?: string; name?: string; creatorType: string }[];
+    creators?: { lastName?: string; firstName?: string; name?: string; creatorType: string }[];
+    publicationTitle?: string;
+    volume?: string;
+    issue?: string;
+    pages?: string;
     contentType?: string;
     linkMode?: string;
     filename?: string;
@@ -79,6 +83,14 @@ export interface InboxPaper {
   attachmentFilename: string | null;
   /** Why there is no downloadable PDF, when attachmentKey is null. */
   problem: string | null;
+  /** Bibliographic fields as stored in Zotero (fallback when Crossref has no record). */
+  zotero: {
+    authors: { family: string; given: string | null }[];
+    journal: string | null;
+    volume: string | null;
+    issue: string | null;
+    pages: string | null;
+  };
 }
 
 /** Finds a collection by its path of names (case-insensitive), e.g. ["Research Data", "Inbox"]. */
@@ -126,6 +138,15 @@ export async function listInbox(client: ZoteroClient, collectionKey: string): Pr
       doi: doiFrom(item.data),
       year: item.data.date ? (/\d{4}/.exec(item.data.date)?.[0] ?? null) : null,
       firstAuthor: author?.lastName ?? author?.name ?? null,
+      zotero: {
+        authors: (item.data.creators ?? [])
+          .filter((c) => c.creatorType === "author")
+          .map((c) => ({ family: c.lastName ?? c.name ?? "", given: c.firstName ?? null })),
+        journal: item.data.publicationTitle || null,
+        volume: item.data.volume || null,
+        issue: item.data.issue || null,
+        pages: item.data.pages || null,
+      },
       attachmentKey: stored?.key ?? null,
       attachmentFilename: stored?.data.filename ?? null,
       problem: stored

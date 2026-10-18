@@ -13,7 +13,8 @@
     "publish:skeleton": "tsx src/cli/publish-skeleton.ts",
     "schema:gemini-check": "tsx src/cli/schema-gemini-check.ts",
     "zotero:inbox": "tsx src/cli/zotero-inbox.ts",
-    "synthetic:build": "tsx src/cli/synthetic-build.ts"
+    "synthetic:build": "tsx src/cli/synthetic-build.ts",
+    "worker": "tsx src/cli/worker.ts"
   },
   "dependencies": {
     "@google/genai": "^2.30.0",
