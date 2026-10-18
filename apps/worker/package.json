@@ -1,0 +1,14 @@
+{
+  "name": "@research-data/worker",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Local CLI worker: Zotero sync, PDF text layer, Gemini extraction, verification, publish.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@research-data/schema": "workspace:*"
+  }
+}
