@@ -2,6 +2,14 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.2 (so với 3.9.1)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Thêm **Codebook v1.0** ([docs/codebook.md](docs/codebook.md), bước 0.10): định nghĩa vận hành, tầng T1/T2/T3, giá trị cho phép và quy tắc khi mơ hồ cho toàn bộ 159 trường của Mục 5.2–5.3; quy tắc chung về bằng chứng, con số, Study | Đầu vào cho prompt và schema Zod ở bước 0.11 |
+| 2 | Mục 5.2: `paper_type` thêm `narrative_review`, `other`; `estimate_type` thêm `path coefficient` | Rút ra từ chạy thử bước 0.8b |
+| 3 | Lệnh `pnpm codebook:check`: mọi trường trong schema phải có định nghĩa trong codebook | Giữ codebook và schema đồng bộ |
+
 ### Version 3.9.1 (so với 3.9)
 
 | # | Thay đổi | Lý do |

@@ -24,6 +24,7 @@ Kế hoạch được chia thành nhiều file (bước 0.9). Số mục giữ n
 | 11 | Quản trị rủi ro | [docs/risks.md](docs/risks.md) |
 | 12 | Tài liệu tham khảo phương pháp luận | [docs/quality-assurance.md](docs/quality-assurance.md) |
 | 13 | Các quyết định đã chốt | File này |
+| — | **Codebook**: định nghĩa vận hành của từng trường dữ liệu | [docs/codebook.md](docs/codebook.md) |
 
 ---
 

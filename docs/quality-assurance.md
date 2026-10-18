@@ -23,6 +23,7 @@ PDF ─► [A] Trích xuất một lượt (Gemini Pro) ─► [B] Máy đối c
 ```
 
 ### 6.1. Sổ mã hóa (Codebook)
+* **Bản hiện hành:** [docs/codebook.md](codebook.md) (v1.0.0). Kiểm tra độ phủ bằng `pnpm codebook:check`.
 * Định nghĩa vận hành từng trường, **tầng T1/T2/T3**, danh mục giá trị cho phép, quy tắc xử lý tình huống mơ hồ, ví dụ đúng/sai.
 * **Claude Code soạn**, dựa trên các tài liệu phương pháp ở Mục 12; chủ dự án đọc lướt (khoảng 1–2 giờ, một lần) để sửa định nghĩa khái niệm và lý thuyết của miền.
 * Là đầu vào trực tiếp cho prompt; có `codebook_version` và nhật ký thay đổi.

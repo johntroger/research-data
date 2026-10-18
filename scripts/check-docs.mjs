@@ -15,6 +15,7 @@ const FILES = [
   "docs/quality-assurance.md",
   "docs/ux-spec.md",
   "docs/risks.md",
+  "docs/codebook.md",
 ];
 
 /** GitHub-style heading anchor: lower-case, spaces → "-", punctuation removed (letters with diacritics kept). */

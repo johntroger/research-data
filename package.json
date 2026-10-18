@@ -25,7 +25,8 @@
     "publish:skeleton": "pnpm --filter @research-data/worker publish:skeleton",
     "web:dev": "pnpm --filter @research-data/web dev",
     "test:e2e": "pnpm --filter @research-data/web test:e2e",
-    "docs:check": "node scripts/check-docs.mjs"
+    "docs:check": "node scripts/check-docs.mjs",
+    "codebook:check": "node scripts/check-codebook.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
