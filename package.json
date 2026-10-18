@@ -21,6 +21,7 @@
     "test:db": "vitest run --config vitest.db.config.ts",
     "pdf:inspect": "pnpm --filter @research-data/worker pdf:inspect",
     "extract:skeleton": "pnpm --filter @research-data/worker extract:skeleton",
+    "extract:full": "pnpm --filter @research-data/worker extract:full",
     "verify:skeleton": "pnpm --filter @research-data/worker verify:skeleton",
     "publish:skeleton": "pnpm --filter @research-data/worker publish:skeleton",
     "web:dev": "pnpm --filter @research-data/web dev",

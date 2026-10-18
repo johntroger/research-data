@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { PaperStructure, StudyDetail } from "@research-data/schema";
+import { PaperDiscussion, PaperStructure, StudyDetail } from "@research-data/schema";
 import { beforeAll, describe, expect, it } from "vitest";
 import { resolvePrintedPages } from "../pdf/printed-page.js";
 import { readTextLayer, sha256, type PdfTextLayer } from "../pdf/text-layer.js";
@@ -49,6 +49,7 @@ describe.each(SYNTHETIC_PAPERS.map((p) => [p.id, p] as [string, SyntheticPaper])
 
   it("answer key validates against packages/schema", () => {
     expect(() => PaperStructure.parse(paper.answer.structure)).not.toThrow();
+    expect(() => PaperDiscussion.parse(paper.answer.discussion)).not.toThrow();
     for (const study of paper.answer.studies) expect(() => StudyDetail.parse(study)).not.toThrow();
     const labels = paper.answer.structure.studies.map((s) => s.study_label);
     expect(paper.answer.studies.map((s) => s.study_label)).toEqual(labels);

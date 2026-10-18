@@ -19,6 +19,51 @@
     "pagesWithoutText": []
   },
   "known_issues": {},
+  "discussion": {
+    "contribution_type": {
+      "originality": "incremental",
+      "utility": "both"
+    },
+    "theoretical_contributions": [
+      {
+        "pdf_page": 4,
+        "quote": "We extend the S-O-R framework to short-video commerce.",
+        "section": "discussion",
+        "table_or_figure": null,
+        "table_cell": null
+      }
+    ],
+    "practical_implications": [
+      {
+        "pdf_page": 4,
+        "quote": "Brands should disclose sponsorships early in the video.",
+        "section": "discussion",
+        "table_or_figure": null,
+        "table_cell": null
+      }
+    ],
+    "limitations": [
+      {
+        "pdf_page": 4,
+        "quote": "The cross-sectional design limits causal claims.",
+        "section": "discussion",
+        "table_or_figure": null,
+        "table_cell": null
+      }
+    ],
+    "future_directions": [
+      {
+        "pdf_page": 4,
+        "quote": "Future studies could use longitudinal data.",
+        "section": "discussion",
+        "table_or_figure": null,
+        "table_cell": null
+      }
+    ],
+    "gap_type": null,
+    "gap_evidence": null,
+    "problematization_hint": null
+  },
   "structure": {
     "paper_type": "empirical_quant",
     "paper_type_evidence": {

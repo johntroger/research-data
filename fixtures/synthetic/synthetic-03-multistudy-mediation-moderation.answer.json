@@ -23,6 +23,27 @@
     ]
   },
   "known_issues": {},
+  "discussion": {
+    "contribution_type": {
+      "originality": "incremental",
+      "utility": "scientific"
+    },
+    "theoretical_contributions": [
+      {
+        "pdf_page": 5,
+        "quote": "Transparency builds loyalty through trust, more so for familiar brands.",
+        "section": "discussion",
+        "table_or_figure": null,
+        "table_cell": null
+      }
+    ],
+    "practical_implications": [],
+    "limitations": [],
+    "future_directions": [],
+    "gap_type": null,
+    "gap_evidence": null,
+    "problematization_hint": null
+  },
   "structure": {
     "paper_type": "empirical_quant",
     "paper_type_evidence": {

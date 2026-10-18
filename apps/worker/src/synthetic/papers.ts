@@ -6,7 +6,7 @@
  *   03 — two studies, side-margin page numbers (Emerald style), subscript, mediation, moderation,
  *        and a table page without a text layer
  */
-import type { PaperStructure, PathResult, StudyDetail } from "@research-data/schema";
+import type { PaperDiscussion, PaperStructure, PathResult, StudyDetail } from "@research-data/schema";
 import type { RenderSpec } from "./render.js";
 
 export interface SyntheticPaper {
@@ -15,6 +15,7 @@ export interface SyntheticPaper {
   render: RenderSpec;
   answer: {
     structure: PaperStructure;
+    discussion: PaperDiscussion;
     studies: StudyDetail[];
   };
   expected: {
@@ -179,6 +180,16 @@ const paper01: SyntheticPaper = {
     ],
   },
   answer: {
+    discussion: {
+      contribution_type: { originality: "incremental", utility: "both" },
+      theoretical_contributions: [ev(4, "We extend the S-O-R framework to short-video commerce.", null, "discussion")],
+      practical_implications: [ev(4, "Brands should disclose sponsorships early in the video.", null, "discussion")],
+      limitations: [ev(4, "The cross-sectional design limits causal claims.", null, "discussion")],
+      future_directions: [ev(4, "Future studies could use longitudinal data.", null, "discussion")],
+      gap_type: null,
+      gap_evidence: null,
+      problematization_hint: null,
+    },
     structure: {
       paper_type: "empirical_quant",
       paper_type_evidence: ev(1, "We tested the model with an online survey of 412 Vietnamese shoppers.", null, "abstract"),
@@ -403,6 +414,16 @@ const paper02: SyntheticPaper = {
     ],
   },
   answer: {
+    discussion: {
+      contribution_type: { originality: "incremental", utility: "scientific" },
+      theoretical_contributions: [ev(3, "Disclosure raises skepticism, especially for influencers.", null, "discussion")],
+      practical_implications: [],
+      limitations: [ev(3, "A limitation is the single product category used in the stimuli.", null, "discussion")],
+      future_directions: [],
+      gap_type: null,
+      gap_evidence: null,
+      problematization_hint: null,
+    },
     structure: {
       paper_type: "empirical_quant",
       paper_type_evidence: ev(1, "subjects experiment tested how sponsorship", null, "abstract"),
@@ -579,6 +600,16 @@ const paper03: SyntheticPaper = {
     ],
   },
   answer: {
+    discussion: {
+      contribution_type: { originality: "incremental", utility: "scientific" },
+      theoretical_contributions: [ev(5, "Transparency builds loyalty through trust, more so for familiar brands.", null, "discussion")],
+      practical_implications: [],
+      limitations: [],
+      future_directions: [],
+      gap_type: null,
+      gap_evidence: null,
+      problematization_hint: null,
+    },
     structure: {
       paper_type: "empirical_quant",
       paper_type_evidence: ev(1, "Two studies test whether perceived transparency builds loyalty through brand trust.", null, "abstract"),

@@ -17,6 +17,35 @@
     "pagesWithoutText": []
   },
   "known_issues": {},
+  "discussion": {
+    "contribution_type": {
+      "originality": "incremental",
+      "utility": "scientific"
+    },
+    "theoretical_contributions": [
+      {
+        "pdf_page": 3,
+        "quote": "Disclosure raises skepticism, especially for influencers.",
+        "section": "discussion",
+        "table_or_figure": null,
+        "table_cell": null
+      }
+    ],
+    "practical_implications": [],
+    "limitations": [
+      {
+        "pdf_page": 3,
+        "quote": "A limitation is the single product category used in the stimuli.",
+        "section": "discussion",
+        "table_or_figure": null,
+        "table_cell": null
+      }
+    ],
+    "future_directions": [],
+    "gap_type": null,
+    "gap_evidence": null,
+    "problematization_hint": null
+  },
   "structure": {
     "paper_type": "empirical_quant",
     "paper_type_evidence": {
