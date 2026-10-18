@@ -1,0 +1,723 @@
+# KẾ HOẠCH TỔNG THỂ DỰ ÁN (MASTER PROJECT PLAN - VERSION 3.2)
+## HỆ THỐNG CƠ SỞ DỮ LIỆU & TỔNG QUAN TÀI LIỆU KHOA HỌC CHUẨN MỰC Q1
+*(Academic Literature Matrix & Research Knowledge Base for Behavioral Science, Management & Marketing)*
+
+---
+
+## 0. LỊCH SỬ THAY ĐỔI
+
+### Version 3.2 (so với 3.1)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Thêm **Relationship Search** (Mục 8.2b): chọn Biến A, Biến B, tìm các bài kiểm định quan hệ giữa hai biến, lọc tiếp theo kết quả giả thuyết (ủng hộ / không ủng hộ…) và chiều tác động | Yêu cầu của chủ dự án; trả lời trực tiếp câu hỏi cốt lõi số 1 |
+| 2 | Thêm trường `hypothesized_direction`, `observed_sign`, `significant` vào Đường quan hệ (Mục 5.2 #8) | Tách "giả thuyết có được ủng hộ" khỏi "tác động thực tế dương / âm / không có ý nghĩa" |
+| 3 | Thêm materialized view `relation_index` (Mục 5.4) | Truy vấn theo cặp biến hai chiều nhanh ở quy mô 5.000 bài |
+| 4 | Đưa Relationship Search vào **Giai đoạn 3 (Web MVP)** | Là tính năng cốt lõi, không chờ đến Evidence Map ở Giai đoạn 6 |
+| 5 | Thêm **Mục 13: Các quyết định cần chốt**; đã chốt D1 (miền: social media marketing, branding, ethics, hành vi khách hàng), D2 (chỉ nhóm, có đăng nhập), D5 (repo `research-data` public), D6 (10 USD cho pilot), D7 (5–10 giờ/tuần), D8 (tên tạm + vercel.app), D9 (15 bài chuẩn vàng cho cổng 1b) | Lập kế hoạch xong rồi mới triển khai kỹ thuật |
+| 6 | Thêm **Mục 3A: Tận dụng Cloudflare** (R2, Workers, Cron, Tunnel, Access, Registrar, Turnstile, Analytics) và quyết định D11, D12 | Chủ dự án đã có tài khoản Cloudflare |
+| 7 | Thêm **Mục 10.1: Lịch dự kiến** với hai phương án quy mô chuẩn vàng tại cổng 1b | Quy đổi lộ trình theo thời gian thực tế của chủ dự án |
+| 8 | Thêm **Mục 7.1: Tải bài gốc (PDF) từ Web**: thành viên nhóm tải được mọi bài; tải thẳng từ R2 qua presigned URL; tải nhiều bài dạng ZIP ở giai đoạn sau | Yêu cầu của chủ dự án |
+| 9 | Chốt D4 (thư viện Zotero cá nhân, collection `Research Data`), D10 (MIT), D11 (Vercel + Cloudflare), D12 (Cloudflare Free, có ngưỡng nâng cấp). Toàn bộ quyết định đã chốt, trừ D3 (đang tìm người, không chặn Giai đoạn 0–1) | Hoàn tất lập kế hoạch |
+
+### Version 3.1 (so với 3.0)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bỏ quy đổi β → r.** Thêm phân hệ **Ma trận tương quan & Thống kê mô tả** (r, M, SD, α, CR, AVE, n) | β chuẩn hóa trong mô hình đa biến không tương đương r (Peterson & Brown, 2005; Roth et al., 2018). Ma trận tương quan là dữ liệu đúng chuẩn cho meta-analysis và MASEM |
+| 2 | **Phân ba tầng trường dữ liệu** (Sự kiện / Phân loại / Diễn giải), mỗi tầng có KPI riêng; sửa cổng chất lượng Giai đoạn 1b | κ ≥ 0,80 cho trường diễn giải là không thực tế, kể cả giữa hai chuyên gia |
+| 3 | **Kiểm chứng theo loại trường** (câu văn / số liệu / bảng / PDF scan); quy trình xác định `printed_page` | Text layer của bảng bị xáo trộn, fuzzy match câu văn không áp dụng được cho số liệu |
+| 4 | **Review Queue** (giao diện duyệt dữ liệu) đưa vào Giai đoạn 1b | Human-in-the-loop cần công cụ từ sớm; dùng lại làm Split-Screen của web |
+| 5 | **Thu hẹp miền nghiên cứu khởi đầu** (~300 bài đầu trong một miền hẹp) | Không thể xây bảng khái niệm chuẩn cho mọi ngành cùng lúc |
+| 6 | Stack: bỏ PyMuPDF (AGPL, thêm Python) và SQLite trung gian; **monorepo**; migrations SQL; **sao lưu hằng đêm** | Một runtime, một tầng lưu trữ, tái lập và an toàn dữ liệu |
+| 7 | Bộ chuẩn vàng theo quy mô thực tế (30 bài do chủ dự án mã hóa, 10 bài mã hóa kép); thêm **test–retest** và **mốc so sánh** | Ước tính 3–5 giờ/bài; LLM không hoàn toàn tất định; bài phương pháp cần baseline |
+| 8 | Thêm bước **prototype + kiểm tra với 3–5 người dùng** trước khi code Web | Kiểm chứng giả định UX trước khi tốn công phát triển |
+| 9 | Cập nhật tài liệu tham khảo (thay Miles, 2017 bằng Alvesson & Sandberg, 2011; thêm Peterson & Brown, 2005; Roth et al., 2018; Larsen & Bong, 2016; Page et al., 2021) | Ưu tiên tài liệu đã qua bình duyệt |
+| 10 | **Tích hợp Zotero (gói trả phí)** làm nguồn nạp chính, kho lưu trữ gốc, công cụ mã hóa Bộ chuẩn vàng và kênh ghi ngược kết quả | Tận dụng Zotero Storage, Web API, annotation có số trang in, nhóm (group) chia sẻ |
+| 11 | Bổ sung: giới hạn câu trích công khai ≤ 50 từ; huy hiệu tin cậy ở cấp phần; định dạng số liệu APA; trang "Phương pháp dữ liệu"; MVP chỉ xử lý bài định lượng; MVP giao diện tiếng Việt (sẵn sàng i18n) | Theo đánh giá 4 góc nhìn |
+
+### Version 3.0 (so với 2.0), tóm tắt
+Worker do Claude Code xây dựng, Gemini trả phí trích xuất; thêm Giai đoạn 0 (Codebook, Bộ chuẩn vàng) và 1b (Pilot); đơn vị phân tích là "đường quan hệ được kiểm định" theo Study; lớp Khái niệm chuẩn; Evidence Map thay Conflict Engine; pipeline nhiều bước; metadata từ Crossref; kiểm chứng câu trích; Supabase + pgvector; R2 private + Signed URL; Trang Khái niệm / Lý thuyết; TypeScript + Zod. *(Bản đầy đủ: `PROJECT_PLAN_v3.0_backup.md`.)*
+
+---
+
+## 1. TỔNG QUAN DỰ ÁN & MỤC TIÊU CHIẾN LƯỢC
+
+### 1.1. Tuyên ngôn Sứ mệnh (Mission Statement)
+Xây dựng một hệ thống cơ sở dữ liệu học thuật tự động hóa chuyên sâu cho các ngành **Khoa học Hành vi, Quản trị kinh doanh, Marketing và Kinh tế**, có khả năng:
+* Nạp tài liệu trực tiếp từ **thư viện Zotero** của nhóm nghiên cứu.
+* Phân tách sâu toàn văn bài báo (Native PDF extraction) bằng **Gemini API (gói trả phí)**, mọi trường dữ liệu truy vết được về trang và đoạn văn gốc.
+* Trích xuất **ma trận tương quan và thống kê mô tả**, tạo nền dữ liệu cho meta-analysis và MASEM.
+* Cung cấp giao diện Web trên **Vercel** để tra cứu, lọc đa chiều, xem ma trận tổng hợp, bản đồ bằng chứng (Evidence Map) và trích dẫn có kiểm chứng.
+* Có **độ tin cậy trích xuất được đo lường và công bố** (AI so với người mã hóa, người với người, lần chạy với lần chạy), đủ để dùng làm dữ liệu cho bài SLR / meta-analysis đăng tạp chí.
+* Mở rộng bền vững từ **1 bài đến hơn 5.000 bài báo**.
+
+### 1.2. Người dùng mục tiêu & Công việc cốt lõi (Jobs-to-be-done)
+| Người dùng | Công việc cần làm |
+| :--- | :--- |
+| Nghiên cứu sinh, học viên cao học | Viết Chương 2 (tổng quan), xây mô hình nghiên cứu, chọn thang đo |
+| Giảng viên, nhà nghiên cứu | Tìm Research Gap, viết SLR / meta-analysis, phản biện |
+| Nhóm nghiên cứu | Chia sẻ kho tài liệu chung (qua Web, có đăng nhập), thống nhất định nghĩa khái niệm |
+
+Bốn câu hỏi hệ thống phải trả lời tốt:
+1. *"Mối quan hệ X → Y đã được nghiên cứu thế nào, ở bối cảnh nào, độ lớn tác động ra sao?"*
+2. *"Khái niệm Z được định nghĩa và đo lường như thế nào trong các nghiên cứu?"*
+3. *"Lý thuyết T được sử dụng ra sao (chỉ nhắc tên hay thực sự dùng để xây giả thuyết)?"*
+4. *"Lập bảng tổng quan tài liệu chuẩn APA cho tập bài tôi chọn."*
+
+### 1.3. Phạm vi khởi đầu (MVP Scope)
+* **Miền nghiên cứu khởi đầu (đã chốt, D1):** *Social media marketing, thương hiệu (branding), đạo đức marketing (ethics) và hành vi khách hàng*. Mục tiêu khoảng **300 bài** đầu tiên trong miền này trước khi mở rộng.
+  * **Trục trung tâm:** tác động của hoạt động trên mạng xã hội và thương hiệu đến hành vi khách hàng; đạo đức là lăng kính đi kèm (không phải một mảng độc lập).
+  * **Thứ tự nạp:** (1) Social media marketing × hành vi khách hàng → (2) Branding × hành vi khách hàng → (3) Khía cạnh đạo đức. Mỗi nhóm khoảng 100 bài.
+  * **Nhóm khái niệm khởi tạo:**
+    * *Social media:* social media marketing activities, eWOM, influencer credibility, parasocial interaction, customer engagement, user-generated content.
+    * *Thương hiệu:* brand equity, brand awareness, brand image, brand trust, brand love, brand authenticity, brand attachment.
+    * *Đạo đức:* perceived CSR, greenwashing perception, ethical consumption, privacy concern, sponsorship / advertising disclosure, consumer skepticism.
+    * *Hành vi khách hàng:* purchase intention, satisfaction, loyalty, WOM intention, willingness to pay a premium.
+  * **Nhóm lý thuyết khởi tạo:** S-O-R, Source Credibility, Uses & Gratifications, Parasocial Interaction, Social Identity, Consumer–Brand Relationship, Attribution Theory, Signaling Theory, Persuasion Knowledge Model, TPB.
+  * *Lưu ý:* miền này rộng hơn đề xuất ban đầu, nên bảng khái niệm chuẩn sẽ lớn hơn. Thứ tự nạp theo nhóm giúp kiểm soát khối lượng duyệt ánh xạ.
+* **Loại bài trong MVP:** chỉ bài **định lượng** (survey, thực nghiệm, dữ liệu thứ cấp). Bài định tính, bài khái niệm, bài tổng quan được nạp metadata nhưng chưa trích xuất sâu.
+* **Ngôn ngữ giao diện MVP:** tiếng Việt (nội dung học thuật giữ tiếng Anh); code sẵn sàng i18n để thêm tiếng Anh sau.
+
+### 1.4. Phân tầng trường dữ liệu & Mục tiêu chất lượng (KPIs)
+
+| Tầng | Ví dụ trường | Chỉ số | Ngưỡng | Vai trò trong cổng chất lượng |
+| :--- | :--- | :--- | :--- | :--- |
+| **T1 – Sự kiện** (factual) | n, β, p, CI, r, M, SD, α, CR, AVE, quốc gia, số Study, mã giả thuyết | % khớp chính xác với người mã hóa | **≥ 95%** | Bắt buộc đạt |
+| **T2 – Phân loại** (categorical) | thiết kế nghiên cứu, phương pháp phân tích, loại mẫu, trạng thái giả thuyết, loại hiệu ứng | Cohen's κ / Krippendorff's α | **≥ 0,75** | Bắt buộc đạt |
+| **T3 – Diễn giải** (interpretive) | vai trò lý thuyết, loại đóng góp, loại khoảng trống, ánh xạ khái niệm chuẩn | κ / α (chỉ báo cáo) | Không đặt ngưỡng cổng | **Bắt buộc người duyệt** trước khi công khai |
+
+Các chỉ số khác:
+* **Kiểm chứng tự động:** ≥ 95% câu văn (T1/T2 có câu trích) và ≥ 95% số liệu T1 được kiểm chứng theo phương pháp ở Mục 6.3.
+* **Ổn định (test–retest):** chạy lại cùng bài, mức khớp T1 ≥ 98%, T2 κ ≥ 0,90.
+* **Truy vết:** 100% trường có `evidence` hoặc được gắn trạng thái `unverified` và hiển thị rõ.
+* **Hiệu năng Web:** trang tải < 0,8 giây; truy vấn lọc đa tiêu chí < 200 ms (p95) ở quy mô 5.000 bài.
+* **Chi phí:**
+  * Hạ tầng cố định: **0 VNĐ/tháng** (Vercel Hobby, R2 Free 10GB, Supabase Free); Zotero là gói trả phí sẵn có của chủ dự án.
+  * Gemini: chi phí biến đổi; **đơn giá thực tế mỗi bài được đo ở Giai đoạn 1b**; ước tính trước mỗi lượt chạy và có trần ngân sách.
+
+### 1.5. Nguyên tắc Thiết kế
+1. **Evidence-first:** không có trường dữ liệu nào hiển thị mà không kèm nguồn gốc và trạng thái kiểm chứng.
+2. **Human-in-the-loop:** AI trích xuất, máy kiểm chứng, con người duyệt trường T3 và trường bị gắn cờ.
+3. **Reproducible:** mọi lượt trích xuất lưu phiên bản model, prompt, schema, codebook và phản hồi thô.
+4. **Single source of truth:** một gói schema Zod dùng chung cho Gemini, validator, DB và Web; Zotero là nguồn sự thật cho tệp PDF và metadata thư mục.
+5. **Copyright-aware:** quyền truy cập PDF phụ thuộc tình trạng Open Access.
+6. **Methodologically sound:** cấu trúc dữ liệu theo chuẩn phương pháp luận hiện hành; không tạo ra các phép so sánh không hợp lệ (VD: so β giữa các mô hình khác nhau).
+
+---
+
+## 2. KIẾN TRÚC HỆ THỐNG VÀ LUỒNG DỮ LIỆU (DATA ARCHITECTURE 3.1)
+
+```
+[1. Nguồn tài liệu]
+  ├─ Zotero (nguồn chính): collection "Research Data/Inbox" hoặc tag  rd:queue
+  └─ Thư mục raw_papers/ (dự phòng cho tệp chưa có trong Zotero)
+                       │
+                       ▼
+[2. Claude Code Resumable Batch Worker (Node.js + TypeScript, chạy local)]
+  ├─ S1  ingest         : đồng bộ tăng dần từ Zotero (?since=<version>), tải PDF, SHA-256, loại trùng (hash + DOI + Zotero key)
+  ├─ S2  metadata       : Crossref theo DOI (ưu tiên) → Zotero (dự phòng); Unpaywall → trạng thái OA; SJR/ABS/ABDC
+  ├─ S3  text_layer     : pdfjs-dist / unpdf → text theo trang; phát hiện PDF scan (needs_ocr);
+  │                       xác định printed_page (PageLabels → Crossref + độ lệch → Gemini đọc header/footer)
+  ├─ S4  llm_extract    : Gemini API (trả phí)
+  │        ├─ Pass 1: cấu trúc (loại bài, danh sách Study, khái niệm, lý thuyết, vị trí các bảng)
+  │        └─ Pass 2: chi tiết từng Study (đo lường, đường quan hệ, ma trận tương quan)
+  │        (đồng bộ cho lượt nhỏ; Batch API bất đồng bộ submit → poll → ingest cho lượt lớn)
+  ├─ S5  validate       : Zod schema + quy tắc logic + kiểm tra nội tại ma trận tương quan
+  ├─ S6  verify         : kiểm chứng theo loại trường (câu văn / số liệu / bảng)
+  ├─ S7  review         : đẩy trường T3 và trường bị gắn cờ vào Review Queue
+  ├─ S8  normalize      : ánh xạ tên khái niệm → Canonical Construct (gợi ý embedding, người xác nhận)
+  ├─ S9  upload         : PDF → Cloudflare R2 (khóa theo hash, bucket private)
+  ├─ S10 publish        : ghi Supabase PostgreSQL (bảng chuẩn hóa + raw JSONB + embeddings)
+  └─ S11 write_back     : ghi ngược vào Zotero (tag trạng thái, child note tóm tắt, link tới trang web)
+                       │
+                       ▼
+[3. Vercel Web App (Next.js App Router, Server Components)]
+  ├─ Truy vấn Supabase (RLS, anon key chỉ đọc), dữ liệu mới hiển thị ngay không cần deploy lại
+  ├─ API route cấp Signed URL cho PDF từ R2 (theo quy tắc bản quyền)
+  └─ Tìm kiếm: Full-text (tsvector) + bộ lọc facet; Semantic (pgvector) ở giai đoạn sau
+                       │
+                       ▼
+[4. Trải nghiệm Người Dùng]
+  ├─ Review Queue (nội bộ)            ├─ Thư viện lọc đa chiều + Relationship Search (A ↔ B)
+  ├─ Split-Screen Evidence Workspace  ├─ Ma trận tổng hợp + xuất Word APA 7 / Excel
+  ├─ Trang Khái niệm & Lý thuyết      ├─ Evidence Map & Heatmap khoảng trống
+  └─ Trang "Phương pháp dữ liệu" (công bố độ tin cậy)
+```
+
+* Mỗi bước S1–S11 là **idempotent**, ghi trạng thái vào bảng `pipeline_runs` trên Supabase. Khóa xử lý: `file_hash + schema_version + prompt_version`.
+* Dùng **Supabase ngay từ đầu** (một project `dev` và một project `prod`, hoặc Supabase CLI chạy local), không có tầng SQLite trung gian.
+
+---
+
+## 3. TÍCH HỢP ZOTERO (GÓI TRẢ PHÍ) (MỚI)
+
+### 3.1. Vai trò của Zotero trong hệ thống
+
+| Vai trò | Cách tận dụng | Lợi ích |
+| :--- | :--- | :--- |
+| **Nguồn nạp chính** | Worker đọc qua **Zotero Web API v3** (hoặc Local API của Zotero 7 khi app đang mở); đồng bộ tăng dần bằng tham số `since=<libraryVersion>` | Không phải chép PDF thủ công; chỉ xử lý mục mới hoặc thay đổi |
+| **Kho lưu trữ gốc PDF** | Tệp nằm trong **Zotero Storage** (gói trả phí), tải về qua API endpoint `/items/{key}/file` | Zotero là bản gốc; R2 chỉ là bản phục vụ hiển thị, có thể dựng lại bất cứ lúc nào |
+| **Kênh kích hoạt xử lý** | Người dùng thêm bài vào collection `Research Data/Inbox` hoặc gắn tag `rd:queue` | Thao tác quen thuộc, không cần học công cụ mới |
+| **Nguồn gốc tập bài (corpus provenance)** | Mỗi lượt tìm kiếm là một collection; chuỗi tìm kiếm, CSDL, ngày tìm ghi trong note của collection / trường `Extra` | Xuất được sơ đồ PRISMA 2020 |
+| **Sàng lọc (screening)** | Tag `rd:include`, `rd:exclude:<lý do>` | Lưu vết tiêu chí chọn bài |
+| **Metadata dự phòng** | Dùng metadata Zotero khi bài không có DOI hoặc Crossref thiếu dữ liệu | Bao phủ bài kỷ yếu, sách, working paper |
+| **Mã hóa Bộ chuẩn vàng** | Highlight trong Zotero Reader theo quy ước màu + mã trường trong comment; worker đọc annotation qua API | Mã hóa ngay khi đọc; annotation có sẵn **số trang in** (`annotationPageLabel`) và vị trí trang (`annotationPosition`) |
+| **Bằng chứng do người xác nhận** | Highlight của người dùng khớp với trường AI trích → nâng trạng thái lên `human_reviewed` | Tăng tỷ lệ dữ liệu đã duyệt mà không tốn thêm công |
+| **Ghi ngược kết quả** | Worker gắn tag trạng thái (`rd:extracted`, `rd:needs-review`, `rd:verified`) và child note tóm tắt (lý thuyết, mô hình, kết quả chính, link web) | Người dùng thấy kết quả ngay trong Zotero khi viết bài |
+| **Chia sẻ trong nhóm** | Không chia sẻ qua Zotero (D4: dùng thư viện cá nhân). Thành viên nhóm xem và tải PDF qua **Web** (Mục 7.1); người mã hóa thứ hai dùng **Review Queue qua Cloudflare Tunnel + Access** (Mục 3A) | Thư viện cá nhân giữ riêng tư; chia sẻ có kiểm soát qua đăng nhập |
+| **Khóa trích dẫn ổn định** | Plugin **Better BibTeX**: citekey cố định; nút "Copy citekey" và xuất `.bib` trên web dùng cùng citekey | Nhất quán với LaTeX / Overleaf / Pandoc |
+| **Tìm PDF Open Access** | Tính năng "Find Available PDF" của Zotero (dựa trên Unpaywall) | Bổ sung bản OA hợp pháp cho bài còn thiếu tệp |
+
+### 3.2. Quy ước mã hóa bằng annotation (dùng cho Bộ chuẩn vàng)
+
+| Màu highlight | Phân hệ | Cú pháp comment (ví dụ) |
+| :--- | :--- | :--- |
+| Vàng | Định nghĩa khái niệm | `#def perceived_risk` |
+| Tím | Lý thuyết nền | `#theory TPB role=hypothesis_derivation` |
+| Xanh dương | Thiết kế, mẫu, bối cảnh | `#sample S1 n=412 type=consumer_panel` |
+| Xanh lá | Giả thuyết & kết quả | `#path S1 H2 PR->PI beta=-.31 p<.001` |
+| Cam | Ma trận tương quan / bảng thống kê | `#cormatrix S1 table=2` |
+| Đỏ | Hạn chế & hướng nghiên cứu tương lai | `#limit` / `#future` |
+
+Quy ước chi tiết được viết trong Codebook; worker có lệnh `gold:import` chuyển annotation thành tệp JSON chuẩn vàng.
+
+### 3.3. Lưu ý kỹ thuật
+* **Thư viện dùng cho dự án (D4): thư viện cá nhân (My Library).** Bài của dự án nằm trong collection riêng `Research Data` (có collection con `Inbox`); worker **chỉ đọc và ghi trong collection này**.
+* **API key Zotero** tạo riêng cho dự án, lưu trong `.env`. Quyền của Zotero cấp theo cả thư viện, không giới hạn được theo collection, nên:
+  * Giai đoạn 1–1b chỉ cấp **quyền đọc**; quyền ghi chỉ bật từ Giai đoạn 2, khi có bước ghi ngược.
+  * Worker có danh sách cho phép (allowlist) theo collection và chế độ `--dry-run` in ra mọi thay đổi trước khi ghi. Worker chỉ thêm tag có tiền tố `rd:` hoặc child note có tiêu đề bắt đầu bằng `[Research Data]`; **không bao giờ sửa metadata hay xóa mục**.
+  * Sao lưu thư viện Zotero (sao chép thư mục dữ liệu Zotero) trước lần ghi ngược đầu tiên.
+* *(Tùy chọn sau này)* Nếu nhóm cần cùng làm việc trực tiếp trong Zotero, có thể chuyển collection `Research Data` sang một group library mà không phải đổi kiến trúc, chỉ đổi `ZOTERO_LIBRARY_TYPE` và `ZOTERO_LIBRARY_ID`.
+* **Local API** (Zotero 7) chỉ đọc, chạy khi app Zotero đang mở: dùng cho nạp nhanh, không giới hạn tốc độ. **Ghi ngược** (tag, note) phải dùng Web API.
+* Tệp lưu bằng **WebDAV không tải được qua Web API**; dự án cần tệp nằm trong **Zotero Storage**.
+* **Dung lượng hiện có:** gói Zotero Storage 20 USD/năm = **2 GB**, dùng chung cho thư viện cá nhân và mọi group do chủ dự án sở hữu. Với PDF trung bình ~2 MB, 2 GB chứa được khoảng 800–1.000 bài, tức là đủ cho 300 bài của miền khởi đầu cùng thư viện cá nhân hiện có. Khi kho vượt khoảng 700 bài: nâng lên gói 6 GB hoặc Unlimited, hoặc chuyển bài cũ sang lưu trữ khác.
+* Các tính năng khác (group, Web API, Local API, annotation, Better BibTeX) đều **miễn phí**; gói trả phí chỉ mở rộng dung lượng đồng bộ tệp.
+* Web API có giới hạn tốc độ: tuân theo header `Backoff` / `Retry-After`.
+* Bảng `papers` lưu thêm `zotero_library_id`, `zotero_item_key`, `zotero_attachment_key`, `zotero_version`, `citekey`.
+
+---
+
+## 3A. TẬN DỤNG CLOUDFLARE (MỚI)
+
+Chủ dự án đã có tài khoản Cloudflare (máy đã cài `cloudflared`). Ngoài R2, các dịch vụ sau dùng được cho dự án; tất cả đều có gói miễn phí đủ cho quy mô hiện tại.
+
+| Dịch vụ | Dùng để làm gì trong dự án | Giai đoạn |
+| :--- | :--- | :--- |
+| **R2** (đã có trong kế hoạch) | Lưu PDF phục vụ hiển thị (private), bản sao lưu `pg_dump` hằng đêm. Gói Free: 10 GB, không tính phí băng thông tải ra | 2 |
+| **Workers** | (a) Cấp presigned URL để xem và **tải PDF gốc** ngay tại edge, gần R2, không qua Vercel (Mục 7.1); (b) ghép ZIP khi tải nhiều bài; (c) endpoint nhận "Báo lỗi" từ người dùng | 2–3 |
+| **Cron Triggers** (Workers) | Ping giữ Supabase hoạt động; kích hoạt sao lưu; nhắc đồng bộ Zotero định kỳ. Thay thế hoặc bổ sung GitHub Actions | 2 |
+| **Cloudflare Tunnel** (`cloudflared`) | Cho người mã hóa thứ hai và nhóm truy cập **Review Queue chạy trên máy bạn** qua một địa chỉ an toàn, không cần deploy, không mở port | 1b |
+| **Cloudflare Access** (Zero Trust, miễn phí đến 50 người dùng) | Khóa Review Queue và các công cụ nội bộ: chỉ email được mời mới vào được. Lớp bảo vệ thứ hai bên cạnh Supabase Auth | 1b–3 |
+| **Registrar + DNS** | Mua tên miền theo giá gốc khi đặt tên chính thức (D8); gắn custom domain cho web và cho R2 | Trước khi mở công khai |
+| **Turnstile** | Chống bot ở trang đăng nhập / form báo lỗi, không bắt giải CAPTCHA khó chịu | 3 |
+| **Web Analytics** | Thống kê truy cập không dùng cookie, không cần banner đồng ý | 4 |
+
+**Phân vai Vercel – Cloudflare (đề xuất):**
+* **Vercel** giữ vai trò chạy Web Next.js, vì đây là môi trường Next.js được hỗ trợ đầy đủ nhất.
+* **Cloudflare** đảm nhận lưu trữ (R2), tác vụ nhỏ tại edge (Workers), cron, truy cập nội bộ an toàn (Tunnel + Access), tên miền và DNS.
+* **Phương án thay thế:** chạy toàn bộ Web trên **Cloudflare Workers** (Next.js qua adapter OpenNext), gom hạ tầng về một nơi. Đổi lại phải cấu hình nhiều hơn và một số tính năng Next.js cần kiểm tra tương thích. Ngoài ra, gói Hobby của Vercel chỉ dành cho mục đích phi thương mại; nếu sau này dự án có thu phí, Cloudflare là lựa chọn rẻ hơn (D11).
+* **Không dùng D1 / Vectorize** thay cho Supabase: dữ liệu có quan hệ phức tạp và cần pgvector + full-text trong cùng một CSDL.
+
+---
+
+## 4. CHIẾN LƯỢC SỬ DỤNG GEMINI API (GÓI TRẢ PHÍ)
+
+### 4.1. Lựa chọn model
+* **Model Flash mới nhất** (`GEMINI_MODEL_FAST`): mặc định cho Pass 1 và Pass 2.
+* **Model Pro mới nhất** (`GEMINI_MODEL_STRONG`): khi bài có ≥ 3 Study; khi kết quả Flash không qua validate hoặc tỷ lệ kiểm chứng < 80%; khi so sánh model trên Bộ chuẩn vàng.
+* Tên model không viết cứng trong code; mỗi bản ghi lưu `model_name`.
+
+### 4.2. Kỹ thuật gọi API
+* Native PDF input + `responseMimeType: application/json` + `responseSchema` sinh từ Zod; `temperature: 0`; lưu phản hồi thô.
+* **Schema mỗi lượt gọi giữ nhỏ.** Tránh union, `$ref`, lồng quá sâu. Có **test tự động** kiểm tra mỗi schema Zod chuyển được sang `responseSchema` hợp lệ.
+* **Trích xuất hai lượt:** Pass 1 lấy cấu trúc và vị trí bảng; Pass 2 lấy chi tiết theo từng Study (có thể tách riêng lượt gọi cho ma trận tương quan).
+* **Batch API là bất đồng bộ** (trả kết quả trong tối đa 24 giờ): worker có luồng riêng `submit → poll → ingest`, lưu `batch_job_id`.
+* **Context Caching** có ngưỡng token tối thiểu và tính phí lưu theo thời gian; **chưa mặc định bật**. Giai đoạn 1b đo chi phí ba phương án (đồng bộ, đồng bộ + cache, batch) rồi mới chốt.
+* **Rate limiting:** token bucket theo RPM/TPM; exponential backoff có jitter; tuân theo `Retry-After`; quá N lần thử thì chuyển `FAILED` kèm lý do.
+
+### 4.3. Kiểm soát chi phí
+* Lệnh `estimate`: `countTokens` cho toàn bộ hàng đợi, in chi phí dự kiến trước khi xác nhận chạy.
+* `GEMINI_BUDGET_LIMIT` (USD): worker dừng an toàn khi chạm trần.
+* Ghi `input_tokens`, `cached_tokens`, `output_tokens`, `cost_usd` theo bài và theo pass vào `extraction_runs`.
+* Đơn giá trong `pricing.json`, cập nhật theo bảng giá hiện hành.
+
+### 4.4. Quyền riêng tư dữ liệu
+* Theo điều khoản gói trả phí, dữ liệu gửi lên không dùng để cải thiện sản phẩm của Google; kiểm tra lại điều khoản hiện hành khi bắt đầu.
+* API key Gemini và Zotero chỉ nằm trong `.env` của máy chạy worker; không commit, không đưa lên Vercel.
+
+---
+
+## 5. THIẾT KẾ SCHEMA DỮ LIỆU HỌC THUẬT (DATA SCHEMA SPECIFICATION 3.1)
+
+### 5.1. Mô hình quan hệ tổng thể
+
+```
+papers ─┬─ studies ─┬─ samples
+        │           ├─ measurements ── constructs (canonical) ── construct_aliases
+        │           ├─ path_results ── evidence
+        │           └─ correlation_matrices ── matrix_cells / descriptives
+        ├─ paper_theories ── theories
+        ├─ contributions / gaps / limitations ── evidence
+        ├─ zotero_annotations (bằng chứng do người tạo)
+        └─ extraction_runs, pipeline_runs, reviews (kiểm soát chất lượng)
+```
+
+Mỗi bảng nghiệp vụ có `raw_extraction JSONB` để truy vết. Mỗi trường trong Codebook được gán **tầng T1 / T2 / T3** (Mục 1.4).
+
+### 5.2. Các phân hệ thực thể
+
+| Phân hệ | Các trường cốt lõi | Ý nghĩa học thuật |
+| :--- | :--- | :--- |
+| **1. Metadata & Citation** (nguồn: Crossref → Zotero, không phải LLM) | `paper_id`, `doi`, `title`, `authors[]` (họ, tên, ORCID), `year`, `journal`, `volume`, `issue`, `pages`, `apa_citation`, `bibtex`, `citekey` (Better BibTeX), `file_hash`, `zotero_*`, `oa_status`, `journal_quartile` + `quartile_year` + `subject_category` (SJR), `abs_rating`, `abdc_rating`, `retraction_status` | Nhận dạng chuẩn; xếp hạng tạp chí gắn với năm và chuyên ngành |
+| **2. Phân loại bài** | `paper_type` (empirical_quant / empirical_qual / mixed / conceptual / systematic_review / meta_analysis), `research_domain`, `corpus_source` (Zotero collection, chuỗi tìm kiếm, CSDL, ngày), `screening_decision` + `exclusion_reason` | Quyết định nhánh trích xuất; hỗ trợ PRISMA 2020 |
+| **3. Khung Lý thuyết** *(T3)* | `theory_id` (canonical), `application_role` ∈ {`mentioned`, `framing`, `hypothesis_derivation`, `tested`, `extended`}, `evidence` | Phân biệt lý thuyết *được nhắc tên* với lý thuyết *thực sự dùng để xây giả thuyết* |
+| **4. Khái niệm & Đo lường** (theo Study) | `construct_label_original` (T1), `canonical_construct_id` (T3), `definition` + `evidence` (T1), `scale_source`, `adapted`, `n_items`, `items[]`, `scale_type` (reflective / formative, T2), `order` (first / higher-order), `alpha`, `CR`, `AVE`, `HTMT_max` (T1) | Nhất quán định nghĩa; chất lượng thang đo; phát hiện jingle–jangle theo item (Larsen & Bong, 2016) |
+| **5. Thiết kế Nghiên cứu & Study** *(T2)* | `study_id`, `study_label`, `research_design`, `time_design`, `experimental_design`, `manipulation_check`, `attention_check`, `exclusion_rate`, `preregistered`, `open_data`, `analysis_method`, `software` | Bao quát bài nhiều study; tín hiệu chất lượng sau khủng hoảng tái lập |
+| **6. Mẫu & Bối cảnh** (theo Study) | `n` (T1), `unit_of_analysis`, `sample_type` (T2), `country_iso[]` (T1), `industry_code`, `market_type`, `data_collection_period` | Phục vụ phân nhóm **mô tả** theo bối cảnh |
+| **7. Kiểm soát sai lệch** *(T2)* | `cmb_procedural[]`, `cmb_statistical[]`, `cmb_weak_only` (chỉ dùng Harman's single-factor), `endogeneity_method[]` | Câu hỏi phản biện Q1 thường gặp |
+| **8. Đường quan hệ được kiểm định** (đơn vị phân tích chính) | `path_id`, `study_id`, `hypothesis_code`, `iv_construct_id`, `dv_construct_id`, `mediator_ids[]`, `moderator_ids[]`, `effect_type` (T2), `estimate_type` (std β / unstd b / OR / d / η² / r…), `estimate`, `se`, `ci_low`, `ci_high`, `ci_method`, `p_value`, `p_reported_as`, `t_or_z`, `r2_dv`, `f2` (T1), `status` (T2), `hypothesized_direction` (+ / − / không định hướng, T1), `observed_sign` (+ / −, T1), `significant` (theo ngưỡng tác giả dùng, T1), `model_covariates[]`, `comparability_note`, `evidence` | Lưu đúng như tác giả báo cáo; **không quy đổi β thành r**; ghi các biến khác có trong mô hình để người dùng hiểu giới hạn so sánh |
+| **9. Trung gian & Điều tiết** | Trung gian: `indirect_effect`, `boot_ci`, `mediation_type` theo Zhao, Lynch & Chen (2010). Điều tiết: `interaction_type`, `simple_slopes[]`, `index_moderated_mediation` (Hayes) | Thay phân loại "full/partial" của Baron & Kenny |
+| **10. Ma trận tương quan & Thống kê mô tả** (MỚI, T1) | `matrix_id`, `study_id`, `n`, `variables[]` (thứ tự + `construct_id`), `cells[]` (i, j, r), `diagonal_type` (1 / √AVE / α / trống), `descriptives[]` (M, SD, α, CR, AVE theo biến), `correlation_type` (Pearson / latent / polychoric), `source_table`, `pdf_page_index`, `printed_page`, `internal_check` (đối xứng, r ∈ [−1, 1], đường chéo khớp √AVE) | Dữ liệu chuẩn cho meta-analysis và **MASEM**; nguồn duy nhất của trục r trong Evidence Map |
+| **11. Đóng góp & Khoảng trống** *(T3)* | `contribution_type` theo Corley & Gioia (2011), `theoretical_contributions[]`, `practical_implications[]`, `limitations[]`, `future_directions[]`, `gap_type` theo Müller-Bloch & Kranz (2015), `problematization_hint` theo Alvesson & Sandberg (2011) (giả định nền nào của dòng nghiên cứu có thể bị thách thức), mỗi mục kèm `evidence` | Gợi ý cả *gap-spotting* lẫn *problematization* |
+| **12. Bằng chứng (Evidence)** | `evidence_id`, `field_ref`, `exact_quote` (≤ 50 từ khi hiển thị công khai), `pdf_page_index`, `printed_page`, `printed_page_method`, `section`, `table_or_figure`, `table_cell` (hàng, cột), `verified`, `verification_method`, `match_score`, `source` (ai / zotero_annotation / human) | Chống hallucination; nhảy đúng trang; trích đúng trang in theo APA |
+| **13. Kiểm soát chất lượng** | `extraction_run_id`, `model_name`, `prompt_version`, `schema_version`, `codebook_version`, `extracted_at`, `confidence`, `review_status` (ai_extracted / auto_verified / human_reviewed / disputed), `reviewer`, `review_notes`, `user_reports[]` | Tái lập được; minh bạch mức tin cậy |
+
+### 5.3. Lớp Khái niệm chuẩn (Canonical Construct Ontology)
+* Bảng `constructs`: `canonical_name`, `canonical_definition`, `domain`, `parent_construct_id`.
+* Bảng `construct_aliases`: tên gốc ánh xạ về khái niệm chuẩn, kèm `mapping_method` (exact / embedding / item_similarity / human) và `mapping_confidence`.
+* Quy trình: gợi ý bằng embedding tên + định nghĩa + **độ tương đồng item thang đo** (Larsen & Bong, 2016) → **người xác nhận** trong Review Queue. Không tự động gộp.
+* Xây dựng trước cho **miền khởi đầu** (Mục 1.3), mở rộng dần theo miền.
+* Cảnh báo jingle–jangle: cùng tên nhưng định nghĩa / item khác xa; khác tên nhưng item trùng lặp.
+
+### 5.4. Chỉ mục & Hiệu năng (Supabase PostgreSQL)
+* GIN `tsvector` cho tìm kiếm toàn văn; B-tree cho các cột lọc.
+* `pgvector` HNSW với **`halfvec(768)`**, chỉ embed abstract, định nghĩa khái niệm và câu kết quả (~20 đoạn/bài), ước tính ≈ 150MB cho 5.000 bài.
+* Materialized view đếm số bài theo facet, làm mới sau mỗi lượt `publish`.
+* **Materialized view `relation_index`** phục vụ Relationship Search (8.2b): mỗi dòng là một kiểm định với `iv_canonical_id`, `dv_canonical_id`, `iv_alias_id`, `dv_alias_id`, `mapping_reviewed`, `role` (direct / mediated / moderated), `mediator_ids[]`, `moderator_ids[]`, `paper_id`, `study_id`, `status`, `observed_sign`, `significant`, `estimate_type`, `review_status`. Index B-tree tổng hợp trên `(iv_canonical_id, dv_canonical_id)` và `(dv_canonical_id, iv_canonical_id)` để truy vấn hai chiều; mục tiêu < 200 ms (p95).
+* **Migrations SQL** (thư mục `supabase/migrations`) đi kèm mỗi lần đổi `schema_version`.
+
+---
+
+## 6. KIỂM SOÁT CHẤT LƯỢNG & ĐỘ TIN CẬY
+
+### 6.1. Sổ mã hóa (Codebook)
+* Định nghĩa vận hành từng trường, **tầng T1/T2/T3**, danh mục giá trị cho phép, quy tắc xử lý tình huống mơ hồ, ví dụ đúng/sai, quy ước annotation Zotero (Mục 3.2).
+* Là đầu vào trực tiếp cho prompt Gemini và tài liệu tham chiếu cho người mã hóa; có `codebook_version` và nhật ký thay đổi.
+* Thử nghiệm codebook trên 3 bài trước khi mã hóa Bộ chuẩn vàng.
+
+### 6.2. Bộ chuẩn vàng (Gold Standard Set)
+* **30 bài** trong miền khởi đầu (khoảng 10 bài mỗi nhóm: social media, thương hiệu, đạo đức), đa dạng thiết kế: survey PLS-SEM, CB-SEM, thực nghiệm nhiều study, dữ liệu thứ cấp/panel.
+* **Chia hai đợt (D9, phương án B):** đợt 1 gồm **15 bài** (5 bài mỗi nhóm) dùng cho cổng 1b; đợt 2 gồm 15 bài còn lại, mã hóa song song với Giai đoạn 2–3. Báo cáo độ tin cậy cuối cùng tính trên đủ 30 bài.
+* **Chủ dự án mã hóa cả 30 bài**; **người thứ hai mã hóa độc lập 10 bài thuộc đợt 1** để tính độ đồng thuận người–người; bất đồng được thảo luận và ghi lại quyết định (adjudication log).
+* Công sức dự kiến: khoảng 3–5 giờ/bài, tức khoảng 90–150 giờ cho người mã hóa chính và 30–50 giờ cho người thứ hai.
+* Mã hóa bằng annotation trong Zotero Reader; `gold:import` chuyển thành JSON.
+* **Người mã hóa thứ hai** không truy cập được thư viện Zotero cá nhân (D4). Hai cách: (a) mã hóa trong **Review Queue ở chế độ mã hóa độc lập**, ẩn mọi giá trị của AI và của chủ dự án, truy cập qua Cloudflare Tunnel + Access; hoặc (b) dùng Zotero của chính họ với cùng quy ước annotation rồi gửi tệp xuất cho `gold:import`. Đề xuất cách (a).
+* Dùng để: đo độ tin cậy AI–người; chọn model; **kiểm thử hồi quy** khi đổi prompt / schema / codebook.
+
+### 6.3. Kiểm chứng theo loại trường
+
+| Loại dữ liệu | Phương pháp kiểm chứng tự động |
+| :--- | :--- |
+| Câu văn (định nghĩa, giả thuyết, hạn chế) | Fuzzy match với text của trang được ghi (cho phép lệch ±1 trang), ngưỡng ≥ 0,90 |
+| Số liệu (β, p, n, α…) | Tìm đúng chuỗi số trên trang được ghi, chấp nhận các dạng `.35` / `0.35` / `0,35` / `< .001` |
+| Bảng (ma trận tương quan, bảng kết quả) | Gemini trả về `table_id` + hàng/cột; kiểm tra số có xuất hiện trên trang; kiểm tra tính nhất quán nội tại (đối xứng, r ∈ [−1, 1], đường chéo khớp √AVE nếu có, n khớp với phần mẫu) |
+| PDF scan không có text layer | Phát hiện tự động, gắn cờ `needs_ocr`, không kiểm chứng tự động; đưa vào Review Queue |
+| Kiểm tra logic chung | p ∈ [0,1]; n > 0; CI chứa estimate; `status` nhất quán với p và chiều tác động; tổng n các nhóm ≤ n mẫu |
+
+**Xác định `printed_page`** (lưu kèm `printed_page_method`): (1) PDF `/PageLabels`; (2) trang đầu theo Crossref cộng độ lệch; (3) Gemini đọc số trang ở header/footer; (4) annotation Zotero (`annotationPageLabel`) khi có.
+
+### 6.4. Ổn định & Mốc so sánh
+* **Test–retest:** chạy lại 10 bài chuẩn vàng hai lần độc lập, đo mức khớp giữa hai lần chạy.
+* **Mốc so sánh (baseline):** so sánh hệ thống với ít nhất một phương án khác (người mã hóa đơn lẻ có giới hạn thời gian, hoặc một công cụ thương mại như Elicit) trên cùng tập bài.
+
+### 6.5. Review Queue (giao diện duyệt dữ liệu, MỚI)
+* Danh sách trường cần duyệt: tất cả trường T3, trường không qua kiểm chứng, trường bị người dùng báo lỗi, mẫu ngẫu nhiên 10% trường đã kiểm chứng.
+* Bố cục chia đôi: PDF bên trái (nhảy đến trang và tô sáng), giá trị AI trích bên phải.
+* Phím tắt: `A` chấp nhận, `E` sửa, `R` từ chối, `N` sang mục tiếp theo; ghi `reviewer`, `review_notes`.
+* Duyệt ánh xạ khái niệm chuẩn trong cùng giao diện.
+* Chạy local (chỉ chủ dự án / nhóm); thành phần giao diện được dùng lại cho Split-Screen của web công khai.
+
+### 6.6. Trạng thái tin cậy hiển thị cho người dùng
+| Trạng thái | Ý nghĩa | Biểu tượng |
+| :--- | :--- | :--- |
+| `ai_extracted` | AI trích xuất, chưa kiểm chứng | ⚠ |
+| `auto_verified` | Khớp với PDF và qua kiểm tra logic | ✓ |
+| `human_reviewed` | Đã có người duyệt (Review Queue hoặc annotation Zotero) | ★ |
+| `disputed` | Có báo lỗi, đang xem xét | ⚑ |
+
+### 6.7. Liêm chính học thuật
+* Câu học thuật sinh tự động chỉ là **bản nháp**, kèm nhắc "đối chiếu với bản gốc trước khi sử dụng".
+* Không sinh câu từ dữ liệu `ai_extracted` hoặc `disputed`.
+* Câu trích công khai giới hạn ≤ 50 từ.
+* Hướng dẫn người dùng khai báo việc dùng công cụ AI theo chính sách tạp chí; báo cáo SLR theo **PRISMA 2020** và mô tả rõ vai trò AI ở từng bước.
+
+---
+
+## 7. QUẢN LÝ BẢN QUYỀN & CHIA SẺ PDF
+
+| Tình trạng (theo Unpaywall) | Quyền truy cập PDF trên Web |
+| :--- | :--- |
+| Gold / Hybrid / Green OA với giấy phép mở (CC-BY…) | Công khai, tải trực tiếp |
+| Bronze OA hoặc không rõ giấy phép | Chỉ link DOI / link OA gốc |
+| Không phải OA | Signed URL có thời hạn, chỉ cho thành viên nhóm đã đăng nhập; người ngoài chỉ thấy link DOI |
+
+* **Zotero Storage là kho gốc**; R2 (private) chỉ là bản phục vụ hiển thị, dựng lại được từ Zotero.
+* Thành viên nhóm truy cập bài không OA qua Web sau khi đăng nhập (Mục 7.1); thư viện Zotero cá nhân không được chia sẻ.
+* **Giai đoạn đầu (D2): toàn bộ web chỉ dành cho thành viên nhóm đã đăng nhập** (Supabase Auth, mời qua email, không cho tự đăng ký). Bảng trên áp dụng khi mở công khai.
+
+### 7.1. Tải bài gốc (PDF) từ Web (MỚI)
+
+**Ai được tải:**
+| Giai đoạn | Bài Open Access | Bài không OA |
+| :--- | :--- | :--- |
+| Chỉ nhóm (hiện tại, D2) | Mọi thành viên đã đăng nhập | Mọi thành viên đã đăng nhập |
+| Sau khi mở công khai | Mọi người | Chỉ thành viên nhóm đã đăng nhập; người ngoài thấy link DOI / link OA gốc |
+
+**Luồng kỹ thuật:**
+1. Người dùng bấm **"Tải PDF gốc"** (ở thẻ bài báo, trang chi tiết, Split-Screen, kết quả Relationship Search).
+2. Trình duyệt gọi một endpoint (Cloudflare Worker, hoặc API route của Next.js). Endpoint kiểm tra phiên đăng nhập Supabase và quyền với bài đó.
+3. Endpoint tạo **presigned URL của R2 có hạn 5 phút**, kèm header `Content-Disposition: attachment` và tên tệp dễ đọc theo mẫu `Tacgia_Nam_Tieu-de-rut-gon.pdf` (VD: `Nguyen_2023_Perceived-risk-and-purchase-intention.pdf`).
+4. Trình duyệt **tải thẳng từ R2**, không đi qua Vercel. Lý do: hàm serverless của Vercel giới hạn dung lượng phản hồi khoảng 4,5 MB, vượt là lỗi; tải từ R2 cũng không tốn băng thông.
+
+**Các nút liên quan:**
+* **Xem** (mở trong trình đọc pdf.js) và **Tải về** là hai nút riêng.
+* Không có quyền tải: nút chuyển thành **"Mở DOI"** hoặc **"Bản OA"** (link Unpaywall).
+* *(Giai đoạn sau)* **Tải nhiều bài**: chọn nhiều bài trong Thư viện, Ma trận hoặc kết quả Relationship Search rồi tải một tệp ZIP (Worker ghép ZIP dạng streaming), kèm tệp `references.bib` và `references.ris` (dùng citekey Better BibTeX) để nhập vào Zotero / EndNote.
+
+**Bảo vệ:**
+* Ghi nhật ký tải (`download_logs`: người dùng, bài, thời điểm).
+* Giới hạn số lượt tải mỗi người dùng mỗi giờ (VD: 50 lượt) để chặn tải hàng loạt bất thường.
+* Link hết hạn sau 5 phút; không bao giờ để lộ đường dẫn R2 cố định.
+* Sau khi qua cổng chất lượng 1b và có quyết định mở công khai: dữ liệu trích xuất (ma trận, đường quan hệ, câu trích ngắn kèm số trang) được công khai.
+* Có trang "Chính sách nội dung" và kênh tiếp nhận yêu cầu gỡ bỏ.
+
+---
+
+## 8. THIẾT KẾ TRẢI NGHIỆM GIAO DIỆN HỌC THUẬT (UI/UX SPECIFICATION 3.1)
+
+Phong cách **Tối giản học thuật (Clean Academic Deep-Work Workspace)**; MVP giao diện tiếng Việt, sẵn sàng i18n; đạt **WCAG AA**; điều hướng được bằng bàn phím.
+
+### 8.0. Quy trình thiết kế (MỚI)
+1. Prototype bấm thử được (Figma hoặc HTML tĩnh) cho ba màn hình: Thư viện, Split-Screen, Ma trận.
+2. Kiểm tra với **3–5 nghiên cứu sinh / giảng viên** bằng tác vụ thật, ví dụ: "tìm định nghĩa và thang đo của *Perceived Risk*", "lập bảng tổng quan cho 10 bài", "kiểm tra kết quả H2 của một bài trong PDF".
+3. Ghi lại thời gian hoàn thành, lỗi, nhận xét; chỉnh thiết kế trước khi vào Giai đoạn 3.
+
+### 8.1. Quy chuẩn hiển thị số liệu thống kê (MỚI)
+* Theo APA 7: **bỏ số 0 đứng đầu** với giá trị không vượt quá 1 (p, r, β chuẩn hóa); ký hiệu thống kê in nghiêng (*β*, *p*, *r*, *n*).
+* Font có chữ số cùng độ rộng (tabular figures) để cột số thẳng hàng.
+* p hiển thị như tác giả báo cáo (`p_reported_as`) khi không có giá trị chính xác.
+
+### 8.2. Thư viện lọc đa chiều (Faceted Library)
+* Ô tìm kiếm gợi ý tự động theo khái niệm chuẩn và lý thuyết; truy vấn mẫu cho người mới.
+* Bộ lọc (kèm số bài): năm, loại bài, miền nghiên cứu, lý thuyết nền (kèm vai trò), thiết kế, phương pháp phân tích, loại mẫu, quốc gia/khu vực, ngành, B2B/B2C, xếp hạng tạp chí, trạng thái OA, mức tin cậy dữ liệu, **có ma trận tương quan**.
+* Thẻ bài báo: tác giả & năm, tạp chí + xếp hạng, thiết kế, số Study, tóm tắt mức tin cậy, nút **Copy APA**, **Copy citekey**, **Xem chi tiết**, **Xem PDF** và **Tải PDF gốc** (theo quyền, Mục 7.1), **DOI**.
+* Có màn hình trống và skeleton khi tải.
+
+### 8.2b. Tìm theo mối quan hệ giữa hai biến (Relationship Search) (MỚI)
+Trả lời trực tiếp câu hỏi cốt lõi số 1: *"Mối quan hệ giữa biến A và biến B đã được nghiên cứu thế nào?"*
+
+**a. Ô nhập truy vấn**
+```
+┌─ Biến A ─────────────────┐   [ → ⇄ ← ]   ┌─ Biến B ─────────────────┐
+│ Perceived Risk         ▾ │               │ Purchase Intention     ▾ │   [ Tìm kiếm ]
+└──────────────────────────┘               └──────────────────────────┘
+  Vai trò quan hệ: (●) Trực tiếp  ( ) Qua trung gian  ( ) Có điều tiết  ( ) Tất cả
+  [x] Bao gồm tên gọi tương đương    [ ] Chỉ ánh xạ đã được duyệt
+```
+* **Ô Biến A / Biến B:** gợi ý tự động theo **khái niệm chuẩn**; mỗi gợi ý hiển thị số bài và các tên gọi khác (VD: *Perceived Risk*, cũng gọi là *Risk Perception*, *Consumer Perceived Risk*).
+* **Chiều quan hệ:** `A → B` (A là biến độc lập, B là biến phụ thuộc), `B → A`, hoặc `⇄` (cả hai chiều). Mặc định là `A → B`.
+* **Vai trò quan hệ:**
+  * *Trực tiếp:* A → B là một đường quan hệ trực tiếp.
+  * *Qua trung gian:* hiệu ứng gián tiếp A → M → B (mọi biến trung gian M), kèm tên M.
+  * *Có điều tiết:* quan hệ A → B có biến điều tiết W, kèm tên W.
+* **Tên gọi tương đương:** bật thì gộp mọi tên gốc được ánh xạ về cùng khái niệm chuẩn; tùy chọn "chỉ ánh xạ đã được duyệt" để loại các ánh xạ còn ở trạng thái gợi ý (T3 chưa duyệt).
+* *(Giai đoạn sau)* Nút **"+ Thêm biến"** để tìm chuỗi A → M → B với M cụ thể.
+
+**b. Thanh tổng hợp kết quả** (mỗi mục là một bộ lọc bấm được)
+```
+24 bài · 31 study · 37 kiểm định
+Kết quả giả thuyết:  ✓ Ủng hộ 25   ✗ Không ủng hộ 8   ◐ Một phần / Trộn 3   ○ Không đặt giả thuyết 1
+Chiều tác động:      ＋ Dương 4    － Âm 27    ∅ Không có ý nghĩa 6
+```
+* Phân biệt rõ hai khái niệm:
+  * **Kết quả giả thuyết** (`status`): giả thuyết của tác giả có được ủng hộ hay không.
+  * **Chiều tác động** (dấu của estimate và ý nghĩa thống kê): tác động thực tế là dương, âm hay không có ý nghĩa.
+  * Hai thông tin này có thể khác nhau, ví dụ giả thuyết dự đoán tác động dương nhưng kết quả âm có ý nghĩa vẫn là "không ủng hộ".
+
+**c. Bộ lọc bổ sung sau khi tìm**
+* **Kết quả giả thuyết:** Ủng hộ / Không ủng hộ / Một phần hoặc Trộn / Không đặt giả thuyết (chọn nhiều).
+* **Chiều tác động:** Dương / Âm / Không có ý nghĩa.
+* **Loại hiệu ứng:** trực tiếp / gián tiếp / tương tác / tổng.
+* **Thước đo:** β chuẩn hóa / b / OR / d / r…; có ma trận tương quan hay không.
+* Toàn bộ facet của Thư viện (8.2): năm, thiết kế, phương pháp phân tích, loại mẫu, quốc gia, ngành, B2B/B2C, xếp hạng tạp chí, mức tin cậy dữ liệu.
+
+**d. Danh sách kết quả** (nhóm theo bài, mở rộng theo từng kiểm định)
+```
+▸ Nguyen et al. (2023) · J. Retailing and Consumer Services · Q1 · Survey, PLS-SEM · VN · n = 412
+    S1  H2  Perceived Risk → Purchase Intention   β = −.31  p < .001  ✓ Ủng hộ   (p. 1252) ✓ đã kiểm chứng
+▸ Kim & Lee (2021) · Journal of Business Research · Q1 · Thực nghiệm 2 study
+    S1  H1  Perceived Risk → Purchase Intention   β = −.12  p = .08   ✗ Không ủng hộ (p. 88)
+    S2  H1  Perceived Risk → Purchase Intention   β = −.27  p = .002  ✓ Ủng hộ   (p. 91)
+            điều tiết bởi: Brand Familiarity
+```
+* Mỗi dòng kiểm định hiển thị: Study, mã giả thuyết, tên biến **như tác giả dùng** (kèm khái niệm chuẩn khi khác tên), estimate kèm `estimate_type`, p, kết quả giả thuyết, biến trung gian / điều tiết, số trang in và huy hiệu tin cậy.
+* Bấm vào dòng kiểm định: mở Split-Screen (8.3) đúng trang và tô sáng câu / ô bảng chứa kết quả.
+* Sắp xếp theo: năm, cỡ mẫu, xếp hạng tạp chí, độ lớn tác động (chỉ trong cùng `estimate_type`).
+* Một bài có nhiều kiểm định với kết quả khác nhau (VD: Study 1 không ủng hộ, Study 2 ủng hộ) được gắn nhãn **"Kết quả khác nhau giữa các study"**.
+
+**e. Hành động trên tập kết quả**
+* **Xuất bảng** Word APA 7 / Excel cho đúng tập kết quả đã lọc (dùng định dạng Ma trận 8.4).
+* **Copy câu tổng hợp (bản nháp)**, ví dụ: *"Of 31 studies examining the effect of perceived risk on purchase intention, 25 supported a negative relationship (e.g., Nguyen et al., 2023, p. 1252), whereas 6 reported non-significant effects (e.g., Kim & Lee, 2021, p. 88)."* Chỉ dùng dữ liệu `auto_verified` / `human_reviewed`, kèm nhắc nhở rằng đây là đếm mô tả, không thay thế meta-analysis.
+* **Xem trên Evidence Map** (8.7) cho cặp biến này (khi tính năng có ở Giai đoạn 6).
+* **Lưu truy vấn** vào bộ sưu tập (8.10) và **chia sẻ bằng URL**, ví dụ: `/relations?a=perceived_risk&b=purchase_intention&dir=ab&role=direct&status=supported`.
+
+**f. Trạng thái trống & cảnh báo**
+* Không có kết quả: gợi ý đảo chiều quan hệ, bật tên gọi tương đương, hoặc chuyển sang "Tất cả vai trò"; đồng thời ghi rõ **"Chưa có bài nào trong kho kiểm định quan hệ này: có thể là khoảng trống nghiên cứu"**, kèm nhắc rằng kho chưa bao phủ toàn bộ tài liệu.
+* Luôn hiển thị ghi chú: *"Số lượng bài ủng hộ / không ủng hộ là thống kê mô tả. Kết quả không có ý nghĩa thống kê không có nghĩa là không có tác động; xem n và CI."*
+
+### 8.3. Split-Screen Evidence Workspace
+* Thanh chia kéo được (mặc định 45/55, ghi nhớ lựa chọn).
+* Bên trái: pdf.js qua Signed URL; không có quyền thì hiển thị abstract + link DOI.
+* Bên phải theo tab: Tổng quan | Lý thuyết | Study & Mẫu | Đo lường | Kết quả | Tương quan | Đóng góp & Khoảng trống.
+* Anchor Click: bấm vào trường thì PDF nhảy đến trang và **tô sáng đúng câu / ô bảng**.
+* Đồng bộ hai chiều: bôi đen một đoạn trong PDF thì hiện các trường trích từ đoạn đó.
+* **Huy hiệu tin cậy ở cấp phần** (VD: "Kết quả: 18/20 đã kiểm chứng"); bấm vào mới xem chi tiết từng trường. Nút **Báo lỗi** trên từng trường.
+
+### 8.4. Ma trận tổng hợp Master-Detail
+* Dòng chính: Tác giả & Năm | Lý thuyết | Thiết kế & Mẫu (n, quốc gia) | Kết quả chính.
+* Dòng mở rộng: đường quan hệ theo Study với estimate (kèm `estimate_type`), CI, p, R², trạng thái, câu trích và số trang.
+* Cố định cột đầu; chọn cột; **saved views**; chỉnh mật độ hiển thị.
+* Mã trạng thái luôn có biểu tượng kèm màu: ✓ Supported (xanh ngọc dịu) · ✗ Not supported (xám đá) · ◐ Partially / Mixed (vàng hổ phách) · ○ Not hypothesized (viền xám).
+* Copy câu học thuật (bản nháp), chỉ với dữ liệu `auto_verified` / `human_reviewed`.
+  *Ví dụ: "Perceived ease of use positively affects intention to use (β = .35, p < .001; Nguyen et al., 2023, p. 1252)."*
+* Xuất **Excel** (`exceljs`) và **Word** (`docx`) theo bảng APA 7: số bảng in đậm, tiêu đề in nghiêng, ba đường kẻ ngang, phần *Note.*, Times New Roman 12.
+* Mobile: dạng thẻ chỉ đọc.
+
+### 8.5. Trang Khái niệm
+* Định nghĩa chuẩn + mọi định nghĩa gốc (kèm trích dẫn, số trang).
+* Thang đo đã dùng: nguồn, số item, nội dung item, α / CR / AVE.
+* Mạng quan hệ: tiền tố, hệ quả, vai trò trung gian / điều tiết; cảnh báo jingle–jangle.
+
+### 8.6. Trang Lý thuyết
+* Bài sử dụng theo vai trò (`mentioned` → `extended`); khái niệm thường đi cùng; bối cảnh phổ biến; xu hướng theo năm.
+
+### 8.7. Evidence Map
+* Nhập cặp quan hệ (VD: `Perceived Risk` → `Purchase Intention`), tự gộp tên gọi khác qua lớp khái niệm chuẩn.
+* **Forest plot chỉ dùng r từ ma trận tương quan** (kèm CI tính từ n), kích thước điểm theo n.
+* Kết quả β / b / OR / d hiển thị trong **bảng riêng theo `estimate_type`**, không vẽ chung trục với r; ghi kèm `model_covariates`.
+* Phân nhóm theo bối cảnh với ghi chú bắt buộc: **"So sánh mô tả, không phải kiểm định moderator"**.
+* Nhãn "kết quả không nhất quán" chỉ dùng khi CI không chồng lấn hoặc khác chiều tác động.
+* Cảnh báo: "Không có ý nghĩa thống kê ≠ không có tác động; xem n và CI."
+* Xuất ma trận tương quan và dữ liệu effect size ra CSV / định dạng dùng được cho R (`metafor`, `metaSEM`) và JASP.
+
+### 8.8. Mạng quan hệ & Heatmap khoảng trống
+* Đồ thị nomological network; cạnh tô màu theo độ mạnh và tính nhất quán của bằng chứng.
+* Heatmap khái niệm × khái niệm: ô trống / ít bằng chứng là gợi ý *gap-spotting*.
+* Kèm gợi ý *problematization*: các giả định nền mà nhiều bài cùng chấp nhận (từ trường `problematization_hint`).
+
+### 8.9. Trang "Phương pháp dữ liệu" (MỚI)
+* Công bố công khai: κ / α theo từng tầng và phân hệ, tỷ lệ kiểm chứng, kết quả test–retest, phiên bản model / prompt / codebook, ngày cập nhật.
+
+### 8.10. Bộ sưu tập theo dự án (giai đoạn sau)
+* Đăng nhập (Supabase Auth); bộ sưu tập có thể đồng bộ với một Zotero collection; lưu ghi chú; xuất ma trận cho riêng bộ sưu tập.
+
+---
+
+## 9. CÔNG NGHỆ SỬ DỤNG & CẤU TRÚC MÃ NGUỒN
+
+### 9.1. Tech stack
+
+| Thành phần | Công nghệ |
+| :--- | :--- |
+| Ngôn ngữ | **TypeScript** toàn bộ, một runtime Node.js |
+| Schema | **Zod** → `zod-to-json-schema` (Gemini) + kiểu DB + kiểu Web |
+| Worker | Node.js CLI, chạy local, do Claude Code xây dựng và vận hành |
+| Nguồn tài liệu | **Zotero Web API v3** + Zotero 7 Local API; Better BibTeX |
+| Trích xuất | Gemini API (trả phí): Flash / Pro, Batch API, Context Caching (tùy kết quả đo) |
+| Text layer PDF | **`pdfjs-dist`** hoặc **`unpdf`** (giấy phép Apache / MIT) |
+| Metadata | Crossref REST API, Unpaywall API, citation-js (CSL → APA 7 / BibTeX) |
+| Embedding | Gemini embedding, giảm chiều 768, lưu `halfvec` |
+| CSDL | Supabase PostgreSQL + pgvector, RLS, Supabase Auth, Supabase CLI (migrations) |
+| Lưu trữ PDF phục vụ hiển thị | Cloudflare R2 (private) + Signed URL |
+| Web | Next.js App Router, Tailwind CSS, shadcn/ui, TanStack Table, react-pdf / pdf.js |
+| Biểu đồ | Recharts hoặc Visx (forest plot, heatmap), Cytoscape.js (mạng quan hệ) |
+| Xuất file | `docx`, `exceljs` |
+| Triển khai & vận hành | GitHub → Vercel; GitHub Actions: kiểm thử hồi quy, cron giữ Supabase hoạt động, **`pg_dump` hằng đêm lên R2** |
+
+### 9.2. Cấu trúc monorepo (pnpm workspaces)
+
+```
+research-data/
+├─ packages/
+│  └─ schema/          ← Zod schema, codebook, prompt (dùng chung)
+├─ apps/
+│  ├─ worker/          ← CLI: sync, estimate, extract, verify, review, publish, write-back, gold:import
+│  └─ web/             ← Next.js (gồm Review Queue nội bộ)
+├─ supabase/
+│  └─ migrations/      ← migrations SQL theo schema_version
+├─ gold_standard/      ← chỉ script tính κ / α; dữ liệu chuẩn vàng (chứa câu trích từ bài có bản quyền) KHÔNG commit vì repo public, lưu trong Supabase / Zotero
+├─ docs/               ← codebook.md, reliability_report.md
+├─ raw_papers/         ← (không commit) PDF dự phòng ngoài Zotero
+└─ extracted_data/     ← (không commit) phản hồi thô
+```
+
+* Code hiện có (`schema.js` dạng CommonJS) được **viết lại** thành `packages/schema` theo Zod, không vá tiếp.
+* `.gitignore` bổ sung: `extracted_data/`, `raw_papers/`, `.env*` (trừ `.env.example`).
+
+---
+
+## 10. LỘ TRÌNH THỰC HIỆN (ROADMAP 3.1)
+
+### 📍 Giai đoạn 0: Nền tảng phương pháp luận
+1. **Chốt miền nghiên cứu khởi đầu** (Mục 1.3).
+2. Viết Codebook v1.0 (gán tầng T1/T2/T3 cho mọi trường, quy ước annotation Zotero); thử trên 3 bài.
+3. Dựng monorepo; viết `packages/schema` (Zod) v3.1 từ Codebook; test chuyển đổi sang `responseSchema`.
+4. Thiết lập Zotero: collection `Research Data/Inbox`, tag quy ước, API key, Better BibTeX.
+5. Chọn 30 bài chuẩn vàng; mã hóa 10 bài đầu bằng annotation; `gold:import`.
+6. Khởi tạo danh sách lý thuyết chuẩn và khái niệm chuẩn cho miền khởi đầu.
+* **Bàn giao:** `docs/codebook.md`, `packages/schema`, `gold_standard/` (10 bài).
+
+### 📍 Giai đoạn 1: Bộ máy trích xuất (Local Worker)
+1. Supabase project `dev` + migrations đầu tiên (`pipeline_runs`, `extraction_runs`, bảng nghiệp vụ).
+2. Pipeline S1–S6: đồng bộ Zotero → metadata → text layer + `printed_page` → Gemini 2 lượt → validate → verify theo loại trường.
+3. Rate limiter, backoff, `estimate`, trần ngân sách; luồng Batch bất đồng bộ.
+4. Lưu phiên bản model / prompt / schema / codebook và phản hồi thô.
+* **Bàn giao:** `pnpm worker extract` chạy trên collection mẫu, sinh dữ liệu đã kiểm chứng + báo cáo chi phí.
+
+### 📍 Giai đoạn 1b: Pilot, Review Queue & Đo độ tin cậy (cổng chất lượng)
+1. **Review Queue** bản đầu (local) và bước S7.
+2. Chạy trên 10 bài chuẩn vàng: đo T1 (% khớp), T2 (κ), T3 (κ, chỉ báo cáo), tỷ lệ kiểm chứng.
+3. **Test–retest** trên 10 bài; so sánh Flash và Pro; đo chi phí ba phương án (đồng bộ / cache / batch) → chốt đơn giá mỗi bài.
+4. Tinh chỉnh prompt / codebook đến khi đạt KPI; hoàn tất mã hóa đợt 1 (**15 bài**, trong đó 10 bài mã hóa kép bởi người thứ hai) và kiểm định lại; chạy so sánh với baseline. Đợt 2 (15 bài còn lại) mã hóa song song với Giai đoạn 2–3 rồi cập nhật `reliability_report.md`.
+* **Điều kiện qua cổng:** T1 ≥ 95% khớp; T2 κ ≥ 0,75; ≥ 95% câu văn và số liệu được kiểm chứng; test–retest đạt ngưỡng ở Mục 1.4. **Chưa đạt thì không sang Giai đoạn 2.**
+* **Bàn giao:** `docs/reliability_report.md` (nền cho một bài báo phương pháp), Review Queue dùng được.
+
+### 📍 Giai đoạn 2: Đám mây & Đồng bộ hai chiều
+1. Supabase `prod`: schema đầy đủ, index, RLS, materialized views.
+2. Bucket R2 private, CORS cho pdf.js; Unpaywall gán quyền truy cập PDF (Mục 7).
+3. Bước S8–S11: chuẩn hóa khái niệm, upload R2, publish, **ghi ngược Zotero** (tag + child note).
+4. GitHub Actions: `pg_dump` hằng đêm lên R2; cron giữ Supabase hoạt động.
+* **Bàn giao:** một lệnh `pnpm worker sync` đưa bài từ Zotero lên cloud và ghi kết quả ngược về Zotero.
+
+### 📍 Giai đoạn 2b: Prototype & Kiểm tra người dùng (MỚI)
+1. Prototype ba màn hình chính (Mục 8.0).
+2. Kiểm tra với 3–5 người dùng bằng tác vụ thật; tổng hợp phát hiện; chỉnh thiết kế.
+* **Bàn giao:** prototype đã chỉnh + biên bản kiểm tra người dùng.
+
+### 📍 Giai đoạn 3: Web MVP (Next.js, local)
+1. `apps/web` dùng chung `packages/schema`; quy chuẩn hiển thị số liệu APA (8.1).
+   **Đăng nhập bắt buộc** (D2): Supabase Auth mời qua email (magic link), RLS chỉ cho người dùng đã xác thực đọc dữ liệu.
+2. Thư viện lọc đa chiều (8.2).
+3. **Relationship Search** (8.2b): tìm theo cặp biến, chiều và vai trò quan hệ; lọc theo kết quả giả thuyết và chiều tác động; xuất bảng; chia sẻ URL. Bản MVP dùng danh sách khái niệm chuẩn khởi tạo ở Giai đoạn 0 và hiển thị rõ ánh xạ nào chưa được duyệt.
+4. Split-Screen Evidence Workspace (8.3), dùng lại thành phần từ Review Queue.
+   **Xem và tải PDF gốc** theo quyền (Mục 7.1): presigned URL từ R2, tên tệp dễ đọc, nhật ký tải, giới hạn lượt tải.
+5. Ma trận Master-Detail + xuất Word APA 7 / Excel (8.4).
+6. Trang "Phương pháp dữ liệu" (8.9).
+
+### 📍 Giai đoạn 4: GitHub & Triển khai Vercel
+1. Repository chỉ chứa mã nguồn; biến môi trường tối thiểu trên Vercel.
+2. GitHub Actions: kiểm thử hồi quy trên Bộ chuẩn vàng khi prompt / schema thay đổi.
+3. Đo hiệu năng thực tế (trang < 0,8 s; lọc < 200 ms p95).
+
+### 📍 Giai đoạn 5: Lớp tổng hợp tri thức
+1. Duyệt ánh xạ khái niệm chuẩn quy mô lớn trong Review Queue.
+2. Trang Khái niệm (8.5) và Trang Lý thuyết (8.6).
+3. Quy trình vận hành "1 thao tác": thêm bài vào Zotero Inbox → `pnpm worker sync` → dữ liệu hiển thị trên web và trong Zotero.
+
+### 📍 Giai đoạn 6: Phân tích nâng cao (khi kho có > 300 bài)
+1. Evidence Map (8.7) và xuất dữ liệu cho `metafor` / `metaSEM`.
+2. Mạng quan hệ & Heatmap khoảng trống (8.8).
+3. Tìm kiếm ngữ nghĩa (pgvector) kết hợp từ khóa.
+4. Bộ sưu tập theo dự án, đồng bộ với Zotero collection (8.10).
+5. Xuất PRISMA 2020.
+6. Mở rộng sang miền nghiên cứu thứ hai; bổ sung nhánh trích xuất cho bài định tính / khái niệm; giao diện tiếng Anh.
+
+### Ngoài phạm vi MVP / hoãn lại
+* Trích xuất sâu bài định tính, bài khái niệm, bài tổng quan.
+* Tìm kiếm ngữ nghĩa trước khi có vài trăm bài.
+* Evidence Map trước khi lớp khái niệm chuẩn ổn định và có đủ ma trận tương quan.
+* OCR tự động cho PDF scan (MVP chỉ gắn cờ và duyệt tay).
+
+### 10.1. Lịch dự kiến (5–10 giờ/tuần, trung bình ~7,5 giờ)
+
+Claude Code viết và chạy phần lớn mã nguồn; thời gian dưới đây là **thời gian của chủ dự án** (soạn và duyệt codebook, mã hóa chuẩn vàng, kiểm tra kết quả, ra quyết định). Việc tốn thời gian nhất là mã hóa Bộ chuẩn vàng (3–5 giờ/bài).
+
+| Giai đoạn | Việc chính của chủ dự án | Giờ ước tính | Tuần (phương án B) | Tuần (phương án A) |
+| :--- | :--- | :--- | :--- | :--- |
+| 0 | Duyệt codebook, thiết lập Zotero, chọn 30 bài, mã hóa 10 bài đầu | 50–70 | 1–9 | 1–9 |
+| 1 | Kiểm tra kết quả worker trên bài mẫu | ~10 | 10–11 | 10–11 |
+| 1b | Mã hóa thêm bài chuẩn vàng, duyệt trong Review Queue, tinh chỉnh | B: 30–40 · A: 75–115 | 12–16 | 12–26 |
+| 2 | Kiểm tra đồng bộ cloud và ghi ngược Zotero | ~8 | 17–18 | 27–28 |
+| 2b | Kiểm tra prototype với 3–5 người dùng | ~10 | 19–20 | 29–30 |
+| 3 | Góp ý và nghiệm thu Web MVP | ~15 | 21–23 | 31–33 |
+| 4 | Triển khai Vercel, mời thành viên nhóm | ~5 | 24 | 34 |
+| **Web MVP cho nhóm** | | | **~6 tháng (khoảng tháng 4/2027)** | **~8 tháng (khoảng tháng 6/2027)** |
+
+* **Phương án A:** đủ 30 bài chuẩn vàng trước cổng 1b (như Mục 6.2).
+* **Phương án B (đã chọn, D9):** cổng 1b dùng **15 bài** (5 bài mỗi nhóm; 10 bài trong đó mã hóa kép). 15 bài vẫn cho hàng trăm điểm dữ liệu để ước lượng độ tin cậy theo tầng, nhưng khoảng tin cậy của κ cho từng trường riêng lẻ sẽ rộng. 15 bài còn lại được mã hóa song song với Giai đoạn 2–3; báo cáo độ tin cậy cuối cùng (dùng cho bài báo phương pháp) tính trên đủ 30 bài.
+* Giai đoạn 5–6 lên lịch sau khi Web MVP được nhóm sử dụng thực tế.
+
+---
+
+## 11. QUẢN TRỊ RỦI RO & BẢO TOÀN DỮ LIỆU (RISK MANAGEMENT)
+
+| # | Rủi ro | Biện pháp |
+| :--- | :--- | :--- |
+| 1 | AI trích xuất sai / bịa câu trích | Kiểm chứng theo loại trường; validate logic; đo độ tin cậy theo tầng; Review Queue; hiển thị trạng thái tin cậy |
+| 2 | So sánh không hợp lệ giữa các bài (β khác mô hình) | Không quy đổi β → r; forest plot chỉ dùng r từ ma trận tương quan; ghi `model_covariates`, `comparability_note` |
+| 3 | Cổng chất lượng không bao giờ đạt | KPI theo tầng; T3 chỉ báo cáo + bắt buộc duyệt |
+| 4 | Chi phí Gemini vượt dự kiến | `estimate`; trần ngân sách; đo đơn giá ở 1b; Batch API; Flash mặc định |
+| 5 | Rate-limit (Gemini, Zotero) / lỗi mạng | Token bucket + backoff có jitter; tuân theo `Retry-After` / `Backoff`; trạng thái từng bước; chạy tiếp không tốn lại token |
+| 6 | Đổi prompt làm giảm chất lượng | Kiểm thử hồi quy trên Bộ chuẩn vàng; lưu phiên bản; chỉ chạy lại bài bị ảnh hưởng |
+| 7 | Bản quyền PDF | Zotero là kho gốc; R2 private; quyền theo trạng thái OA; Signed URL; chia sẻ cho nhóm chỉ qua Web có đăng nhập; chính sách gỡ bỏ; câu trích ≤ 50 từ |
+| 8 | Jingle–jangle | Lớp khái niệm chuẩn theo miền; gợi ý theo item; người xác nhận |
+| 9 | Kết luận sai từ so sánh bối cảnh | Nhãn "so sánh mô tả"; cảnh báo phương pháp trên giao diện |
+| 10 | Mất dữ liệu | `pg_dump` hằng đêm lên R2; raw JSONB; Zotero là kho gốc PDF; migrations có phiên bản |
+| 11 | Vượt giới hạn gói Free | Embedding chọn lọc + `halfvec`; theo dõi dung lượng; cron giữ hoạt động; R2 dựng lại được từ Zotero |
+| 12 | Lộ API key (Gemini, Zotero, Supabase) | `.env` local, `.gitignore`; key Zotero giới hạn quyền; service key chỉ ở worker; bật **secret scanning + push protection** của GitHub (repo public) |
+| 12b | Repo public làm lộ nội dung có bản quyền | Không commit PDF, phản hồi thô, dữ liệu chuẩn vàng hay câu trích; kiểm tra `git status` trước mỗi commit; dữ liệu mẫu trong test chỉ dùng văn bản tự viết |
+| 13 | Sai số trang khi trích dẫn | `pdf_page_index` + `printed_page` + `printed_page_method`; ưu tiên `annotationPageLabel` khi có |
+| 14 | PDF scan không có text layer | Gắn cờ `needs_ocr`, duyệt tay; OCR tự động để giai đoạn sau |
+| 15 | Liêm chính khi dùng câu sinh tự động | Bản nháp; chặn với dữ liệu chưa kiểm chứng; hướng dẫn khai báo AI |
+| 16 | Công sức mã hóa chuẩn vàng bị đánh giá thấp | Ước tính 90–150 giờ; mã hóa trong Zotero khi đọc; chỉ 10 bài mã hóa kép |
+| 17 | Phạm vi quá rộng cho một người | Miền khởi đầu hẹp; MVP chỉ bài định lượng; cổng chất lượng 1b; kiểm tra người dùng trước khi code Web |
+
+---
+
+## 12. TÀI LIỆU THAM KHẢO PHƯƠNG PHÁP LUẬN (dùng cho Codebook)
+
+* Alvesson, M., & Sandberg, J. (2011). Generating research questions through problematization. *Academy of Management Review, 36*(2), 247–271.
+* Corley, K. G., & Gioia, D. A. (2011). Building theory about theory building: What constitutes a theoretical contribution? *Academy of Management Review, 36*(1), 12–32.
+* Henseler, J., Ringle, C. M., & Sarstedt, M. (2015). A new criterion for assessing discriminant validity in variance-based structural equation modeling. *Journal of the Academy of Marketing Science, 43*(1), 115–135.
+* Larsen, K. R., & Bong, C. H. (2016). A tool for addressing construct identity in literature reviews and meta-analyses. *MIS Quarterly, 40*(3), 529–551.
+* Müller-Bloch, C., & Kranz, J. (2015). A framework for rigorously identifying research gaps in qualitative literature reviews. *Proceedings of the 36th International Conference on Information Systems (ICIS)*.
+* Page, M. J., McKenzie, J. E., Bossuyt, P. M., et al. (2021). The PRISMA 2020 statement: An updated guideline for reporting systematic reviews. *BMJ, 372*, n71.
+* Peterson, R. A., & Brown, S. P. (2005). On the use of beta coefficients in meta-analysis. *Journal of Applied Psychology, 90*(1), 175–181.
+* Podsakoff, P. M., MacKenzie, S. B., Lee, J.-Y., & Podsakoff, N. P. (2003). Common method biases in behavioral research. *Journal of Applied Psychology, 88*(5), 879–903.
+* Podsakoff, P. M., MacKenzie, S. B., & Podsakoff, N. P. (2012). Sources of method bias in social science research and recommendations on how to control it. *Annual Review of Psychology, 63*, 539–569.
+* Roth, P. L., Le, H., Oh, I.-S., Van Iddekinge, C. H., & Bobko, P. (2018). Using beta coefficients to impute missing correlations in meta-analysis research: Reasons for caution. *Journal of Applied Psychology, 103*(6), 644–658.
+* Zhao, X., Lynch, J. G., & Chen, Q. (2010). Reconsidering Baron and Kenny: Myths and truths about mediation analysis. *Journal of Consumer Research, 37*(2), 197–206.
+
+*(Thông tin trích dẫn được ghi theo trí nhớ; cần kiểm chứng bằng DOI trước khi đưa vào Codebook chính thức.)*
+
+---
+
+## 13. CÁC QUYẾT ĐỊNH CẦN CHỐT TRƯỚC KHI TRIỂN KHAI
+
+Chưa bắt đầu các bước kỹ thuật (Giai đoạn 0 trở đi, tạo repository GitHub…) cho đến khi các quyết định dưới đây được chốt.
+
+| # | Quyết định | Ảnh hưởng đến | Đề xuất | Trạng thái |
+| :--- | :--- | :--- | :--- | :--- |
+| D1 | Miền nghiên cứu khởi đầu | Codebook, khái niệm chuẩn, Bộ chuẩn vàng (1.3, 5.3, 6.2) | Social media marketing, branding, ethics, hành vi khách hàng | ✅ Đã chốt |
+| D2 | Đối tượng truy cập Web | Auth, RLS, bản quyền, Vercel (7, 8.10) | Giai đoạn đầu chỉ nhóm nghiên cứu (đăng nhập); công khai sau khi đạt cổng chất lượng | ✅ Đã chốt |
+| D3 | Người mã hóa thứ hai cho Bộ chuẩn vàng | Đo độ tin cậy người–người (6.2) | Một đồng nghiệp / NCS mã hóa 10 bài | 🔎 Đang tìm người; cần có trước Giai đoạn 1b (không chặn Giai đoạn 0–1) |
+| D4 | Thư viện Zotero dùng cho dự án | Cấu hình API, chia sẻ PDF (3) | **Thư viện cá nhân**, bài dự án trong collection `Research Data`; worker chỉ đọc/ghi trong collection này (xem 3.3) | ✅ Đã chốt |
+| D5 | Repository GitHub: tên, private / public | Giai đoạn 4 | `research-data`, **public**; chỉ chứa mã nguồn, không có dữ liệu có bản quyền (rủi ro 12, 12b) | ✅ Đã chốt |
+| D6 | Ngân sách Gemini | `GEMINI_BUDGET_LIMIT` (4.3) | **10 USD cho pilot (Giai đoạn 1–1b)**; trần hằng tháng chốt sau khi đo đơn giá ở 1b | ✅ Đã chốt (pilot) |
+| D7 | Thời gian dành cho dự án mỗi tuần | Mốc thời gian của lộ trình (10) | 5–10 giờ/tuần; xem lịch dự kiến ở Mục 10.1 | ✅ Đã chốt |
+| D9 | Quy mô Bộ chuẩn vàng tại cổng 1b | Thời gian đến cổng chất lượng (6.2, 10.1) | Phương án B: 15 bài cho cổng 1b, bổ sung đủ 30 bài song song với Giai đoạn 2–3 | ✅ Đã chốt |
+| D8 | Tên dự án / tên miền web | Giao diện, Vercel, R2 custom domain | Tên tạm "Research Data" + địa chỉ `*.vercel.app`; đặt tên chính thức và mua tên miền trước khi mở công khai | ✅ Đã chốt (tạm) |
+| D10 | Giấy phép mã nguồn (repo public) | File `LICENSE` | **MIT** | ✅ Đã chốt |
+| D11 | Nơi chạy Web: Vercel hay Cloudflare Workers | Giai đoạn 3–4, Mục 3A | **Vercel** cho Web; **Cloudflare** cho R2, Workers, cron, Tunnel, Access, tên miền | ✅ Đã chốt |
+| D12 | Gói Cloudflare đang dùng | Giới hạn Workers / R2 / Access | **Free**; nâng cấp khi chạm một trong các ngưỡng: R2 > 10 GB hoặc vượt hạn mức thao tác miễn phí; Workers > 100.000 request/ngày hoặc vượt giới hạn CPU khi ghép ZIP (Workers Paid); Access > 50 người dùng | ✅ Đã chốt |

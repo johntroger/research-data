@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Secrets (never commit)
+.env
+.env.*
+!.env.example
+
+# Data (PDFs and raw extraction output stay local / in Zotero)
+raw_papers/
+extracted_data/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
