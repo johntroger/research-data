@@ -16,6 +16,8 @@ export function normaliseChars(text: string): string {
       .replace(QUOTE_CHARS, "'")
       .replace(DOUBLE_QUOTE_CHARS, '"')
       .replace(DASH_CHARS, "-")
+      // APL alpha (⍺) and Latin alpha (ɑ) are used by some typesetters for Cronbach's α.
+      .replace(/[⍺ɑ]/g, "α")
       // Any non-breaking or thin space becomes a normal space (newlines are kept).
       .replace(/[^\S\r\n]/g, " ")
   );

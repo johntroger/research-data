@@ -135,6 +135,119 @@ const EXTRACTION: SkeletonExtraction = {
   },
 };
 
+describe("fixes from the real-paper trial (step 0.8b)", () => {
+  let trial: PdfTextLayer;
+
+  beforeAll(async () => {
+    trial = await readTextLayer(
+      await buildPdf({
+        pages: [
+          {
+            body: "Perceived brand transparency positively relates to the expertise (beta = 0.70, p < 0.001) dimension.",
+            inline: {
+              y: 300,
+              parts: [
+                { text: "or indicated low brand familiarity (M", size: 11 },
+                { text: "brand familiarity", size: 7, dy: -3 },
+                { text: " <= 2) were removed, resulting in a final sample of 288 participants.", size: 11 },
+              ],
+            },
+          },
+          {}, // a table embedded as an image: no text layer
+          {
+            body: [
+              "Table IV. Results",
+              "Hypothesis",
+              "Path coefficient",
+              "H1",
+              "0.294",
+              "H1 is supported",
+            ].join("\n"),
+          },
+        ],
+      }),
+    );
+  });
+
+  it("matches 0.7 against 0.70 but still not 412 against 4120", () => {
+    expect(verifyNumber(trial, 0.7, 1)).toMatchObject({ found: true });
+    expect(verifyNumber(layer, 120, 2).found).toBe(false);
+  });
+
+  it("normalises the APL alpha used by some typesetters", () => {
+    expect(normaliseForMatch("⍺ = 0.84")).toBe("α = 0.84");
+  });
+
+  it("matches a quote written without the subscript space ('Mbrand familiarity')", () => {
+    const check = verifyQuote(trial, "indicated low brand familiarity (Mbrand familiarity <= 2) were removed", 1);
+    expect(check.match).toBe("exact");
+  });
+
+  it("gives ⚠ instead of hiding a value whose evidence page has no text layer", () => {
+    const data: SkeletonExtraction = {
+      paper_type: "empirical_quant",
+      paper_type_evidence: { pdf_page: 1, quote: "resulting in a final sample of 288 participants" },
+      studies: [
+        {
+          study_label: "Study 1",
+          research_design: "survey",
+          design_evidence: { pdf_page: 2, quote: "Study 1 (survey): n = 20 experts" },
+          sample_size: 20,
+          sample_size_evidence: { pdf_page: 2, quote: "Study 1 (survey): n = 20 experts" },
+        },
+      ],
+      example_hypothesis: null,
+    };
+    const fields = verifySkeleton(trial, data);
+    expect(fields.find((f) => f.naturalKey === "study_1:research_design")?.badge).toBe("needs_attention");
+    expect(fields.find((f) => f.naturalKey === "study_1:sample_size")?.badge).toBe("needs_attention");
+    expect(fields.find((f) => f.naturalKey === "study_1:research_design")?.checks[0]?.detail).toContain("không có text");
+  });
+
+  it("gives ⚠ to a table result whose numbers are on the page even if the quote is not", () => {
+    const data: SkeletonExtraction = {
+      paper_type: "empirical_quant",
+      paper_type_evidence: { pdf_page: 1, quote: "resulting in a final sample of 288 participants" },
+      studies: [],
+      example_hypothesis: {
+        study_label: "Study 1",
+        hypothesis_code: "H1",
+        iv: "Green perceived value",
+        dv: "Green trust",
+        estimate: 0.294,
+        estimate_type: "other",
+        p_reported: "< 0.05",
+        status: "supported",
+        evidence: { pdf_page: 3, quote: "Hypothesis Proposed effect Path coefficient Results H1 + 0.294 * H1 is supported" },
+      },
+    };
+    const result = verifySkeleton(trial, data).at(-1)!;
+    expect(result.badge).toBe("needs_attention");
+    expect(result.checks.find((c) => c.name === "estimate_in_pdf")?.passed).toBe(true);
+    expect(result.checks.find((c) => c.name === "p_in_pdf")?.severity).toBe("attention");
+  });
+
+  it("still hides a table result whose coefficient is not on the page", () => {
+    const data: SkeletonExtraction = {
+      paper_type: "empirical_quant",
+      paper_type_evidence: { pdf_page: 1, quote: "resulting in a final sample of 288 participants" },
+      studies: [],
+      example_hypothesis: {
+        study_label: "Study 1",
+        hypothesis_code: "H1",
+        iv: "Green perceived value",
+        dv: "Green trust",
+        estimate: 0.394,
+        estimate_type: "other",
+        p_reported: null,
+        status: "supported",
+        evidence: { pdf_page: 3, quote: "H1 + 0.394 * H1 is supported" },
+      },
+    };
+    expect(verifySkeleton(trial, data).at(-1)!.badge).toBe("hidden");
+  });
+});
+
 describe("verifySkeleton", () => {
   it("marks every field verified when quotes and numbers are in the PDF, correcting the page", () => {
     const fields = verifySkeleton(layer, EXTRACTION);

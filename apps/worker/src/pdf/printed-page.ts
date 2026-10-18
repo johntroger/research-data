@@ -29,8 +29,21 @@ const MIN_AGREEMENT = 0.6;
 /** Standalone page-number-like tokens: 1–5 digits not part of a longer number. */
 const PAGE_NUMBER_TOKEN = /(?<![\d.,/-])\d{1,5}(?![\d.,/-])/g;
 
+/** Labels that only restate the file's page order ("1, 2, 3…" or "0, 1, 2…") carry no journal page information. */
 function isTrivialSequence(labels: string[]): boolean {
-  return labels.every((label, i) => label === String(i + 1));
+  return labels.every((label, i) => label === String(i + 1)) || labels.every((label, i) => label === String(i));
+}
+
+/** True when numeric page labels contradict the page numbers printed in the running heads. */
+function labelsContradictHeaders(labels: string[], headerOffset: number): boolean {
+  let numeric = 0;
+  let disagree = 0;
+  labels.forEach((label, i) => {
+    if (!/^\d+$/.test(label)) return;
+    numeric++;
+    if (Number(label) !== i + headerOffset) disagree++;
+  });
+  return numeric > 0 && disagree / numeric > 0.5;
 }
 
 /**
@@ -44,7 +57,7 @@ function detectHeaderFooterOffset(layer: PdfTextLayer): number | null {
   const votes = new Map<number, number>();
   for (const page of layer.pages) {
     const offsets = new Set<number>();
-    for (const line of [...page.headerLines, ...page.footerLines]) {
+    for (const line of [...page.headerLines, ...page.footerLines, ...page.sideLines]) {
       for (const match of line.matchAll(PAGE_NUMBER_TOKEN)) {
         const value = Number(match[0]);
         if (value > 0) offsets.add(value - page.pdfPageIndex);
@@ -67,11 +80,17 @@ export function resolvePrintedPages(
 ): PrintedPageResult {
   const indices = layer.pages.map((p) => p.pdfPageIndex);
 
-  if (layer.pageLabels && !isTrivialSequence(layer.pageLabels)) {
+  const offset = detectHeaderFooterOffset(layer);
+
+  // Some publishers (e.g. Emerald) ship labels "0, 1, 2…" while the running heads print the real pages.
+  if (
+    layer.pageLabels &&
+    !isTrivialSequence(layer.pageLabels) &&
+    !(offset !== null && labelsContradictHeaders(layer.pageLabels, offset))
+  ) {
     return { printedPages: [...layer.pageLabels], method: "page_labels" };
   }
 
-  const offset = detectHeaderFooterOffset(layer);
   if (offset !== null) {
     return { printedPages: indices.map((i) => String(i + offset)), method: "header_footer" };
   }

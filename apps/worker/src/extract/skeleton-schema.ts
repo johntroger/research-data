@@ -4,7 +4,7 @@
  */
 import { z } from "zod";
 
-export const SKELETON_PROMPT_VERSION = "skeleton-0.5.0";
+export const SKELETON_PROMPT_VERSION = "skeleton-0.5.1";
 
 const Evidence = z
   .object({
@@ -95,4 +95,6 @@ Rules:
 - Every evidence.quote must be copied word for word from the PDF (at most 50 words). Do not paraphrase, translate or fix typos.
 - evidence.pdf_page counts pages of the PDF file itself: the first page of the file is 1. Do NOT use the printed journal page number.
 - Numbers must be copied exactly as printed (keep the sign; ".31" means 0.31).
+- A quote must be ONE continuous passage. Never join separate fragments with "..." or "…".
+- When the value comes from a table, quote the table row as it is printed (row label followed by the numbers), not a sentence you build yourself.
 - For reviews, conceptual or theoretical papers: studies = [] and example_hypothesis = null.`;

@@ -106,8 +106,40 @@ function field(
   layer: PdfTextLayer,
   extraChecks: (page: number) => CheckResult[] = () => [],
 ): FieldVerification {
-  const { check, page } = quoteCheck(layer, evidence);
-  const checks = [check, ...meaningCheck(layer, evidence), ...extraChecks(page)];
+  const quoted = quoteCheck(layer, evidence);
+  let check = quoted.check;
+  const page = quoted.page;
+  let extra = extraChecks(page);
+
+  const pageHasText = layer.pages[evidence.pdf_page - 1]?.hasTextLayer ?? true;
+  const mainNumbers = extra.filter((c) => c.name === "estimate_in_pdf" || c.name === "number_in_pdf");
+
+  if (!check.passed) {
+    if (!pageHasText) {
+      // A page without a text layer (table or figure embedded as an image) cannot be checked by the machine:
+      // show the value with ⚠ so the reader opens the PDF, instead of hiding a value that may be right.
+      check = {
+        ...check,
+        severity: "attention",
+        detail: `Trang PDF ${evidence.pdf_page} không có text (bảng hoặc hình dạng ảnh) nên không kiểm chứng tự động được; hãy mở PDF để xem`,
+      };
+    } else if (mainNumbers.length > 0 && mainNumbers.every((c) => c.passed)) {
+      // Evidence inside a table: the text layer scrambles table cells, but the numbers are on the page.
+      check = { ...check, severity: "attention", detail: `${check.detail}; nhưng mọi con số đều có trên trang (thường do bằng chứng nằm trong bảng)` };
+    }
+  }
+
+  if (!pageHasText) {
+    extra = extra.map((c) => (!c.passed && c.severity === "hide" ? { ...c, severity: "attention" } : c));
+  }
+  const estimateFound = mainNumbers.some((c) => c.name === "estimate_in_pdf" && c.passed);
+  extra = extra.map((c) =>
+    c.name === "p_in_pdf" && !c.passed && estimateFound
+      ? { ...c, severity: "attention", detail: `${c.detail} (p thường nằm ở chú thích dưới bảng)` }
+      : c,
+  );
+
+  const checks = [check, ...meaningCheck(layer, evidence), ...extra];
   return { naturalKey, fieldName, tier, value, evidence: { pdfPage: page, quote: evidence.quote }, badge: badgeFor(tier, checks), checks };
 }
 

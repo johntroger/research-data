@@ -90,6 +90,10 @@ function checkOnPage(layer: PdfTextLayer, quote: string, quoteTokens: string[], 
   if (!page) return { exact: false, score: 0, criticalDifferences: [] };
   const text = normaliseForMatch(page.text);
   if (text.includes(quote)) return { exact: true, score: 1, criticalDifferences: [] };
+  // Same characters, different spacing (e.g. "Mbrand familiarity" vs "M brand familiarity",
+  // where the PDF typesets a subscript): still an exact match.
+  const spaceless = (s: string) => s.replace(/\s+/g, "");
+  if (spaceless(text).includes(spaceless(quote))) return { exact: true, score: 1, criticalDifferences: [] };
   const { score, window } = bestWindow(quoteTokens, tokens(text));
   return { exact: false, score, criticalDifferences: critical(differingTokens(quoteTokens, window)) };
 }

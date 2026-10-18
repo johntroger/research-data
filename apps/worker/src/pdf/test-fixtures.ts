@@ -13,8 +13,15 @@ export interface FixturePage {
   /** Two-column body: lines drawn in the left and right halves of the page. */
   leftColumn?: string;
   rightColumn?: string;
+  /** Text in the outer side margin at 77% of the page height (Emerald-style page numbers); "left" or "right" side. */
+  side?: { text: string; at: "left" | "right" };
   /** Rotated text along the left margin, like publisher download watermarks. */
   watermark?: string;
+  /**
+   * One line drawn piece by piece, so pieces can have their own size and vertical shift,
+   * e.g. a subscript: [{ text: "M", size: 11 }, { text: "age", size: 7, dy: -3 }].
+   */
+  inline?: { y: number; parts: { text: string; size: number; dy?: number }[] };
 }
 
 export interface FixtureOptions {
@@ -48,7 +55,18 @@ export async function buildPdf(options: FixtureOptions): Promise<Uint8Array> {
     if (spec.watermark) {
       page.drawText(spec.watermark, { x: 20, y: 100, size: 7, font, rotate: degrees(90) });
     }
-    const hasText = spec.body || spec.header || spec.footer || spec.leftColumn || spec.rightColumn;
+    if (spec.side) {
+      const x = spec.side.at === "right" ? WIDTH - 45 : 20;
+      page.drawText(spec.side.text, { x, y: HEIGHT * 0.77, size: 11, font });
+    }
+    if (spec.inline) {
+      let x = 60;
+      for (const part of spec.inline.parts) {
+        page.drawText(part.text, { x, y: spec.inline.y + (part.dy ?? 0), size: part.size, font });
+        x += font.widthOfTextAtSize(part.text, part.size);
+      }
+    }
+    const hasText = spec.body || spec.header || spec.footer || spec.leftColumn || spec.rightColumn || spec.inline;
     if (!hasText) {
       // Simulates a scanned page: graphics only, no text.
       page.drawRectangle({ x: 50, y: 50, width: WIDTH - 100, height: HEIGHT - 100, borderWidth: 1 });

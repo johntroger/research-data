@@ -60,8 +60,10 @@ function findOnPage(layer: PdfTextLayer, pdfPage: number, forms: string[]): stri
   if (!page) return null;
   const text = numberSearchText(page.text);
   for (const form of forms) {
-    // The number must not be part of a longer number (412 must not match 4120 or 1.412).
-    const pattern = new RegExp(`(?<![\\d.,])${escapeRegExp(form)}(?![\\d]|[.,]\\d)`);
+    // The number must not be part of a longer number (412 must not match 4120 or 1.412),
+    // but decimals may carry extra trailing zeros in print (0.7 matches "0.70").
+    const trailingZeros = /[.,]\d/.test(form) ? "0*" : "";
+    const pattern = new RegExp(`(?<![\\d.,])${escapeRegExp(form)}${trailingZeros}(?![\\d]|[.,]\\d)`);
     if (pattern.test(text)) return form;
   }
   return null;

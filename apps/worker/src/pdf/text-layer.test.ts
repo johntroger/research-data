@@ -66,6 +66,32 @@ describe("readTextLayer", () => {
     expect(pages[0]!.columns).toBe(1);
   });
 
+  it("keeps subscripts on their own line (M with subscript 'brand familiarity')", async () => {
+    const pdf = await buildPdf({
+      pages: [
+        {
+          body: SAMPLE_BODY,
+          inline: {
+            y: 300,
+            parts: [
+              { text: "indicated low brand familiarity (M", size: 11 },
+              { text: "brand familiarity", size: 7, dy: -3 },
+              { text: " <= 2) were removed.", size: 11 },
+            ],
+          },
+        },
+      ],
+    });
+    const { pages } = await readTextLayer(pdf);
+    expect(pages[0]!.text).toContain("indicated low brand familiarity (M brand familiarity <= 2) were removed.");
+    expect(pages[0]!.text.split("\n")).not.toContain("brand familiarity");
+  });
+
+  it("flags pages without a text layer individually", async () => {
+    const { pages } = await readTextLayer(await buildPdf({ pages: [{ body: SAMPLE_BODY }, {}] }));
+    expect(pages.map((p) => p.hasTextLayer)).toEqual([true, false]);
+  });
+
   it("reads declared page labels", async () => {
     const pdf = await buildPdf({ pages: [{ body: SAMPLE_BODY }, { body: SAMPLE_BODY }], pageLabelStart: 1245 });
     const layer = await readTextLayer(pdf);
