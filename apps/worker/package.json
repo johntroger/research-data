@@ -8,7 +8,8 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "pdf:inspect": "tsx src/cli/pdf-inspect.ts",
-    "extract:skeleton": "tsx src/cli/extract-skeleton.ts"
+    "extract:skeleton": "tsx src/cli/extract-skeleton.ts",
+    "verify:skeleton": "tsx src/cli/verify-skeleton.ts"
   },
   "dependencies": {
     "@google/genai": "^2.30.0",
