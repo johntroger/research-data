@@ -314,8 +314,8 @@ Chủ dự án đã có tài khoản Cloudflare (máy đã cài `cloudflared`). 
 ## 4. CHIẾN LƯỢC SỬ DỤNG GEMINI API (GÓI TRẢ PHÍ)
 
 ### 4.1. Lựa chọn model
-* **Model Pro** (`GEMINI_MODEL_STRONG`): lượt trích xuất chính (Pass 1 + Pass 2).
-* **Model Flash** (`GEMINI_MODEL_FAST`): các lời gọi nhỏ (trích bổ sung mục thiếu, đọc số trang ở header/footer).
+* **Model mạnh** (`GEMINI_MODEL_STRONG`, mặc định **`gemini-4-argon`**, bản ổn định, chọn ngày 18/10/2026): lượt trích xuất chính (Pass 1 + Pass 2). Lưu ý giá Argon tăng gấp đôi từ 1/12/2026; phương án thay thế là `gemini-3.1-pro-preview` (bản xem trước).
+* **Model nhanh** (`GEMINI_MODEL_FAST`, mặc định `gemini-3.8-flash`): các lời gọi nhỏ (trích bổ sung mục thiếu, đọc số trang ở header/footer).
 * Có thể đổi phân vai (VD: dùng Flash cho lượt chính để rẻ hơn) sau khi so chi phí và tỷ lệ ✓ trên 5 bài đầu.
 * Tên model không viết cứng trong code; mỗi bản ghi lưu `model_name`.
 

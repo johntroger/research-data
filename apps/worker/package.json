@@ -7,10 +7,13 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "pdf:inspect": "tsx src/cli/pdf-inspect.ts"
+    "pdf:inspect": "tsx src/cli/pdf-inspect.ts",
+    "extract:skeleton": "tsx src/cli/extract-skeleton.ts"
   },
   "dependencies": {
+    "@google/genai": "^2.30.0",
     "@research-data/schema": "workspace:*",
-    "unpdf": "^1.9.0"
+    "unpdf": "^1.9.0",
+    "zod": "^4.6.7"
   }
 }

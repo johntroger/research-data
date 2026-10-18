@@ -19,7 +19,8 @@
     "db:status": "supabase status",
     "db:reset": "supabase db reset",
     "test:db": "vitest run --config vitest.db.config.ts",
-    "pdf:inspect": "pnpm --filter @research-data/worker pdf:inspect"
+    "pdf:inspect": "pnpm --filter @research-data/worker pdf:inspect",
+    "extract:skeleton": "pnpm --filter @research-data/worker extract:skeleton"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
