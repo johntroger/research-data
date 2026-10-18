@@ -1,0 +1,114 @@
+/**
+ * End-to-end test for the skeleton web (step 0.8).
+ * Seeds a synthetic 4-page paper (self-made PDF, written to raw_papers/ and removed afterwards)
+ * into Supabase local, then checks that clicking a value opens the PDF on the right page.
+ * Needs Supabase local (pnpm db:start). Run: pnpm --filter @research-data/web test:e2e
+ */
+import { rm, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { expect, test } from "@playwright/test";
+import { PDFDocument, StandardFonts } from "pdf-lib";
+import pg from "pg";
+
+const DB_URL = process.env.SUPABASE_DB_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
+const REPO_ROOT = path.resolve(import.meta.dirname, "../../..");
+const PDF_NAME = "e2e-synthetic-paper.pdf";
+const PDF_FILE = path.join(REPO_ROOT, "raw_papers", PDF_NAME);
+const HASH = "e2e-synthetic-hash";
+const BAD_HASH = "e2e-path-traversal";
+
+const db = new pg.Client({ connectionString: DB_URL });
+let paperId = "";
+let badPaperId = "";
+
+async function syntheticPdf(): Promise<Uint8Array> {
+  const doc = await PDFDocument.create();
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  for (let i = 1; i <= 4; i++) {
+    doc.addPage([595, 842]).drawText(`Synthetic test page ${i}`, { x: 60, y: 420, size: 18, font });
+  }
+  return doc.save();
+}
+
+test.beforeAll(async () => {
+  await writeFile(PDF_FILE, await syntheticPdf());
+  await db.connect();
+  await db.query("delete from papers where file_hash in ($1, $2)", [HASH, BAD_HASH]);
+
+  const paper = await db.query<{ id: string }>(
+    "insert into papers (title, file_hash, pdf_path, page_count) values ($1, $2, $3, 4) returning id",
+    ["E2E synthetic paper", HASH, `raw_papers/${PDF_NAME}`],
+  );
+  paperId = paper.rows[0]!.id;
+  await db.query(
+    `insert into extracted_fields (paper_id, natural_key, field_name, tier, value, evidence_quote, pdf_page_index, printed_page, badge, check_results)
+     values
+       ($1, 'study_1:sample_size', 'sample_size', 'T1', '412', 'The final sample comprised 412 respondents.', 0, '501', 'auto_verified',
+        '{"checks":[{"name":"quote_in_pdf","passed":true,"detail":"Câu trích khớp nguyên văn trên trang PDF 1"}]}'),
+       ($1, 'study_1:h2:risk->intention', 'hypothesis_result', 'T1',
+        '{"iv":"Perceived risk","dv":"Purchase intention","estimate":-0.31,"p_reported":"< .001","status":"supported"}',
+        'Perceived risk had a significant negative effect.', 2, '503', 'auto_verified', '{"checks":[]}'),
+       ($1, 'paper_type', 'paper_type', 'T2', '"survey"', 'Hidden quote', 3, '504', 'hidden', '{"checks":[]}')`,
+    [paperId],
+  );
+
+  const bad = await db.query<{ id: string }>(
+    "insert into papers (title, file_hash, pdf_path) values ('Bad path', $1, '../.env') returning id",
+    [BAD_HASH],
+  );
+  badPaperId = bad.rows[0]!.id;
+});
+
+test.afterAll(async () => {
+  await db.query("delete from papers where file_hash in ($1, $2)", [HASH, BAD_HASH]);
+  await db.end();
+  await rm(PDF_FILE, { force: true });
+});
+
+test("lists the paper on the home page and opens its workspace", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "E2E synthetic paper" }).click();
+  await expect(page.getByRole("heading", { name: "E2E synthetic paper" })).toBeVisible();
+  await expect(page.locator(".site-footer")).toContainText("chỉ để tham khảo");
+});
+
+test("clicking a value opens the PDF on that value's evidence page", async ({ page }) => {
+  await page.goto(`/papers/${paperId}`);
+
+  // The first listed field (the hypothesis, evidence on PDF page 3) is selected by default.
+  await expect(page.getByTestId("field-study_1:h2:risk->intention")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("pdf-page")).toContainText("trang 3 của file PDF (trang in 503)");
+  await expect(page.getByTestId("pdf-frame")).toHaveAttribute("src", `/api/papers/${paperId}/pdf#page=3`);
+  await expect(page.getByTestId("field-study_1:h2:risk->intention")).toContainText(
+    "Perceived risk → Purchase intention (β = -0.31, p < .001)",
+  );
+
+  // Clicking the sample size jumps to its evidence on PDF page 1 and shows why it is ✓.
+  await page.getByTestId("field-study_1:sample_size").click();
+  await expect(page.getByTestId("pdf-page")).toContainText("trang 1 của file PDF (trang in 501)");
+  await expect(page.getByTestId("pdf-frame")).toHaveAttribute("src", `/api/papers/${paperId}/pdf#page=1`);
+  await expect(page.getByTestId("field-study_1:sample_size")).toContainText("Câu trích khớp nguyên văn");
+
+  // And back to page 3.
+  await page.getByTestId("field-study_1:h2:risk->intention").click();
+  await expect(page.getByTestId("pdf-frame")).toHaveAttribute("src", `/api/papers/${paperId}/pdf#page=3`);
+});
+
+test("hidden fields are not shown to visitors", async ({ page }) => {
+  await page.goto(`/papers/${paperId}`);
+  await expect(page.getByTestId("field-study_1:sample_size")).toBeVisible();
+  await expect(page.getByTestId("field-paper_type")).toHaveCount(0);
+});
+
+test("the PDF endpoint serves the file and refuses paths outside raw_papers", async ({ request }) => {
+  const ok = await request.get(`/api/papers/${paperId}/pdf`);
+  expect(ok.status()).toBe(200);
+  expect(ok.headers()["content-type"]).toBe("application/pdf");
+  expect((await ok.body()).subarray(0, 4).toString()).toBe("%PDF");
+
+  const traversal = await request.get(`/api/papers/${badPaperId}/pdf`);
+  expect(traversal.status()).toBe(403);
+
+  const unknown = await request.get("/api/papers/00000000-0000-0000-0000-000000000000/pdf");
+  expect(unknown.status()).toBe(404);
+});

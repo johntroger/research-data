@@ -22,7 +22,9 @@
     "pdf:inspect": "pnpm --filter @research-data/worker pdf:inspect",
     "extract:skeleton": "pnpm --filter @research-data/worker extract:skeleton",
     "verify:skeleton": "pnpm --filter @research-data/worker verify:skeleton",
-    "publish:skeleton": "pnpm --filter @research-data/worker publish:skeleton"
+    "publish:skeleton": "pnpm --filter @research-data/worker publish:skeleton",
+    "web:dev": "pnpm --filter @research-data/web dev",
+    "test:e2e": "pnpm --filter @research-data/web test:e2e"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
