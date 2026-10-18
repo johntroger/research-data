@@ -29,7 +29,8 @@
     "codebook:check": "node scripts/check-codebook.mjs",
     "schema:gemini-check": "pnpm --filter @research-data/worker schema:gemini-check",
     "zotero:inbox": "pnpm --filter @research-data/worker zotero:inbox",
-    "synthetic:build": "pnpm --filter @research-data/worker synthetic:build"
+    "synthetic:build": "pnpm --filter @research-data/worker synthetic:build",
+    "canonical:doc": "tsx scripts/canonical-doc.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

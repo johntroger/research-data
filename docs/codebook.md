@@ -161,7 +161,7 @@ Mỗi lý thuyết được nhắc trong bài là một dòng.
 | `application_role` | T3 | Lý thuyết làm gì trong bài | `mentioned` (chỉ nhắc tên), `framing` (đóng khung vấn đề, không dùng để lập luận giả thuyết cụ thể), `hypothesis_derivation` (ít nhất một giả thuyết được lập luận trực tiếp từ lý thuyết này), `tested` (bài kiểm định chính các mệnh đề của lý thuyết), `extended` (bài bổ sung biến hoặc điều kiện vào lý thuyết và kiểm định phần bổ sung) | Có nhiều vai trò thì chọn vai trò **mạnh nhất** theo thứ tự `extended` > `tested` > `hypothesis_derivation` > `framing` > `mentioned` |
 | `evidence` | – | Câu nêu vai trò của lý thuyết | Phần M | Với `hypothesis_derivation`: lấy câu lập luận giả thuyết có nhắc tên lý thuyết |
 
-**Danh sách lý thuyết khởi tạo** của miền (S-O-R, Source Credibility, Uses & Gratifications, Parasocial Interaction, Social Identity, Consumer–Brand Relationship, Attribution Theory, Signaling Theory, Persuasion Knowledge Model, TPB…) được soạn ở bước 0.14.
+**Danh sách lý thuyết khởi tạo** của miền (S-O-R, Source Credibility, Uses & Gratifications, Parasocial Interaction, Social Identity, Consumer–Brand Relationship, Attribution Theory, Signaling Theory, Persuasion Knowledge Model, TPB…) được soạn ở bước 0.14: xem [docs/canonical-lists.md](canonical-lists.md) (nguồn dữ liệu: `packages/schema/src/canonical-data.ts`).
 
 ---
 

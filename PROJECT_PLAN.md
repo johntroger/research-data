@@ -25,6 +25,7 @@ Kế hoạch được chia thành nhiều file (bước 0.9). Số mục giữ n
 | 12 | Tài liệu tham khảo phương pháp luận | [docs/quality-assurance.md](docs/quality-assurance.md) |
 | 13 | Các quyết định đã chốt | File này |
 | — | **Codebook**: định nghĩa vận hành của từng trường dữ liệu | [docs/codebook.md](docs/codebook.md) |
+| — | **Danh sách lý thuyết và khái niệm chuẩn khởi tạo** (bước 0.14) | [docs/canonical-lists.md](docs/canonical-lists.md) |
 
 ---
 
