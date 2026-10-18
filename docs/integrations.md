@@ -37,6 +37,8 @@ Không cần dùng. Nếu có highlight theo quy ước này, worker đọc và 
 
 ### 3.3. Lưu ý kỹ thuật
 * **Thư viện dùng cho dự án (D4): thư viện cá nhân (My Library).** Bài của dự án nằm trong collection riêng `Research Data` (có collection con `Inbox`); worker **chỉ đọc và ghi trong collection này**.
+* **Collection Inbox cấu hình được (bước 0.12):** biến `ZOTERO_INBOX_PATH` trong `.env` (các cấp cách nhau bằng `/`), mặc định `Research Data / Inbox`. Hiện dùng `Dissertation / 2.1 - Perceived ethical value` (11 bài). Chỉ lấy bài nằm trực tiếp trong collection, không lấy collection con.
+* **Đã kiểm chứng ở bước 0.12:** key chỉ đọc (chương trình từ chối chạy nếu key có quyền ghi); tải PDF đi qua chuyển hướng sang kho lưu trữ của Zotero **mà không gửi kèm API key**; kết nối tới kho lưu trữ có thể bị ngắt giữa chừng, nên mỗi lần tải được thử lại tối đa 3 lần với URL ký mới; PDF lưu ở `raw_papers/zotero/<attachmentKey>.pdf` (không commit). Lệnh: `pnpm zotero:inbox`.
 * **API key Zotero** tạo riêng cho dự án, lưu trong `.env`. Quyền của Zotero cấp theo cả thư viện, không giới hạn được theo collection, nên:
   * Giai đoạn 1–1b chỉ cấp **quyền đọc**; quyền ghi chỉ bật từ Giai đoạn 2, khi có bước ghi ngược.
   * Worker có danh sách cho phép (allowlist) theo collection và chế độ `--dry-run` in ra mọi thay đổi trước khi ghi. Worker chỉ thêm tag có tiền tố `rd:` hoặc child note có tiêu đề bắt đầu bằng `[Research Data]`; **không bao giờ sửa metadata hay xóa mục**.

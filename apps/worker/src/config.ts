@@ -29,3 +29,14 @@ export function geminiConfig(): GeminiConfig {
     fastModel: process.env.GEMINI_MODEL_FAST?.trim() || "gemini-3.8-flash",
   };
 }
+
+export function zoteroConfig(): { apiKey: string; userId: string } {
+  loadEnv();
+  const apiKey = process.env.ZOTERO_API_KEY?.trim() ?? "";
+  const userId = process.env.ZOTERO_USER_ID?.trim() ?? "";
+  if (!apiKey || !userId) {
+    throw new Error("ZOTERO_API_KEY / ZOTERO_USER_ID are empty. Add them to the .env file at the repository root.");
+  }
+  if (!/^\d+$/.test(userId)) throw new Error("ZOTERO_USER_ID must be the numeric userID shown on zotero.org/settings/keys.");
+  return { apiKey, userId };
+}

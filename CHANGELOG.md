@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.4 (so với 3.9.3)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Kết nối Zotero (bước 0.12):** client Web API chỉ đọc; collection Inbox cấu hình được bằng `ZOTERO_INBOX_PATH` (Mục 3.3) | Chủ dự án muốn dùng collection có sẵn trong thư viện |
+| 2 | Tải PDF thử lại khi kết nối bị ngắt; không gửi API key sang kho lưu trữ | Phát hiện khi chạy thật (kết nối tới kho lưu trữ bị đóng giữa chừng) |
+
 ### Version 3.9.3 (so với 3.9.2)
 
 | # | Thay đổi | Lý do |
