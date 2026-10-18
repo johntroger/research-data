@@ -8,7 +8,7 @@ Công cụ tham khảo giúp nhà nghiên cứu tra cứu các bài báo khoa h�
 
 ## Trạng thái
 
-Đang ở **Giai đoạn 0** (dựng nền tảng). Xem kế hoạch đầy đủ trong [PROJECT_PLAN.md](PROJECT_PLAN.md).
+Đang ở **Giai đoạn 0** (dựng nền tảng): bộ khung chạy được đã xong (đọc PDF → Gemini trích xuất → máy đối chiếu với PDF → database → web xem bằng chứng). Xem kế hoạch trong [PROJECT_PLAN.md](PROJECT_PLAN.md) (tổng quan, lộ trình, mục lục), chi tiết trong [docs/](docs/) và lịch sử thay đổi trong [CHANGELOG.md](CHANGELOG.md).
 
 ## Giấy phép
 

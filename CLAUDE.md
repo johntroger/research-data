@@ -1,9 +1,9 @@
 # Research Data — Academic Literature Matrix
 
 ## Kế hoạch dự án
-- Nguồn sự thật duy nhất: [PROJECT_PLAN.md](PROJECT_PLAN.md) (Version 3.9). Đọc file này trước khi bắt đầu bất kỳ công việc nào.
+- Nguồn sự thật: [PROJECT_PLAN.md](PROJECT_PLAN.md) (Version 3.9.1) gồm tổng quan, lộ trình, quyết định và **mục lục** trỏ tới các file chi tiết trong `docs/`. Đọc file này trước khi bắt đầu bất kỳ công việc nào, rồi mở đúng file `docs/` của mục cần làm. Số mục ("Mục 6.3"…) giữ nguyên như bản gốc.
 - `PROJECT_PLAN_v*_backup.md` chỉ là bản lưu trữ, không dùng để làm việc.
-- Khi kế hoạch thay đổi, cập nhật thẳng vào `PROJECT_PLAN.md` và ghi lại thay đổi ở Mục 0.
+- Khi kế hoạch thay đổi: sửa đúng file chứa mục đó (`PROJECT_PLAN.md` hoặc `docs/*.md`), ghi lại thay đổi trong [CHANGELOG.md](CHANGELOG.md), rồi chạy `pnpm docs:check`.
 - **Lập kế hoạch trước, làm kỹ thuật sau:** chưa triển khai bước kỹ thuật nào (viết code, tạo repo GitHub, cấu hình cloud) cho đến khi chủ dự án xác nhận kế hoạch đã chốt. Các quyết định còn mở nằm ở Mục 13.
 
 ## Quy trình làm việc từng bước (bắt buộc)
