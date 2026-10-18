@@ -1,4 +1,8 @@
 {
   "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Node types are needed by the tests only (they read docs/codebook.md).
+    "types": ["node"]
+  },
   "include": ["src"]
 }

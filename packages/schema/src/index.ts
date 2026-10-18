@@ -1,10 +1,10 @@
 /**
- * Shared schema package. The full Zod schemas are written in step 0.11
- * from the codebook; for now this only exposes version constants.
+ * Shared schema package: the single source of truth for the worker, Gemini and the web.
+ * Field definitions live in docs/codebook.md; these schemas follow it.
  */
 
-export const SCHEMA_VERSION = "0.0.0";
-export const CODEBOOK_VERSION = "0.0.0";
+export const SCHEMA_VERSION = "1.0.0";
+export const CODEBOOK_VERSION = "1.0.1";
 
 /** Data tiers from the plan (Mục 1.4). */
 export const FIELD_TIERS = ["T1", "T2", "T3"] as const;
@@ -20,3 +20,9 @@ export const BADGES = [
   "disputed",
 ] as const;
 export type Badge = (typeof BADGES)[number];
+
+export * from "./enums.js";
+export * from "./evidence.js";
+export * from "./paper.js";
+export * from "./study.js";
+export * from "./json-schema.js";

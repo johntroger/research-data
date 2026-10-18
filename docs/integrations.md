@@ -86,6 +86,8 @@ Chủ dự án đã có tài khoản Cloudflare (máy đã cài `cloudflared`). 
 ### 4.2. Kỹ thuật gọi API
 * Native PDF input + `responseMimeType: application/json` + `responseSchema` sinh từ Zod; `temperature: 0`; lưu phản hồi thô.
 * **Schema mỗi lượt gọi giữ nhỏ.** Tránh union, `$ref`, lồng quá sâu. Có **test tự động** kiểm tra mỗi schema Zod chuyển được sang `responseSchema` hợp lệ.
+  * **Đã kiểm chứng ở bước 0.11:** Gemini **từ chối** schema gộp cả Study (23 KB, 31 đối tượng lồng nhau, lỗi `INVALID_ARGUMENT`). Mọi schema từ 8,5 KB / 12 đối tượng trở xuống đều được chấp nhận. Vì vậy mỗi Study được trích bằng **4 lượt gọi**: thiết kế + mẫu + kiểm soát sai lệch; đo lường; đường quan hệ; bảng (tương quan, ô thực nghiệm). Kết quả được ghép lại bằng `assembleStudy`. Giới hạn `GEMINI_SCHEMA_LIMITS` (10 KB, 15 đối tượng) được test tự động giữ cho mọi schema mới.
+  * Kiểm tra thật bằng `pnpm schema:gemini-check` (khoảng $0,09 mỗi lần, dùng bài báo giả lập tự viết).
 * **Trích xuất hai lượt:** Pass 1 lấy cấu trúc và vị trí bảng; Pass 2 lấy chi tiết theo từng Study (có thể tách riêng lượt gọi cho ma trận tương quan).
 * **Batch API là bất đồng bộ** (trả kết quả trong tối đa 24 giờ): worker có luồng riêng `submit → poll → ingest`, lưu `batch_job_id`.
 * **Context Caching** có ngưỡng token tối thiểu và tính phí lưu theo thời gian; **chưa mặc định bật**. Giai đoạn 1b đo chi phí ba phương án (đồng bộ, đồng bộ + cache, batch) rồi mới chốt.

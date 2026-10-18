@@ -2,6 +2,14 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.3 (so với 3.9.2)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **`packages/schema` v1.0.0 (bước 0.11):** schema Zod đầy đủ theo Codebook cho Pass 1 (`PaperStructure`), Pass 1b (`PaperDiscussion`) và Pass 2 (4 phần của một Study), cùng `StudyDetail` để ghép kết quả | Một nguồn sự thật cho worker, Gemini và web |
+| 2 | Mục 4.2: một Study được trích bằng **4 lượt gọi**, không gửi schema gộp | Gemini từ chối schema gộp cả Study (23 KB) khi kiểm thử thật |
+| 3 | Codebook v1.0.1: thêm Phần L (trường cấu trúc của các lượt gọi AI) | Schema và codebook khớp nhau hoàn toàn, có test bắt buộc |
+
 ### Version 3.9.2 (so với 3.9.1)
 
 | # | Thay đổi | Lý do |

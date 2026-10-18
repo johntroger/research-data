@@ -2,7 +2,7 @@
 
 > Sổ mã hóa của hệ thống: định nghĩa vận hành của **mọi trường** trong schema (Mục 5.2, [docs/data-schema.md](data-schema.md)).
 > Đây là đầu vào trực tiếp cho prompt Gemini (bước 0.11 trở đi) và là tài liệu để người dùng hiểu từng con số trên web.
-> Phiên bản: `codebook_version = 1.0.0` (bước 0.10). Mọi thay đổi ghi ở [Nhật ký thay đổi](#nhật-ký-thay-đổi-codebook) cuối file.
+> Phiên bản: `codebook_version = 1.0.1` (bước 0.10, bổ sung ở 0.11). Mọi thay đổi ghi ở [Nhật ký thay đổi](#nhật-ký-thay-đổi-codebook) cuối file.
 
 **Người soạn:** Claude Code. **Chủ dự án cần đọc lướt và sửa:** các định nghĩa ở Phần C (lý thuyết), Phần D (khái niệm, thang đo) và Phần K (đóng góp, khoảng trống) cho đúng cách hiểu trong miền nghiên cứu của mình. Các phần khác chủ yếu là quy ước kỹ thuật.
 
@@ -328,6 +328,66 @@ Mỗi **kiểm định** của một quan hệ X → Y trong một Study là m�
 
 ---
 
+## L. Trường cấu trúc trong các lượt gọi AI (`packages/schema`)
+
+Các trường dưới đây là "khung" của từng lượt gọi Gemini (Mục 4.2): nhóm các giá trị ở trên, hoặc là khóa con của một đối tượng.
+
+### L.1. Pass 1: cấu trúc bài (`PaperStructure`)
+
+| Trường | Tầng | Định nghĩa | Giá trị cho phép | Quy tắc khi mơ hồ |
+| :--- | :--- | :--- | :--- | :--- |
+| `paper_type_evidence` | – | Bằng chứng cho `paper_type` | Phần M | Ưu tiên câu mô tả phương pháp trong phần Tóm tắt hoặc Phương pháp |
+| `studies` | – | Danh sách mọi Study (nhãn, thiết kế, bằng chứng) | Mảng | A.5; bài không có dữ liệu: `[]` |
+| `design_evidence` | – | Bằng chứng cho `research_design` của một Study | Phần M | |
+| `hypothesis_codes` | T1 | Mọi mã giả thuyết nêu trong bài, theo thứ tự xuất hiện | Mảng văn bản như in | Dùng để kiểm tra độ đầy đủ (Mục 6.3) |
+| `tables` | – | Danh sách mọi bảng trong bài | Mảng | |
+| `table_label` | T1 | Tên bảng như in | VD `Table 3` | |
+| `kind` | T2 | Loại bảng | `results`, `correlation`, `descriptives`, `measurement`, `condition_means`, `hypotheses_summary`, `other` | Bảng gộp tương quan và thống kê mô tả: `correlation` |
+| `theories` | – | Danh sách lý thuyết được dùng | Mảng (Phần C.2) | |
+
+### L.2. Pass 1b: thảo luận (`PaperDiscussion`)
+
+| Trường | Tầng | Định nghĩa | Giá trị cho phép | Quy tắc khi mơ hồ |
+| :--- | :--- | :--- | :--- | :--- |
+| `originality` | T3 | Chiều "độ mới" của `contribution_type` | `incremental`, `revelatory` | Phần K |
+| `utility` | T3 | Chiều "tính hữu ích" của `contribution_type` | `scientific`, `practical`, `both` | Phần K |
+| `gap_evidence` | – | Bằng chứng cho `gap_type` | Phần M hoặc `null` | |
+
+### L.3. Pass 2: chi tiết Study (`StudyDetail` và các phần)
+
+| Trường | Tầng | Định nghĩa | Giá trị cho phép | Quy tắc khi mơ hồ |
+| :--- | :--- | :--- | :--- | :--- |
+| `design` | – | Nhóm các trường thiết kế (Phần E) kèm một bằng chứng | Đối tượng | |
+| `sample` | – | Nhóm các trường mẫu và bối cảnh (Phần F) kèm bằng chứng | Đối tượng | |
+| `n_evidence` | – | Bằng chứng riêng cho cỡ mẫu `n` | Phần M; bắt buộc khi `n` khác `null` | Lấy câu nêu số hợp lệ cuối cùng |
+| `bias_control` | – | Nhóm các trường kiểm soát sai lệch (Phần G) | Đối tượng; `evidence = null` khi bài không bàn đến | |
+| `measurements` | – | Danh sách khái niệm được đo trong Study (Phần D) | Mảng | |
+| `definition_evidence` | – | Bằng chứng cho `definition` | Phần M | |
+| `reliability_evidence` | – | Dòng bảng hoặc câu báo cáo α / CR / AVE | Phần M | |
+| `parent_label_original` | T1 | Khái niệm bậc cao chứa khái niệm này, đúng tên tác giả | Văn bản hoặc `null` | VD `Social media marketing activities` cho thành phần `Entertainment` |
+| `paths` | – | Danh sách mọi kiểm định trong Study (Phần H, I) | Mảng | Kể cả biến kiểm soát và kiểm định không có mã giả thuyết |
+| `correlation_matrices` | – | Danh sách ma trận tương quan (Phần J.1) | Mảng | |
+| `condition_cells` | – | Danh sách ô điều kiện thực nghiệm (Phần J.2) | Mảng | |
+
+### L.4. Khóa con
+
+| Trường | Tầng | Định nghĩa | Giá trị cho phép | Quy tắc khi mơ hồ |
+| :--- | :--- | :--- | :--- | :--- |
+| `i` | T1 | Chỉ số dòng trong `variables` (bắt đầu từ 0) | Số nguyên ≥ 0 | Luôn `i > j` (tam giác dưới) |
+| `j` | T1 | Chỉ số cột trong `variables` | Số nguyên ≥ 0 | |
+| `r` | T1 | Hệ số tương quan của ô (i, j) | Số từ −1 đến 1 | |
+| `variable` | T1 | Tên biến của một dòng thống kê mô tả | Như in | |
+| `cr` | T1 | CR trong thống kê mô tả | Số 0–1 | |
+| `ave` | T1 | AVE trong thống kê mô tả | Số 0–1 | |
+| `row` | T1 | Nhãn dòng của ô bảng | Như in | |
+| `column` | T1 | Nhãn cột của ô bảng | Như in | |
+| `factor` | T1 | Tên yếu tố thực nghiệm | Như in, VD `disclosure` | |
+| `level` | T1 | Mức của yếu tố, hoặc mức của biến điều tiết trong `simple_slopes` | Như in, VD `yes`, `−1 SD` | |
+| `type` | T1 | Loại thống kê kiểm định trong `test_stat` | `F`, `t` | |
+| `value` | T1 | Giá trị của thống kê kiểm định | Số | |
+
+---
+
 ## N. Bài học từ chạy thử (bước 0.8b) đã đưa vào codebook
 
 | Quan sát khi chạy thử | Quy tắc trong codebook |
@@ -344,4 +404,5 @@ Mỗi **kiểm định** của một quan hệ X → Y trong một Study là m�
 
 | Phiên bản | Ngày | Thay đổi |
 | :--- | :--- | :--- |
+| 1.0.1 | 2026-10-18 | Bước 0.11: thêm Phần L (trường cấu trúc của các lượt gọi AI và khóa con) để schema Zod và codebook khớp nhau hoàn toàn |
 | 1.0.0 | 2026-10-18 | Bản đầu tiên (bước 0.10): phủ toàn bộ 13 phân hệ ở Mục 5.2; thêm `narrative_review`, `path_coefficient`; các quy tắc bằng chứng rút ra từ chạy thử bước 0.8b |

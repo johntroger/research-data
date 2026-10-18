@@ -10,7 +10,8 @@
     "pdf:inspect": "tsx src/cli/pdf-inspect.ts",
     "extract:skeleton": "tsx src/cli/extract-skeleton.ts",
     "verify:skeleton": "tsx src/cli/verify-skeleton.ts",
-    "publish:skeleton": "tsx src/cli/publish-skeleton.ts"
+    "publish:skeleton": "tsx src/cli/publish-skeleton.ts",
+    "schema:gemini-check": "tsx src/cli/schema-gemini-check.ts"
   },
   "dependencies": {
     "@google/genai": "^2.30.0",
@@ -20,6 +21,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@types/pg": "^8.23.1"
+    "@types/pg": "^8.23.1",
+    "pdf-lib": "^1.17.1"
   }
 }

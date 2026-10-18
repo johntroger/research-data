@@ -26,7 +26,8 @@
     "web:dev": "pnpm --filter @research-data/web dev",
     "test:e2e": "pnpm --filter @research-data/web test:e2e",
     "docs:check": "node scripts/check-docs.mjs",
-    "codebook:check": "node scripts/check-codebook.mjs"
+    "codebook:check": "node scripts/check-codebook.mjs",
+    "schema:gemini-check": "pnpm --filter @research-data/worker schema:gemini-check"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
