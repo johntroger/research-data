@@ -74,8 +74,10 @@ describe("skeleton migration", () => {
     await inRollback(async () => {
       await seedPaperWithFields();
       await client.query("set local role anon");
+      // Only look at this test's paper: the database may also hold real data.
       const res = await client.query<{ natural_key: string }>(
-        "select natural_key from extracted_fields order by natural_key",
+        `select f.natural_key from extracted_fields f join papers p on p.id = f.paper_id
+         where p.file_hash = 'hash-test' order by f.natural_key`,
       );
       expect(res.rows.map((r) => r.natural_key)).toEqual(["S1:n"]);
     });
@@ -85,6 +87,7 @@ describe("skeleton migration", () => {
     await inRollback(async () => {
       await seedPaperWithFields();
       await client.query("set local role anon");
+      // Anonymous visitors see no extraction runs at all, real or test.
       const res = await client.query("select * from extraction_runs");
       expect(res.rowCount).toBe(0);
     });
