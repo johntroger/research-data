@@ -9,6 +9,7 @@ import {
   CanonicalTheory,
   renderCanonicalMarkdown,
 } from "./canonical.js";
+import { renderCanonicalSeedSql } from "./canonical-sql.js";
 
 const ROOT = path.resolve(import.meta.dirname, "../../..");
 const plan = readFileSync(path.join(ROOT, "PROJECT_PLAN.md"), "utf8");
@@ -105,8 +106,13 @@ describe("canonical lists (step 0.14)", () => {
     expect(canonicalKey("Uses & Gratifications")).toBe("uses and gratifications");
   });
 
-  it("docs/canonical-lists.md is up to date (pnpm canonical:doc)", () => {
+  it("docs/canonical-lists.md is up to date (pnpm canonical:build)", () => {
     const doc = readFileSync(path.join(ROOT, "docs/canonical-lists.md"), "utf8").replace(/\r\n/g, "\n");
     expect(doc).toBe(renderCanonicalMarkdown());
+  });
+
+  it("supabase/seed.sql is up to date (pnpm canonical:build)", () => {
+    const seed = readFileSync(path.join(ROOT, "supabase/seed.sql"), "utf8").replace(/\r\n/g, "\n");
+    expect(seed).toBe(renderCanonicalSeedSql());
   });
 });

@@ -164,6 +164,20 @@ Bước 0.4–0.8 tạo thành **bộ khung chạy được** (Giai đoạn 0, m
 2. Pipeline S1–S8 (Mục 6): một lượt trích xuất Pro, máy đối chiếu với PDF (kèm trích bổ sung mục thiếu, tính lại thống kê), kiểm tra chéo trong bài, gắn huy hiệu, ánh xạ khái niệm "không chắc thì tách".
 3. Rate limiter, backoff, `estimate`, trần ngân sách; luồng Batch bất đồng bộ.
 4. Lưu phiên bản model / prompt / schema / codebook, phản hồi thô và tín hiệu của từng lớp.
+
+**Danh sách bước của Giai đoạn 1** (chốt khi bắt đầu giai đoạn; quy trình theo Mục 10.0):
+
+| Bước | Nội dung | Kiểm thử | Cần chủ dự án |
+| :--- | :--- | :--- | :--- |
+| **1.1** | Migration đủ bảng nghiệp vụ theo Mục 5.2 (studies, theories + paper_theories, constructs + construct_aliases, measurements, paths, ma trận tương quan, ô điều kiện, evidence, `pipeline_runs`, `review_changes`); nạp sẵn danh sách 0.14 | `db:reset` sạch; RLS (khách chỉ đọc, không thấy trường ẩn); seed khớp `canonical-data.ts` | — |
+| **1.2** | Khung pipeline S1–S3: Zotero Inbox → tải PDF → text layer; ghi `pipeline_runs` theo khóa `file_hash + schema + codebook + prompt`, chạy lại thì bỏ qua | Test với Zotero giả; chạy thật trên collection mẫu, lần hai bỏ qua hết | — |
+| **1.3** | Trích xuất đầy đủ: 6 lượt gọi theo `EXTRACTION_SCHEMAS`, ghép Study (`assembleStudy`) | Generator giả trên bộ bài giả lập; gọi thật 1 bài | — |
+| **1.4** | Máy đối chiếu mọi trường T1/T2 với PDF, gắn huy hiệu; xử lý ô bảng bị tách dòng trong text layer | Bộ bài giả lập đúng 100% (Mục 1.4) | — |
+| **1.5** | Kiểm tra chéo trong bài, tính lại thống kê (t / F → p), phát hiện mục thiếu và trích bổ sung | Bài giả lập cài sẵn lỗi thống kê phải bị bắt | — |
+| **1.6** | Ánh xạ khái niệm "không chắc thì tách": khớp tên + bí danh (embedding / item để sau khi có đủ bài) | Nhãn gần giống nhưng khác nghĩa được tách riêng | — |
+| **1.7** | Rate limiter, backoff, `estimate`, trần ngân sách; luồng Batch bất đồng bộ | API giả: vượt trần thì dừng trước khi gọi | — |
+| **1.8** | Lưu phiên bản model / prompt / schema / codebook, phản hồi thô (chỉ local) và tín hiệu từng lớp; publish đủ dữ liệu, không ghi đè trường đã khóa | Trích lại không đè trường đã sửa tay (rủi ro 22) | — |
+| **1.9** | Chạy thật `pnpm worker extract` trên 5 bài đầu, đo đơn giá mỗi bài | Báo cáo chi phí so với trần 10 USD (D6) | Xem báo cáo chi phí |
 * **Bàn giao:** `pnpm worker extract` chạy trên collection mẫu, sinh dữ liệu có điểm tin cậy + báo cáo chi phí. **Đơn giá thật mỗi bài đo trên 5 bài đầu** (trong trần 10 USD của D6).
 
 ### 📍 Giai đoạn 1b: Chạy thử & Chốt chi phí

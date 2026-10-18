@@ -27,3 +27,4 @@ export * from "./paper.js";
 export * from "./study.js";
 export * from "./json-schema.js";
 export * from "./canonical.js";
+export * from "./canonical-sql.js";

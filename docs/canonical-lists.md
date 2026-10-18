@@ -1,6 +1,6 @@
 # Danh sách lý thuyết và khái niệm chuẩn khởi tạo
 
-> File sinh tự động từ `packages/schema/src/canonical-data.ts` bằng `pnpm canonical:doc`; đừng sửa tay. Phiên bản danh sách 1.0.0 (bước 0.14, Mục 1.3 và Mục 5.3).
+> File sinh tự động từ `packages/schema/src/canonical-data.ts` bằng `pnpm canonical:build`; đừng sửa tay. Phiên bản danh sách 1.0.0 (bước 0.14, Mục 1.3 và Mục 5.3).
 
 - Định nghĩa là câu diễn đạt lại ngắn gọn của dự án, **không phải trích nguyên văn**; cột nguồn ghi công trình gốc để đối chiếu.
 - Bí danh chỉ gồm từ đồng nghĩa chính xác và chữ viết tắt. Các tên khác do hệ thống ánh xạ sau theo nguyên tắc "không chắc thì tách".

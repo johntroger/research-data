@@ -2,6 +2,14 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.5 (so với 3.9.4)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Chia Giai đoạn 1 thành 9 bước (1.1–1.9)** ở Mục 10, mỗi bước có cách kiểm thử | Giai đoạn 0 xong (bước 0.14); Mục 10.0 quy định chia bước khi bắt đầu giai đoạn |
+| 2 | Bước 1.4 xử lý ô bảng bị tách thành nhiều dòng trong text layer | Câu trích từ bảng không khớp, phát hiện khi chạy thử bước 0.8b |
+| 3 | Bước 1.6 ánh xạ khái niệm trước hết bằng tên + bí danh; embedding / độ giống item để sau | Chưa đủ bài để hiệu chỉnh ngưỡng; theo nguyên tắc "không chắc thì tách" |
+
 ### Version 3.9.4 (so với 3.9.3)
 
 | # | Thay đổi | Lý do |
