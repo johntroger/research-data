@@ -1,0 +1,320 @@
+{
+  "id": "synthetic-03-multistudy-mediation-moderation",
+  "description": "Two studies, side-margin page numbers 501-505, subscript (M age), mediation and moderation, an image-only table page.",
+  "file_hash": "c071817a33ad7798993864749b1fc4237fe4687c056fb29ffa5c135b84527ad4",
+  "expected": {
+    "printedPages": [
+      "501",
+      "502",
+      "503",
+      "504",
+      "505"
+    ],
+    "printedPageMethod": "header_footer",
+    "columns": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "pagesWithoutText": [
+      4
+    ]
+  },
+  "known_issues": {},
+  "structure": {
+    "paper_type": "empirical_quant",
+    "paper_type_evidence": {
+      "pdf_page": 1,
+      "quote": "Two studies test whether perceived transparency builds loyalty through brand trust.",
+      "section": "abstract",
+      "table_or_figure": null,
+      "table_cell": null
+    },
+    "studies": [
+      {
+        "study_label": "Study 1",
+        "research_design": "survey",
+        "design_evidence": {
+          "pdf_page": 2,
+          "quote": "A consumer panel completed an online survey.",
+          "section": "method",
+          "table_or_figure": null,
+          "table_cell": null
+        }
+      },
+      {
+        "study_label": "Study 2",
+        "research_design": "online_experiment",
+        "design_evidence": {
+          "pdf_page": 4,
+          "quote": "Study 2 (online experiment): n = 240",
+          "section": "results",
+          "table_or_figure": "Table 4",
+          "table_cell": null
+        }
+      }
+    ],
+    "hypothesis_codes": [
+      "H1",
+      "H2"
+    ],
+    "tables": [
+      {
+        "table_label": "Table 4",
+        "pdf_page": 4,
+        "kind": "hypotheses_summary",
+        "study_label": null
+      }
+    ],
+    "theories": []
+  },
+  "studies": [
+    {
+      "study_label": "Study 1",
+      "design": {
+        "time_design": "cross_sectional",
+        "experimental_design": null,
+        "manipulation_check": null,
+        "attention_check": null,
+        "exclusion_rate": null,
+        "preregistered": null,
+        "open_data": null,
+        "analysis_method": [
+          "process_mediation"
+        ],
+        "software": null,
+        "evidence": {
+          "pdf_page": 2,
+          "quote": "A consumer panel completed an online survey.",
+          "section": "method",
+          "table_or_figure": null,
+          "table_cell": null
+        }
+      },
+      "sample": {
+        "n": 300,
+        "n_evidence": {
+          "pdf_page": 2,
+          "quote": "The final sample comprised 300 respondents.",
+          "section": "method",
+          "table_or_figure": null,
+          "table_cell": null
+        },
+        "unit_of_analysis": "individual",
+        "sample_type": "consumer_panel",
+        "country_iso": [],
+        "industry_code": null,
+        "market_type": "b2c",
+        "data_collection_period": null,
+        "evidence": {
+          "pdf_page": 2,
+          "quote": "Participants were 52% female (Mage = 34.2 years).",
+          "section": "method",
+          "table_or_figure": null,
+          "table_cell": null
+        }
+      },
+      "bias_control": {
+        "cmb_procedural": [],
+        "cmb_statistical": [],
+        "cmb_weak_only": false,
+        "endogeneity_method": [],
+        "evidence": null
+      },
+      "measurements": [],
+      "paths": [
+        {
+          "hypothesis_code": "H1",
+          "mediator_labels": [
+            "Brand trust"
+          ],
+          "moderator_labels": [],
+          "effect_type": "indirect",
+          "estimate_type": null,
+          "estimate": null,
+          "se": null,
+          "ci_low": null,
+          "ci_high": null,
+          "ci_method": "bootstrap",
+          "p_value": null,
+          "p_reported_as": null,
+          "t_or_z": null,
+          "r2_dv": null,
+          "f2": null,
+          "status": "supported",
+          "hypothesized_direction": null,
+          "observed_sign": null,
+          "significant": true,
+          "model_covariates": [],
+          "indirect_effect": 0.12,
+          "boot_ci": [
+            0.06,
+            0.19
+          ],
+          "mediation_type": "complementary",
+          "interaction_type": null,
+          "simple_slopes": [],
+          "index_moderated_mediation": null,
+          "iv_label_original": "Perceived transparency",
+          "dv_label_original": "Loyalty",
+          "evidence": {
+            "pdf_page": 2,
+            "quote": "The indirect effect of perceived transparency on loyalty through brand trust was 0.12,",
+            "section": "results",
+            "table_or_figure": null,
+            "table_cell": null
+          }
+        },
+        {
+          "hypothesis_code": null,
+          "mediator_labels": [],
+          "moderator_labels": [],
+          "effect_type": "direct",
+          "estimate_type": "std_beta",
+          "estimate": 0.2,
+          "se": null,
+          "ci_low": null,
+          "ci_high": null,
+          "ci_method": null,
+          "p_value": 0.01,
+          "p_reported_as": "= .01",
+          "t_or_z": null,
+          "r2_dv": null,
+          "f2": null,
+          "status": "not_hypothesized",
+          "hypothesized_direction": null,
+          "observed_sign": "positive",
+          "significant": true,
+          "model_covariates": [],
+          "indirect_effect": null,
+          "boot_ci": null,
+          "mediation_type": null,
+          "interaction_type": null,
+          "simple_slopes": [],
+          "index_moderated_mediation": null,
+          "iv_label_original": "Perceived transparency",
+          "dv_label_original": "Loyalty",
+          "evidence": {
+            "pdf_page": 2,
+            "quote": "The direct effect remained significant (beta = 0.20, p = .01).",
+            "section": "results",
+            "table_or_figure": null,
+            "table_cell": null
+          }
+        }
+      ],
+      "correlation_matrices": [],
+      "condition_cells": []
+    },
+    {
+      "study_label": "Study 2",
+      "design": {
+        "time_design": "cross_sectional",
+        "experimental_design": null,
+        "manipulation_check": null,
+        "attention_check": true,
+        "exclusion_rate": null,
+        "preregistered": null,
+        "open_data": null,
+        "analysis_method": [
+          "regression"
+        ],
+        "software": null,
+        "evidence": {
+          "pdf_page": 3,
+          "quote": "Participants were recruited on Prolific for an online experiment; 240 remained after checks.",
+          "section": "method",
+          "table_or_figure": null,
+          "table_cell": null
+        }
+      },
+      "sample": {
+        "n": 240,
+        "n_evidence": {
+          "pdf_page": 3,
+          "quote": "Participants were recruited on Prolific for an online experiment; 240 remained after checks.",
+          "section": "method",
+          "table_or_figure": null,
+          "table_cell": null
+        },
+        "unit_of_analysis": "individual",
+        "sample_type": "prolific",
+        "country_iso": [],
+        "industry_code": null,
+        "market_type": "b2c",
+        "data_collection_period": null,
+        "evidence": {
+          "pdf_page": 3,
+          "quote": "Participants were recruited on Prolific for an online experiment; 240 remained after checks.",
+          "section": "method",
+          "table_or_figure": null,
+          "table_cell": null
+        }
+      },
+      "bias_control": {
+        "cmb_procedural": [],
+        "cmb_statistical": [],
+        "cmb_weak_only": false,
+        "endogeneity_method": [],
+        "evidence": null
+      },
+      "measurements": [],
+      "paths": [
+        {
+          "hypothesis_code": "H2",
+          "mediator_labels": [],
+          "moderator_labels": [
+            "Brand familiarity"
+          ],
+          "effect_type": "interaction",
+          "estimate_type": null,
+          "estimate": null,
+          "se": null,
+          "ci_low": null,
+          "ci_high": null,
+          "ci_method": null,
+          "p_value": null,
+          "p_reported_as": null,
+          "t_or_z": null,
+          "r2_dv": null,
+          "f2": null,
+          "status": "supported",
+          "hypothesized_direction": null,
+          "observed_sign": null,
+          "significant": true,
+          "model_covariates": [],
+          "indirect_effect": null,
+          "boot_ci": null,
+          "mediation_type": null,
+          "interaction_type": "two_way",
+          "simple_slopes": [
+            {
+              "level": "-1 SD",
+              "estimate": 0.05,
+              "p_reported_as": "= .41"
+            },
+            {
+              "level": "+1 SD",
+              "estimate": 0.31,
+              "p_reported_as": "< .001"
+            }
+          ],
+          "index_moderated_mediation": null,
+          "iv_label_original": "Perceived transparency x Brand familiarity",
+          "dv_label_original": "Brand trust",
+          "evidence": {
+            "pdf_page": 3,
+            "quote": "and strong at high familiarity (+1 SD: beta = 0.31, p < .001), supporting H2.",
+            "section": "results",
+            "table_or_figure": null,
+            "table_cell": null
+          }
+        }
+      ],
+      "correlation_matrices": [],
+      "condition_cells": []
+    }
+  ]
+}

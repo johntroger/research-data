@@ -1,0 +1,302 @@
+{
+  "id": "synthetic-02-experiment-two-column",
+  "description": "Two columns, /PageLabels from 45, rotated watermark, 2x2 between-subjects experiment with cell means.",
+  "file_hash": "e781605b0d7676b2ea399ccc9201713b4b495174eb8711fdf8b877f994911998",
+  "expected": {
+    "printedPages": [
+      "45",
+      "46",
+      "47"
+    ],
+    "printedPageMethod": "page_labels",
+    "columns": [
+      2,
+      2,
+      2
+    ],
+    "pagesWithoutText": []
+  },
+  "known_issues": {
+    "columns": "A two-column page with fewer than 3 lines per column (PDF 3) is read as one column, interleaving the lines."
+  },
+  "structure": {
+    "paper_type": "empirical_quant",
+    "paper_type_evidence": {
+      "pdf_page": 1,
+      "quote": "subjects experiment tested how sponsorship",
+      "section": "abstract",
+      "table_or_figure": null,
+      "table_cell": null
+    },
+    "studies": [
+      {
+        "study_label": "Study 1",
+        "research_design": "online_experiment",
+        "design_evidence": {
+          "pdf_page": 1,
+          "quote": "Prolific and randomly assigned to one of",
+          "section": "method",
+          "table_or_figure": null,
+          "table_cell": null
+        }
+      }
+    ],
+    "hypothesis_codes": [
+      "H1",
+      "H2"
+    ],
+    "tables": [
+      {
+        "table_label": "Table 1",
+        "pdf_page": 2,
+        "kind": "condition_means",
+        "study_label": "Study 1"
+      }
+    ],
+    "theories": []
+  },
+  "studies": [
+    {
+      "study_label": "Study 1",
+      "design": {
+        "time_design": "cross_sectional",
+        "experimental_design": "2 (disclosure: yes vs. no) x 2 (source: influencer vs. brand) between-subjects",
+        "manipulation_check": "passed",
+        "attention_check": true,
+        "exclusion_rate": 0.07894736842105263,
+        "preregistered": false,
+        "open_data": false,
+        "analysis_method": [
+          "anova_ancova"
+        ],
+        "software": null,
+        "evidence": {
+          "pdf_page": 1,
+          "quote": "We analysed the data with two-way ANOVA.",
+          "section": "method",
+          "table_or_figure": null,
+          "table_cell": null
+        }
+      },
+      "sample": {
+        "n": 420,
+        "n_evidence": {
+          "pdf_page": 1,
+          "quote": "failed the attention check, leaving 420.",
+          "section": "method",
+          "table_or_figure": null,
+          "table_cell": null
+        },
+        "unit_of_analysis": "individual",
+        "sample_type": "prolific",
+        "country_iso": [],
+        "industry_code": null,
+        "market_type": "b2c",
+        "data_collection_period": null,
+        "evidence": {
+          "pdf_page": 1,
+          "quote": "Prolific and randomly assigned to one of",
+          "section": "method",
+          "table_or_figure": null,
+          "table_cell": null
+        }
+      },
+      "bias_control": {
+        "cmb_procedural": [],
+        "cmb_statistical": [],
+        "cmb_weak_only": false,
+        "endogeneity_method": [],
+        "evidence": null
+      },
+      "measurements": [],
+      "paths": [
+        {
+          "hypothesis_code": "H2",
+          "mediator_labels": [],
+          "moderator_labels": [
+            "Source"
+          ],
+          "effect_type": "interaction",
+          "estimate_type": null,
+          "estimate": null,
+          "se": null,
+          "ci_low": null,
+          "ci_high": null,
+          "ci_method": null,
+          "p_value": 0.043,
+          "p_reported_as": "= .043",
+          "t_or_z": null,
+          "r2_dv": null,
+          "f2": null,
+          "status": "supported",
+          "hypothesized_direction": "positive",
+          "observed_sign": null,
+          "significant": true,
+          "model_covariates": [],
+          "indirect_effect": null,
+          "boot_ci": null,
+          "mediation_type": null,
+          "interaction_type": "two_way",
+          "simple_slopes": [],
+          "index_moderated_mediation": null,
+          "iv_label_original": "Disclosure x Source",
+          "dv_label_original": "Consumer skepticism",
+          "evidence": {
+            "pdf_page": 2,
+            "quote": "significant, F(1, 416) = 4.10, p = .043,",
+            "section": "results",
+            "table_or_figure": null,
+            "table_cell": null
+          }
+        }
+      ],
+      "correlation_matrices": [],
+      "condition_cells": [
+        {
+          "factors": [
+            {
+              "factor": "disclosure",
+              "level": "yes"
+            },
+            {
+              "factor": "source",
+              "level": "influencer"
+            }
+          ],
+          "condition_label": "yes / influencer",
+          "dv_label_original": "Consumer skepticism",
+          "mean": 5.12,
+          "sd": 1.1,
+          "se": null,
+          "n": 106,
+          "test_stat": {
+            "type": "F",
+            "value": 18.2
+          },
+          "df": [
+            1,
+            416
+          ],
+          "p_reported_as": "< .001",
+          "effect_size_reported": 0.04,
+          "effect_size_type": "partial_eta_squared",
+          "evidence": {
+            "pdf_page": 2,
+            "quote": "yes influencer 5.12 1.10 106",
+            "section": "results",
+            "table_or_figure": "Table 1",
+            "table_cell": null
+          }
+        },
+        {
+          "factors": [
+            {
+              "factor": "disclosure",
+              "level": "yes"
+            },
+            {
+              "factor": "source",
+              "level": "brand"
+            }
+          ],
+          "condition_label": "yes / brand",
+          "dv_label_original": "Consumer skepticism",
+          "mean": 4.61,
+          "sd": 1.21,
+          "se": null,
+          "n": 104,
+          "test_stat": {
+            "type": "F",
+            "value": 18.2
+          },
+          "df": [
+            1,
+            416
+          ],
+          "p_reported_as": "< .001",
+          "effect_size_reported": 0.04,
+          "effect_size_type": "partial_eta_squared",
+          "evidence": {
+            "pdf_page": 2,
+            "quote": "yes brand 4.61 1.21 104",
+            "section": "results",
+            "table_or_figure": "Table 1",
+            "table_cell": null
+          }
+        },
+        {
+          "factors": [
+            {
+              "factor": "disclosure",
+              "level": "no"
+            },
+            {
+              "factor": "source",
+              "level": "influencer"
+            }
+          ],
+          "condition_label": "no / influencer",
+          "dv_label_original": "Consumer skepticism",
+          "mean": 4.02,
+          "sd": 1.15,
+          "se": null,
+          "n": 105,
+          "test_stat": {
+            "type": "F",
+            "value": 18.2
+          },
+          "df": [
+            1,
+            416
+          ],
+          "p_reported_as": "< .001",
+          "effect_size_reported": 0.04,
+          "effect_size_type": "partial_eta_squared",
+          "evidence": {
+            "pdf_page": 2,
+            "quote": "no influencer 4.02 1.15 105",
+            "section": "results",
+            "table_or_figure": "Table 1",
+            "table_cell": null
+          }
+        },
+        {
+          "factors": [
+            {
+              "factor": "disclosure",
+              "level": "no"
+            },
+            {
+              "factor": "source",
+              "level": "brand"
+            }
+          ],
+          "condition_label": "no / brand",
+          "dv_label_original": "Consumer skepticism",
+          "mean": 3.95,
+          "sd": 1.18,
+          "se": null,
+          "n": 105,
+          "test_stat": {
+            "type": "F",
+            "value": 18.2
+          },
+          "df": [
+            1,
+            416
+          ],
+          "p_reported_as": "< .001",
+          "effect_size_reported": 0.04,
+          "effect_size_type": "partial_eta_squared",
+          "evidence": {
+            "pdf_page": 2,
+            "quote": "no brand 3.95 1.18 105",
+            "section": "results",
+            "table_or_figure": "Table 1",
+            "table_cell": null
+          }
+        }
+      ]
+    }
+  ]
+}

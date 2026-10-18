@@ -1,0 +1,373 @@
+{
+  "id": "synthetic-01-survey-pls",
+  "description": "Single column, running-head page numbers, results table with stars, correlation table with sqrt(AVE) diagonal.",
+  "file_hash": "71594de38e5eec33ce413c4008722869ffa04ab9b805a7f9ca555262f4a6b9ed",
+  "expected": {
+    "printedPages": [
+      "1201",
+      "1202",
+      "1203",
+      "1204"
+    ],
+    "printedPageMethod": "header_footer",
+    "columns": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "pagesWithoutText": []
+  },
+  "known_issues": {
+    "columns": "Tables on single-column pages (PDF 2, 3) are read as two columns, so table rows come out of order."
+  },
+  "structure": {
+    "paper_type": "empirical_quant",
+    "paper_type_evidence": {
+      "pdf_page": 1,
+      "quote": "We tested the model with an online survey of 412 Vietnamese shoppers.",
+      "section": "abstract",
+      "table_or_figure": null,
+      "table_cell": null
+    },
+    "studies": [
+      {
+        "study_label": "Study 1",
+        "research_design": "survey",
+        "design_evidence": {
+          "pdf_page": 2,
+          "quote": "Data were collected through an online survey in March-April 2024.",
+          "section": "method",
+          "table_or_figure": null,
+          "table_cell": null
+        }
+      }
+    ],
+    "hypothesis_codes": [
+      "H1",
+      "H2",
+      "H3"
+    ],
+    "tables": [
+      {
+        "table_label": "Table 1",
+        "pdf_page": 2,
+        "kind": "measurement",
+        "study_label": "Study 1"
+      },
+      {
+        "table_label": "Table 2",
+        "pdf_page": 3,
+        "kind": "correlation",
+        "study_label": "Study 1"
+      },
+      {
+        "table_label": "Table 3",
+        "pdf_page": 3,
+        "kind": "results",
+        "study_label": "Study 1"
+      }
+    ],
+    "theories": [
+      {
+        "theory_name_original": "S-O-R framework",
+        "application_role": "hypothesis_derivation",
+        "evidence": {
+          "pdf_page": 1,
+          "quote": "Drawing on the S-O-R framework, we expect influencer credibility to raise brand trust.",
+          "section": "theory",
+          "table_or_figure": null,
+          "table_cell": null
+        }
+      }
+    ]
+  },
+  "studies": [
+    {
+      "study_label": "Study 1",
+      "design": {
+        "time_design": "cross_sectional",
+        "experimental_design": null,
+        "manipulation_check": null,
+        "attention_check": true,
+        "exclusion_rate": null,
+        "preregistered": false,
+        "open_data": false,
+        "analysis_method": [
+          "pls_sem"
+        ],
+        "software": "SmartPLS 4",
+        "evidence": {
+          "pdf_page": 2,
+          "quote": "We analysed the data with PLS-SEM in SmartPLS 4.",
+          "section": "method",
+          "table_or_figure": null,
+          "table_cell": null
+        }
+      },
+      "sample": {
+        "n": 412,
+        "n_evidence": {
+          "pdf_page": 2,
+          "quote": "The final sample comprised 412 respondents after attention checks.",
+          "section": "method",
+          "table_or_figure": null,
+          "table_cell": null
+        },
+        "unit_of_analysis": "individual",
+        "sample_type": "online_convenience",
+        "country_iso": [
+          "VN"
+        ],
+        "industry_code": "G",
+        "market_type": "b2c",
+        "data_collection_period": "March-April 2024",
+        "evidence": {
+          "pdf_page": 2,
+          "quote": "Respondents were recruited via social media groups of online shoppers.",
+          "section": "method",
+          "table_or_figure": null,
+          "table_cell": null
+        }
+      },
+      "bias_control": {
+        "cmb_procedural": [],
+        "cmb_statistical": [
+          "harman"
+        ],
+        "cmb_weak_only": true,
+        "endogeneity_method": [],
+        "evidence": {
+          "pdf_page": 2,
+          "quote": "Harman's single-factor test showed no dominant factor.",
+          "section": "method",
+          "table_or_figure": null,
+          "table_cell": null
+        }
+      },
+      "measurements": [
+        {
+          "construct_label_original": "Influencer Credibility",
+          "definition": null,
+          "definition_evidence": null,
+          "scale_source": null,
+          "adapted": null,
+          "n_items": 5,
+          "items": [],
+          "scale_type": null,
+          "order": "first",
+          "parent_label_original": null,
+          "alpha": 0.89,
+          "CR": 0.91,
+          "AVE": 0.67,
+          "HTMT_max": null,
+          "reliability_evidence": {
+            "pdf_page": 2,
+            "quote": "Influencer Credibility 5 0.89 0.91 0.67",
+            "section": "results",
+            "table_or_figure": "Table 1",
+            "table_cell": null
+          }
+        },
+        {
+          "construct_label_original": "Brand Trust",
+          "definition": null,
+          "definition_evidence": null,
+          "scale_source": null,
+          "adapted": null,
+          "n_items": 4,
+          "items": [],
+          "scale_type": null,
+          "order": "first",
+          "parent_label_original": null,
+          "alpha": 0.86,
+          "CR": 0.9,
+          "AVE": 0.7,
+          "HTMT_max": null,
+          "reliability_evidence": {
+            "pdf_page": 2,
+            "quote": "Brand Trust 4 0.86 0.9 0.7",
+            "section": "results",
+            "table_or_figure": "Table 1",
+            "table_cell": null
+          }
+        },
+        {
+          "construct_label_original": "Purchase Intention",
+          "definition": null,
+          "definition_evidence": null,
+          "scale_source": null,
+          "adapted": null,
+          "n_items": 3,
+          "items": [],
+          "scale_type": null,
+          "order": "first",
+          "parent_label_original": null,
+          "alpha": 0.84,
+          "CR": 0.88,
+          "AVE": 0.71,
+          "HTMT_max": null,
+          "reliability_evidence": {
+            "pdf_page": 2,
+            "quote": "Purchase Intention 3 0.84 0.88 0.71",
+            "section": "results",
+            "table_or_figure": "Table 1",
+            "table_cell": null
+          }
+        }
+      ],
+      "paths": [
+        {
+          "hypothesis_code": "H1",
+          "mediator_labels": [],
+          "moderator_labels": [],
+          "effect_type": "direct",
+          "estimate_type": "std_beta",
+          "estimate": 0.42,
+          "se": null,
+          "ci_low": null,
+          "ci_high": null,
+          "ci_method": null,
+          "p_value": null,
+          "p_reported_as": "< .001",
+          "t_or_z": 8.4,
+          "r2_dv": null,
+          "f2": null,
+          "status": "supported",
+          "hypothesized_direction": "positive",
+          "observed_sign": "positive",
+          "significant": true,
+          "model_covariates": [],
+          "indirect_effect": null,
+          "boot_ci": null,
+          "mediation_type": null,
+          "interaction_type": null,
+          "simple_slopes": [],
+          "index_moderated_mediation": null,
+          "iv_label_original": "Influencer Credibility",
+          "dv_label_original": "Brand Trust",
+          "evidence": {
+            "pdf_page": 3,
+            "quote": "H1 Influencer Credibility -> Brand Trust 0.42*** 8.40 Supported",
+            "section": "results",
+            "table_or_figure": "Table 3",
+            "table_cell": null
+          }
+        },
+        {
+          "hypothesis_code": "H2",
+          "mediator_labels": [],
+          "moderator_labels": [],
+          "effect_type": "direct",
+          "estimate_type": "std_beta",
+          "estimate": 0.35,
+          "se": null,
+          "ci_low": null,
+          "ci_high": null,
+          "ci_method": null,
+          "p_value": null,
+          "p_reported_as": "< .001",
+          "t_or_z": 6.1,
+          "r2_dv": null,
+          "f2": null,
+          "status": "supported",
+          "hypothesized_direction": "positive",
+          "observed_sign": "positive",
+          "significant": true,
+          "model_covariates": [],
+          "indirect_effect": null,
+          "boot_ci": null,
+          "mediation_type": null,
+          "interaction_type": null,
+          "simple_slopes": [],
+          "index_moderated_mediation": null,
+          "iv_label_original": "Brand Trust",
+          "dv_label_original": "Purchase Intention",
+          "evidence": {
+            "pdf_page": 3,
+            "quote": "H2 Brand Trust -> Purchase Intention 0.35*** 6.10 Supported",
+            "section": "results",
+            "table_or_figure": "Table 3",
+            "table_cell": null
+          }
+        },
+        {
+          "hypothesis_code": "H3",
+          "mediator_labels": [],
+          "moderator_labels": [],
+          "effect_type": "direct",
+          "estimate_type": "std_beta",
+          "estimate": 0.08,
+          "se": null,
+          "ci_low": null,
+          "ci_high": null,
+          "ci_method": null,
+          "p_value": null,
+          "p_reported_as": null,
+          "t_or_z": 1.21,
+          "r2_dv": null,
+          "f2": null,
+          "status": "not_supported",
+          "hypothesized_direction": "positive",
+          "observed_sign": "positive",
+          "significant": false,
+          "model_covariates": [],
+          "indirect_effect": null,
+          "boot_ci": null,
+          "mediation_type": null,
+          "interaction_type": null,
+          "simple_slopes": [],
+          "index_moderated_mediation": null,
+          "iv_label_original": "Influencer Credibility",
+          "dv_label_original": "Purchase Intention",
+          "evidence": {
+            "pdf_page": 3,
+            "quote": "H3 Influencer Credibility -> Purchase Intention 0.08 1.21 Not supported",
+            "section": "results",
+            "table_or_figure": "Table 3",
+            "table_cell": null
+          }
+        }
+      ],
+      "correlation_matrices": [
+        {
+          "source_table": "Table 2",
+          "n": 412,
+          "variables": [
+            "Influencer Credibility",
+            "Brand Trust",
+            "Purchase Intention"
+          ],
+          "cells": [
+            {
+              "i": 1,
+              "j": 0,
+              "r": 0.48
+            },
+            {
+              "i": 2,
+              "j": 0,
+              "r": 0.39
+            },
+            {
+              "i": 2,
+              "j": 1,
+              "r": 0.52
+            }
+          ],
+          "diagonal_type": "sqrt_ave",
+          "descriptives": [],
+          "correlation_type": "latent",
+          "evidence": {
+            "pdf_page": 3,
+            "quote": "2. Brand Trust 0.48 0.84",
+            "section": "results",
+            "table_or_figure": "Table 2",
+            "table_cell": null
+          }
+        }
+      ],
+      "condition_cells": []
+    }
+  ]
+}
