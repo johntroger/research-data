@@ -4,7 +4,7 @@
  */
 
 export const SCHEMA_VERSION = "1.0.0";
-export const CODEBOOK_VERSION = "1.0.1";
+export const CODEBOOK_VERSION = "1.0.2";
 
 /** Data tiers from the plan (Mục 1.4). */
 export const FIELD_TIERS = ["T1", "T2", "T3"] as const;

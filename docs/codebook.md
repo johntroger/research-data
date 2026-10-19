@@ -2,7 +2,7 @@
 
 > Sổ mã hóa của hệ thống: định nghĩa vận hành của **mọi trường** trong schema (Mục 5.2, [docs/data-schema.md](data-schema.md)).
 > Đây là đầu vào trực tiếp cho prompt Gemini (bước 0.11 trở đi) và là tài liệu để người dùng hiểu từng con số trên web.
-> Phiên bản: `codebook_version = 1.0.1` (bước 0.10, bổ sung ở 0.11). Mọi thay đổi ghi ở [Nhật ký thay đổi](#nhật-ký-thay-đổi-codebook) cuối file.
+> Phiên bản: `codebook_version = 1.0.2` (bước 0.10, bổ sung ở 0.11, làm rõ Study ở 1b.7). Mọi thay đổi ghi ở [Nhật ký thay đổi](#nhật-ký-thay-đổi-codebook) cuối file.
 
 **Người soạn:** Claude Code. **Chủ dự án cần đọc lướt và sửa:** các định nghĩa ở Phần C (lý thuyết), Phần D (khái niệm, thang đo) và Phần K (đóng góp, khoảng trống) cho đúng cách hiểu trong miền nghiên cứu của mình. Các phần khác chủ yếu là quy ước kỹ thuật.
 
@@ -47,7 +47,7 @@
 1. **Study** là một lần thu thập dữ liệu có mẫu riêng. Bài có "Study 1, Study 2a, Study 2b" thì có 3 Study.
 2. `study_label` dùng **đúng nhãn của tác giả** ("Study 1", "Study 2a", "Pilot study", "Exploratory study"). Bài chỉ có một nghiên cứu thì ghi `"Study 1"`.
 3. Một nghiên cứu thu thập hai đợt (time-lagged) trên **cùng mẫu** vẫn là **một Study**.
-4. Thử nghiệm thang đo với chuyên gia (expert panel), pilot test: là Study riêng **nếu tác giả gọi là Study** hoặc báo cáo cỡ mẫu riêng.
+4. **Bước định tính sơ bộ** (nhóm tập trung / focus group, phỏng vấn, hội đồng chuyên gia, sinh item) **không phải Study**, kể cả khi bài báo cáo cỡ mẫu (quyết định của chủ dự án 19/10/2026: công cụ tập trung vào bài định lượng). Pilot hoặc pre-test **định lượng** có mẫu riêng và số liệu thống kê được báo cáo (α, mô hình đo lường…): là Study riêng, hoặc khi tác giả gọi là Study.
 
 ### A.6. Tên khái niệm
 
@@ -404,5 +404,6 @@ Các trường dưới đây là "khung" của từng lượt gọi Gemini (Mụ
 
 | Phiên bản | Ngày | Thay đổi |
 | :--- | :--- | :--- |
+| 1.0.2 | 2026-10-19 | Bước 1b.7: làm rõ A.5.4: bước định tính sơ bộ (focus group, phỏng vấn, hội đồng chuyên gia) không phải Study dù báo cáo cỡ mẫu; pilot / pre-test định lượng có số liệu vẫn là Study. Phát hiện khi Codex tách focus group của bài CSR thành Study thứ hai |
 | 1.0.1 | 2026-10-18 | Bước 0.11: thêm Phần L (trường cấu trúc của các lượt gọi AI và khóa con) để schema Zod và codebook khớp nhau hoàn toàn |
 | 1.0.0 | 2026-10-18 | Bản đầu tiên (bước 0.10): phủ toàn bộ 13 phân hệ ở Mục 5.2; thêm `narrative_review`, `path_coefficient`; các quy tắc bằng chứng rút ra từ chạy thử bước 0.8b |

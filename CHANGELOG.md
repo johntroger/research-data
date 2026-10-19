@@ -2,6 +2,14 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.19 (so với 3.9.18)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước nhập vai Q3 (Codex):** đạt tỷ lệ vấn đề 7,4% (Gemini 8,0%), câu trích nguyên văn 95,3%, 0/9 đường dẫn giả thuyết ẩn, 10 phút; nhưng tách thêm "qualitative pre-test" (focus group 11 người) thành Study thứ hai, nên lệch số Study và loại bài thành "mixed"; sau khi ghép nhãn, giá trị cấu trúc bằng Gemini 89,8% (149/166) | Kết quả pha A2, bài Q3 |
+| 2 | **Quyết định của chủ dự án (19/10/2026): bước định tính sơ bộ (focus group, phỏng vấn, hội đồng chuyên gia, sinh item) không phải Study**, kể cả khi báo cáo cỡ mẫu; pilot hoặc pre-test định lượng có số liệu vẫn là Study. Codebook **1.0.2** (A.5.4), chỉ dẫn dùng chung quy tắc 11, prompt **full-1.4.0** | Công cụ tập trung vào bài định lượng; thống nhất giữa các nguồn trích xuất. Quy tắc cũ của A.5.4 ("báo cáo cỡ mẫu riêng thì là Study") là nguyên nhân Codex tách focus group |
+| 3 | Bài Gemini đã trích trước đây dùng prompt full-1.3.0 / codebook 1.0.1; khóa xử lý đổi nên trích lại sẽ không bị bỏ qua; chưa chạy lại bài nào (không tốn API) | Ghi nhận ảnh hưởng |
+
 ### Version 3.9.18 (so với 3.9.17)
 
 | # | Thay đổi | Lý do |
