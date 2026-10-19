@@ -2,6 +2,14 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.23 (so với 3.9.22)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 1b.8a:** lệnh `pnpm worker manual export --paper X [--code NAME] [--force]` (`apps/worker/src/manual/`): dựng gói việc cho tác tử ngoài vào `PACKETS_DIR` (biến mới trong `.env.example`); gói xuất giống hệt từng byte với cùng đầu vào, không chứa khóa hay phản hồi thô, tên file trả lời đầy đủ; từ chối khi `out/` đã có câu trả lời, tên gói không thể thoát khỏi thư mục gói | Thay script tạm bằng lệnh trong repo (D16) |
+| 2 | **Prompt full-1.5.0** (dùng chung cả hai nguồn): quy tắc 13 "không ghi đối tượng nào thiếu câu trích", quy tắc 14 "tối đa 8 mục cho mỗi danh sách thảo luận"; khóa xử lý đổi nên bài đã trích bằng full-1.3.0 / full-1.4.0 không bị coi là cùng bản | Kết quả A1–A3 (Codex ghi khái niệm không bằng chứng, bài tổng quan ra 37 mục) |
+| 3 | Test: 12 test đơn vị (dựng gói, ghi gói, tên gói) và 3 test DB (tìm bài, ghi gói); tổng 327 unit, 74 DB | Kiểm thử 1b.8a |
+
 ### Version 3.9.22 (so với 3.9.21)
 
 | # | Thay đổi | Lý do |

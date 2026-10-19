@@ -7,6 +7,7 @@
  *   pnpm worker run [--limit N] [--paper X] [--yes]   extract, verify and publish queued papers under the cap (step 1.9)
  *   pnpm worker report                cost per paper, unit price and projection
  *   pnpm worker batch submit [--limit N] [--paper X] [--compare] [--yes] | poll [--wait [minutes]] | status   (step 1.7)
+ *   pnpm worker manual export --paper X [--code NAME] [--force]   work packet for an external extractor such as Codex (step 1b.8a)
  *   pnpm worker quality [--top N]     ✓ / ⚠ / ◇ / ẩn by study design, field and failed check (step 1b.1)
  *   pnpm worker compare --paper X     Batch result vs synchronous result, field by field (step 1.9c)
  * Uses a READ-ONLY Zotero key (Mục 3.3) and the local Supabase database.
@@ -14,7 +15,8 @@
 import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { geminiConfig, loadEnv, REPO_ROOT, zoteroConfig } from "../config.js";
+import { geminiConfig, loadEnv, packetsDir, REPO_ROOT, zoteroConfig } from "../config.js";
+import { exportPacket } from "../manual/export.js";
 import { connect } from "../db/client.js";
 import { geminiBatchClient } from "../extract/batch-client.js";
 import { type BatchDeps, listBatches, pollOnce, submitPaper } from "../extract/batch.js";
@@ -417,6 +419,34 @@ async function quality(args: string[]): Promise<number> {
   }
 }
 
+/** pnpm worker manual export --paper X [--code NAME] [--force]: the work packet of one paper for an external extractor (D16). */
+async function manual(args: string[]): Promise<number> {
+  const [sub, ...rest] = args;
+  if (sub !== "export") {
+    console.error("Usage: pnpm worker manual export --paper X [--code NAME] [--force]");
+    return 1;
+  }
+  const paper = option(rest, "--paper");
+  if (!paper) {
+    console.error("--paper X is required (a part of the title, or the start of the file hash)");
+    return 1;
+  }
+  const db = await connect();
+  try {
+    const code = option(rest, "--code");
+    const result = await exportPacket(db, { repoRoot: REPO_ROOT, packetsRoot: packetsDir(), paper, ...(code ? { code } : {}), force: rest.includes("--force") });
+    console.log(`Packet "${result.code}" for: ${result.paper.title ?? result.paper.fileHash.slice(0, 12)}
+  folder: ${result.dir}
+  Open ONLY this folder in the extractor (Codex…), not the repository, so it cannot see .env.`);
+    return 0;
+  } catch (error) {
+    console.error((error as Error).message);
+    return 1;
+  } finally {
+    await db.end();
+  }
+}
+
 async function main(): Promise<number> {
   const [command, ...args] = process.argv.slice(2);
   if (command === "extract") return extract(args);
@@ -428,7 +458,8 @@ async function main(): Promise<number> {
   if (command === "batch") return batch(args);
   if (command === "compare") return compare(args);
   if (command === "quality") return quality(args);
-  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N]");
+  if (command === "manual") return manual(args);
+  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | manual export --paper X");
   return 1;
 }
 

@@ -9,6 +9,12 @@ export function loadEnv(): void {
   if (existsSync(file)) process.loadEnvFile(file);
 }
 
+/** Folder of work packets for external extractors (Codex…): outside the repository, so they never see `.env` (D16). */
+export function packetsDir(): string {
+  loadEnv();
+  return path.resolve(process.env.PACKETS_DIR?.trim() || "C:/Projects/Research Data Packets");
+}
+
 export interface GeminiConfig {
   apiKey: string;
   strongModel: string;

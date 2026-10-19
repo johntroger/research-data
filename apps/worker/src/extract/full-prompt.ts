@@ -5,7 +5,7 @@
  */
 import { CODEBOOK_VERSION, type ExtractionSchemaName } from "@research-data/schema";
 
-export const FULL_PROMPT_VERSION = "full-1.4.0";
+export const FULL_PROMPT_VERSION = "full-1.5.0";
 
 export const FULL_INSTRUCTIONS = `You extract structured data from one academic paper (attached PDF) for a research database.
 Codebook ${CODEBOOK_VERSION}. Follow these rules for every field:
@@ -34,7 +34,16 @@ STUDIES AND NAMES
     generation) is NOT a study, even when its sample size is reported: do not list it. A quantitative pilot or
     pre-test with its own sample and reported statistics IS a study. Use the authors' study labels ("Study 1",
     "Study 2a", "Pilot study"); a paper with a single study has "Study 1". Two waves on the same sample are one study.
-12. Write construct and variable names exactly as the authors do (full names, not abbreviations).`;
+12. Write construct and variable names exactly as the authors do (full names, not abbreviations).
+
+NO EVIDENCE, NO OBJECT
+13. Do not list a construct, path, theory, table or statement for which you cannot give a quote and a page.
+    Leave it out instead of listing it without evidence.
+
+DISCUSSION LISTS
+14. List at most 8 items for each of: theoretical contributions, practical implications, limitations, future
+    research directions. Choose the statements the authors make most explicitly in the discussion or conclusion.
+    Do not turn a table of research questions or a list of examples into separate items.`;
 
 const STRUCTURE = `Pass 1 — structure. Identify the paper type, every study with its own sample, every hypothesis code,
 every table, and every named theory the paper uses, with evidence.`;
