@@ -1,7 +1,7 @@
 {
   "id": "synthetic-01-survey-pls",
   "description": "Single column, running-head page numbers, results table with stars, correlation table with sqrt(AVE) diagonal.",
-  "file_hash": "71594de38e5eec33ce413c4008722869ffa04ab9b805a7f9ca555262f4a6b9ed",
+  "file_hash": "519ec9851d634d75327ad11e6d121e8ed47f386fc2591f0423aa8c90633f0529",
   "expected": {
     "printedPages": [
       "1201",
@@ -267,7 +267,7 @@
           "moderator_labels": [],
           "effect_type": "direct",
           "estimate_type": "std_beta",
-          "estimate": 0.42,
+          "estimate": 0.48,
           "se": null,
           "ci_low": null,
           "ci_high": null,
@@ -292,7 +292,7 @@
           "dv_label_original": "Brand Trust",
           "evidence": {
             "pdf_page": 3,
-            "quote": "H1 Influencer Credibility -> Brand Trust 0.42*** 8.40 Supported",
+            "quote": "H1 Influencer Credibility -> Brand Trust 0.48*** 8.40 Supported",
             "section": "results",
             "table_or_figure": "Table 3",
             "table_cell": null

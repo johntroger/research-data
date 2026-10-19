@@ -157,7 +157,7 @@ const paper01: SyntheticPaper = {
             header: ["Hypothesis", "Path", "beta", "t", "Result"],
             widths: [70, 210, 60, 50, 80],
             rows: [
-              ["H1", "Influencer Credibility -> Brand Trust", "0.42***", "8.40", "Supported"],
+              ["H1", "Influencer Credibility -> Brand Trust", "0.48***", "8.40", "Supported"],
               ["H2", "Brand Trust -> Purchase Intention", "0.35***", "6.10", "Supported"],
               ["H3", "Influencer Credibility -> Purchase Intention", "0.08", "1.21", "Not supported"],
             ],
@@ -270,14 +270,14 @@ const paper01: SyntheticPaper = {
             iv_label_original: "Influencer Credibility",
             dv_label_original: "Brand Trust",
             estimate_type: "std_beta",
-            estimate: 0.42,
+            estimate: 0.48,
             p_reported_as: "< .001",
             t_or_z: 8.4,
             status: "supported",
             hypothesized_direction: "positive",
             observed_sign: "positive",
             significant: true,
-            evidence: ev(3, "H1 Influencer Credibility -> Brand Trust 0.42*** 8.40 Supported", "Table 3"),
+            evidence: ev(3, "H1 Influencer Credibility -> Brand Trust 0.48*** 8.40 Supported", "Table 3"),
           }),
           path({
             hypothesis_code: "H2",
@@ -470,6 +470,17 @@ const paper02: SyntheticPaper = {
         bias_control: noBias,
         measurements: [],
         paths: [
+          path({
+            hypothesis_code: "H1",
+            iv_label_original: "Disclosure",
+            dv_label_original: "Consumer skepticism",
+            effect_type: "direct",
+            p_reported_as: "< .001",
+            status: "supported",
+            hypothesized_direction: "positive",
+            significant: true,
+            evidence: ev(2, "Disclosure increased skepticism,", null, "results"),
+          }),
           path({
             hypothesis_code: "H2",
             iv_label_original: "Disclosure x Source",

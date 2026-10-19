@@ -37,8 +37,12 @@ type Tier = FieldVerification["tier"];
 
 const present = (v: unknown) => v !== null && v !== undefined && !(Array.isArray(v) && v.length === 0);
 
-export function verifyFull(layer: PdfTextLayer, data: FullData): FieldVerification[] {
+/** Which group (natural-key prefix) each extracted object got, for the cross-checks of step 1.5. */
+export type GroupRefs = Map<object, string>;
+
+export function verifyFull(layer: PdfTextLayer, data: FullData, refs: GroupRefs = new Map()): FieldVerification[] {
   const out: FieldVerification[] = [];
+  let group = "";
   const used = new Map<string, number>();
   /** Natural keys are unique: a repeated key (the same path in two models) gets "#2", "#3"… */
   const key = (k: string) => {
@@ -57,7 +61,8 @@ export function verifyFull(layer: PdfTextLayer, data: FullData): FieldVerificati
     checks: (page: number) => CheckResult[] = () => [],
   ) => {
     if (!present(value)) return;
-    out.push(evidence ? field(naturalKey, fieldName, tier, value, evidence, layer, checks) : withoutEvidence(naturalKey, fieldName, tier, value));
+    const row = evidence ? field(naturalKey, fieldName, tier, value, evidence, layer, checks) : withoutEvidence(naturalKey, fieldName, tier, value);
+    out.push({ ...row, group });
   };
   const num = (name: string, v: number | null, severity: CheckResult["severity"] = "hide") => (page: number) =>
     v === null ? [] : [numberCheck(layer, name, v, page, severity)];
@@ -91,6 +96,8 @@ export function verifyFull(layer: PdfTextLayer, data: FullData): FieldVerificati
   // ── Studies ────────────────────────────────────────────────────────────────
   for (const study of data.studies) {
     const st = slug(study.study_label);
+    group = st;
+    refs.set(study, st);
     const outline = s.studies.find((o) => o.study_label === study.study_label);
     if (outline) add(`${st}:research_design`, "research_design", "T2", outline.research_design, outline.design_evidence);
 
@@ -129,6 +136,8 @@ export function verifyFull(layer: PdfTextLayer, data: FullData): FieldVerificati
 
     for (const m of study.measurements) {
       const k = key(`${st}:m:${slug(m.construct_label_original)}`);
+      group = k;
+      refs.set(m, k);
       const rEv = m.reliability_evidence;
       add(`${k}:label`, "construct_label_original", "T1", m.construct_label_original, rEv ?? m.definition_evidence, text("text_in_pdf", m.construct_label_original));
       add(`${k}:definition`, "definition", "T1", m.definition, m.definition_evidence);
@@ -148,6 +157,8 @@ export function verifyFull(layer: PdfTextLayer, data: FullData): FieldVerificati
 
     for (const mx of study.correlation_matrices) {
       const k = key(`${st}:corr:${slug(mx.source_table)}`);
+      group = k;
+      refs.set(mx, k);
       const ev = mx.evidence;
       add(`${k}:n`, "n", "T1", mx.n, ev, num("number_in_pdf", mx.n));
       add(`${k}:diagonal_type`, "diagonal_type", "T2", mx.diagonal_type, ev);
@@ -173,6 +184,8 @@ export function verifyFull(layer: PdfTextLayer, data: FullData): FieldVerificati
 
     for (const c of study.condition_cells) {
       const k = key(`${st}:cell:${slug(c.condition_label)}:${slug(c.dv_label_original)}`);
+      group = k;
+      refs.set(c, k);
       const ev = c.evidence;
       add(`${k}:mean`, "mean", "T1", c.mean, ev, num("number_in_pdf", c.mean));
       add(`${k}:sd`, "sd", "T1", c.sd, ev, (page) => [
@@ -190,6 +203,8 @@ export function verifyFull(layer: PdfTextLayer, data: FullData): FieldVerificati
 
   function addPath(p: PathResult, st: string) {
     const k = key(`${st}:${slug(p.hypothesis_code ?? "-")}:${slug(p.iv_label_original)}->${slug(p.dv_label_original)}:${p.effect_type}`);
+    group = k;
+    refs.set(p, k);
     const ev = p.evidence;
     const numbers: [string, number | null][] = [
       ["estimate", p.estimate],

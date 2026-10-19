@@ -141,6 +141,43 @@
       "measurements": [],
       "paths": [
         {
+          "hypothesis_code": "H1",
+          "mediator_labels": [],
+          "moderator_labels": [],
+          "effect_type": "direct",
+          "estimate_type": null,
+          "estimate": null,
+          "se": null,
+          "ci_low": null,
+          "ci_high": null,
+          "ci_method": null,
+          "p_value": null,
+          "p_reported_as": "< .001",
+          "t_or_z": null,
+          "r2_dv": null,
+          "f2": null,
+          "status": "supported",
+          "hypothesized_direction": "positive",
+          "observed_sign": null,
+          "significant": true,
+          "model_covariates": [],
+          "indirect_effect": null,
+          "boot_ci": null,
+          "mediation_type": null,
+          "interaction_type": null,
+          "simple_slopes": [],
+          "index_moderated_mediation": null,
+          "iv_label_original": "Disclosure",
+          "dv_label_original": "Consumer skepticism",
+          "evidence": {
+            "pdf_page": 2,
+            "quote": "Disclosure increased skepticism,",
+            "section": "results",
+            "table_or_figure": null,
+            "table_cell": null
+          }
+        },
+        {
           "hypothesis_code": "H2",
           "mediator_labels": [],
           "moderator_labels": [

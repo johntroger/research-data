@@ -25,6 +25,8 @@ export interface FieldVerification {
   evidence: { pdfPage: number; quote: string };
   badge: Badge;
   checks: CheckResult[];
+  /** Natural key of the object the field belongs to (a path, a matrix, a condition cell, a study), set by verifyFull. */
+  group?: string;
 }
 
 export interface EvidenceIn {
