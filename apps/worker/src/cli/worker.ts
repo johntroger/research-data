@@ -196,6 +196,10 @@ async function run(args: string[]): Promise<number> {
         console.error(`\n${outcome.message}\nStopped before sending anything more.`);
         break;
       }
+      if (outcome.status === "busy") {
+        console.error(`  … skipped: another run is already working on this paper`);
+        continue;
+      }
       if (outcome.status === "extraction_failed") {
         console.error(`  ✗ ${outcome.message} (spent ${usd(outcome.costUsd)}; raw answers kept in extracted_data/)`);
         continue;

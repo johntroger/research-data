@@ -32,6 +32,8 @@ export interface PageText {
   marginNotes: string[];
   /** Number of text columns detected on the page (1 or 2). */
   columns: 1 | 2;
+  /** x of the gutter between two text columns, when the page has one (step 1.9b). */
+  gutter: number | null;
   /** False when the page has (almost) no extractable text, e.g. a table or figure embedded as an image. */
   hasTextLayer: boolean;
   /**
@@ -76,6 +78,45 @@ function normaliseSpaces(text: string): string {
   return text.replace(/\s+/g, " ").trim();
 }
 
+/**
+ * The gutter of a two-column page: a vertical strip near the page centre that (almost) no text run
+ * crosses, with plenty of text on both sides and lines at the same height on both sides. Returns the
+ * x of the strip's middle, or null for a page without one (single column, or columns separated by
+ * something else). A page with a full-width title or table still has a gutter: those few runs are
+ * tolerated (at most 3% of the runs may cross the strip).
+ */
+export function findGutter(items: { x0: number; x1: number; y: number }[], pageWidth: number): number | null {
+  if (items.length < 20) return null;
+  const centre = pageWidth / 2;
+  const from = Math.floor(centre - pageWidth * 0.12);
+  const to = Math.ceil(centre + pageWidth * 0.12);
+  const tolerated = Math.max(2, Math.floor(items.length * 0.03));
+
+  // Widest free run of x positions around the centre, preferring the one nearest to it.
+  let best: { start: number; end: number } | null = null;
+  let start: number | null = null;
+  for (let x = from; x <= to + 1; x++) {
+    const crossing = x <= to ? items.filter((i) => i.x0 < x && i.x1 > x).length : Infinity;
+    if (crossing <= tolerated) start ??= x;
+    else if (start !== null) {
+      const run = { start, end: x - 1 };
+      const width = run.end - run.start;
+      const better = !best || width > best.end - best.start || (width === best.end - best.start && Math.abs((run.start + run.end) / 2 - centre) < Math.abs((best.start + best.end) / 2 - centre));
+      if (width >= 3 && better) best = run;
+      start = null;
+    }
+  }
+  if (!best) return null;
+
+  const mid = (best.start + best.end) / 2;
+  const left = items.filter((i) => i.x1 <= best!.start + 1);
+  const right = items.filter((i) => i.x0 >= best!.end - 1);
+  if (left.length < 10 || right.length < 10) return null;
+  const leftRows = new Set(left.map((i) => Math.round(i.y / 2)));
+  const rowsOnBothSides = new Set(right.map((i) => Math.round(i.y / 2)).filter((y) => leftRows.has(y)));
+  return rowsOnBothSides.size >= 6 ? mid : null;
+}
+
 function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b);
   return sorted[Math.floor(sorted.length / 2)] ?? 0;
@@ -90,7 +131,7 @@ const SMALL_TEXT_RATIO = 0.85;
  * Small text sitting slightly above or below a line (subscripts such as M<sub>age</sub>,
  * superscripts) is attached to that line instead of forming a line of its own.
  */
-function buildSegments(items: PositionedText[]): Segment[] {
+function buildSegments(items: PositionedText[], gutter: number | null = null): Segment[] {
   const bodySize = median(items.map((i) => i.size).filter((s) => s > 0));
   const isSmall = (i: PositionedText) => bodySize > 0 && i.size > 0 && i.size < bodySize * SMALL_TEXT_RATIO;
 
@@ -126,7 +167,10 @@ function buildSegments(items: PositionedText[]): Segment[] {
     };
     for (const item of lineItems) {
       const last = current.at(-1);
-      if (last && item.x0 - last.x1 > SEGMENT_GAP) flush();
+      // A new segment after a large gap, and always at the gutter of a two-column page: some journals
+      // leave a gutter just under SEGMENT_GAP (11.9 pt in the Sage paper of step 1.9b), which used to
+      // glue the left and right column of every line into one.
+      if (last && (item.x0 - last.x1 > SEGMENT_GAP || (gutter !== null && last.x1 <= gutter + 1 && item.x0 >= gutter - 1))) flush();
       current.push(item);
     }
     if (current.length) flush();
@@ -190,7 +234,11 @@ function place(segment: Segment, centre: number): Placement {
  * (footnotes). Single-column pages are read top to bottom. Table rows across the page centre
  * only decide whether the page has columns; they never count as column text.
  */
-function orderForReading(segments: Segment[], pageWidth: number): { lines: Segment[]; columns: 1 | 2 } {
+function orderForReading(
+  segments: Segment[],
+  pageWidth: number,
+  isRunningHead: (s: Segment) => boolean = () => false,
+): { lines: Segment[]; columns: 1 | 2 } {
   const topDown = (a: Segment, b: Segment) => b.y - a.y || a.x0 - b.x0;
   const centre = pageWidth / 2;
   const tableRows = tableRowSegments(segments, pageWidth);
@@ -208,14 +256,17 @@ function orderForReading(segments: Segment[], pageWidth: number): { lines: Segme
   if (!isTwoColumn) return { lines: [...segments].sort(topDown), columns: 1 };
 
   // Reading order of two-column pages is unchanged: table cells follow their side of the page.
-  const sides = segments.map((s) => ({ s, p: place(s, centre) }));
+  // A running head ("442 VAN BERLO AND BOCK") in the top-right corner belongs before both columns, not at the
+  // top of the right one, where it would cut in half a sentence that runs from one column to the next.
+  const heads = segments.filter(isRunningHead).sort(topDown);
+  const sides = segments.filter((s) => !isRunningHead(s)).map((s) => ({ s, p: place(s, centre) }));
   const full = sides.filter((x) => x.p === "full").map((x) => x.s);
   const leftSide = sides.filter((x) => x.p === "left").map((x) => x.s);
   const rightSide = sides.filter((x) => x.p === "right").map((x) => x.s);
   const columnTop = Math.max(...leftSide.map((s) => s.y), ...rightSide.map((s) => s.y));
   const above = full.filter((s) => s.y > columnTop).sort(topDown);
   const below = full.filter((s) => s.y <= columnTop).sort(topDown);
-  return { lines: [...above, ...leftSide.sort(topDown), ...rightSide.sort(topDown), ...below], columns: 2 };
+  return { lines: [...heads, ...above, ...leftSide.sort(topDown), ...rightSide.sort(topDown), ...below], columns: 2 };
 }
 
 /** Vertical distance (points) within which pieces count as one visual row (cells set on slightly different baselines). */
@@ -258,14 +309,15 @@ export async function readTextLayer(bytes: Uint8Array): Promise<PdfTextLayer> {
       items.push({ str: item.str, x0: e, x1: e + item.width, y: f, size: Math.abs(d) || item.height || 0 });
     }
 
-    const segments = buildSegments(items);
+    const gutter = findGutter(items, width);
+    const segments = buildSegments(items, gutter);
     const inHeader = (s: Segment) => s.y >= height * (1 - MARGIN_RATIO);
     const inFooter = (s: Segment) => s.y <= height * MARGIN_RATIO;
     const inSideMargin = (s: Segment) =>
       !inHeader(s) && !inFooter(s) && (s.x1 <= width * SIDE_MARGIN_RATIO || s.x0 >= width * (1 - SIDE_MARGIN_RATIO));
     const topDown = (a: Segment, b: Segment) => b.y - a.y || a.x0 - b.x0;
 
-    const { lines, columns } = orderForReading(segments, width);
+    const { lines, columns } = orderForReading(segments, width, (s) => inHeader(s) && s.text.length <= 80);
     const text = lines.map((l) => l.text).join("\n");
     const rowText = visualRows(segments).join("\n");
 
@@ -278,6 +330,7 @@ export async function readTextLayer(bytes: Uint8Array): Promise<PdfTextLayer> {
       sideLines: segments.filter(inSideMargin).sort(topDown).map((s) => s.text),
       marginNotes: rotated.length ? [normaliseSpaces(rotated.join(" "))] : [],
       columns,
+      gutter,
       hasTextLayer: text.replace(/\s/g, "").length >= MIN_CHARS_PER_PAGE,
       rowText,
     });

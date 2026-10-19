@@ -32,7 +32,8 @@ describe("normaliseForMatch", () => {
       'subjectively perceive as "right" or "wrong"',
     );
     expect(normaliseForMatch("morality ’ s influence")).toBe("morality's influence");
-    expect(normaliseForMatch("β = −.31")).toBe("β = -.31");
+    // Greek letters are folded to the Latin letter a symbol font stores them as (step 1.9b).
+    expect(normaliseForMatch("β = −.31")).toBe("b = -.31");
     expect(normaliseForMatch("ﬁrst ﬂow")).toBe("first flow");
   });
 
@@ -174,8 +175,15 @@ describe("fixes from the real-paper trial (step 0.8b)", () => {
     expect(verifyNumber(layer, 120, 2).found).toBe(false);
   });
 
-  it("normalises the APL alpha used by some typesetters", () => {
-    expect(normaliseForMatch("⍺ = 0.84")).toBe("α = 0.84");
+  it("normalises the APL alpha used by some typesetters (and folds it like any alpha)", () => {
+    expect(normaliseForMatch("⍺ = 0.84")).toBe("a = 0.84");
+    expect(normaliseForMatch("α = 0.84")).toBe(normaliseForMatch("⍺ = 0.84"));
+  });
+
+  it("matches a quote whose Greek letters the PDF stores as Latin letters (Cronbach's a for α)", () => {
+    const pdfText = "created ( M = 2.99, SD = 1.48), which proved both reliable (Cronbach’s a = 0.95) and valid (eigenvalue = 3.48, R 2 = 0.87).";
+    const quote = "created (M = 2.99, SD = 1.48), which proved both reliable (Cronbach’s α = 0.95) and valid (eigenvalue = 3.48, R2 = 0.87).";
+    expect(normaliseForMatch(pdfText).replace(/ /g, "")).toBe(normaliseForMatch(quote).replace(/ /g, ""));
   });
 
   it("matches a quote written without the subscript space ('Mbrand familiarity')", () => {

@@ -24,6 +24,14 @@ export function normaliseChars(text: string): string {
 }
 
 /**
+ * Journals set Greek letters in a symbol font whose text layer holds the Latin letter on the same key
+ * ("Cronbach's α" is stored as "Cronbach's a"), while Gemini reads the page and writes "α". For quote
+ * matching both sides are folded to the Latin letter; numbers are not touched.
+ */
+const GREEK_TO_LATIN: Record<string, string> = { α: "a", β: "b", γ: "g", δ: "d", ε: "e", η: "h", θ: "q", λ: "l", μ: "m", ρ: "r", σ: "s", χ: "c", ω: "w" };
+const foldGreek = (text: string) => text.replace(/[αβγδεηθλμρσχω]/g, (c) => GREEK_TO_LATIN[c]!);
+
+/**
  * Normalises text for quote matching:
  * - joins words hyphenated across line breaks ("per-\nceive" → "perceive")
  * - unifies quotes, apostrophes, dashes and the minus sign
@@ -31,7 +39,7 @@ export function normaliseChars(text: string): string {
  * - collapses whitespace and lower-cases
  */
 export function normaliseForMatch(text: string): string {
-  return normaliseChars(text)
+  return foldGreek(normaliseChars(text))
     .replace(/(\p{L})-\s*\n\s*(\p{Ll})/gu, "$1$2")
     .replace(/\s+/g, " ")
     .replace(/" (.*?) "/g, '"$1"')
@@ -49,8 +57,9 @@ export function normaliseForMatch(text: string): string {
  * with these signs restored, or null when the text shows no sign of this substitution.
  */
 export function repairSymbolFont(text: string): string | null {
-  // Signature: a thorn or ¼ for a sign, or a p-value note written "p , 0 : 05".
-  if (!/[þ¼]|\bp , ?0 : \d/.test(text)) return null;
+  // Signature: a thorn or ¼ for a sign, a p-value note written "p , 0 : 05", or a confidence interval
+  // whose minus signs came out as "2": "[ 2 0.79 to 2 0.14]" (Sage tables, step 1.9b).
+  if (!/[þ¼]|\bp , ?0 : \d|\[\s*2\s+\d*\.\d+\s+to\s/.test(text)) return null;
   let repaired = text
     .replace(/þ/g, "+")
     .replace(/¼/g, "=")

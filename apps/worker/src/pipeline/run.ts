@@ -39,7 +39,9 @@ export type RunOutcome =
   | { status: "done"; report: PaperReport }
   | { status: "extraction_failed"; fileHash: string; title: string | null; message: string; costUsd: number }
   /** The cap would be passed by the next call: nothing more is sent. */
-  | { status: "budget_stop"; fileHash: string; title: string | null; message: string };
+  | { status: "budget_stop"; fileHash: string; title: string | null; message: string }
+  /** Another run is already working on this paper: this one does nothing (and spends nothing). */
+  | { status: "busy"; fileHash: string; title: string | null };
 
 export interface RunDeps {
   db: pg.Client;
@@ -53,7 +55,23 @@ export interface RunDeps {
   log?: (line: string) => void;
 }
 
+/**
+ * One paper is worked on by one run at a time. Two runs on the same paper (a forgotten background command, a
+ * second terminal) used to ask Gemini for the same answers twice: about $3.5 of $9.7 was lost that way in the
+ * first real run. The lock is a PostgreSQL advisory lock on the file hash, held for the life of the connection,
+ * so a crashed run releases it by itself.
+ */
 export async function runPaper(deps: RunDeps, paper: QueuedPaper): Promise<RunOutcome> {
+  const lock = await deps.db.query<{ ok: boolean }>("select pg_try_advisory_lock(hashtextextended($1, 0)) as ok", [paper.fileHash]);
+  if (!lock.rows[0]!.ok) return { status: "busy", fileHash: paper.fileHash, title: paper.title };
+  try {
+    return await runLocked(deps, paper);
+  } finally {
+    await deps.db.query("select pg_advisory_unlock(hashtextextended($1, 0))", [paper.fileHash]).catch(() => {});
+  }
+}
+
+async function runLocked(deps: RunDeps, paper: QueuedPaper): Promise<RunOutcome> {
   const started = Date.now();
   const pdf = new Uint8Array(await readFile(path.join(deps.repoRoot, paper.pdfPath)));
   const file = resultFile(deps.extractedDir, paper.fileHash);

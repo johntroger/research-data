@@ -18,13 +18,15 @@ export type Block =
   /** A table: each cell is drawn at its own x, so the text layer sees separate pieces like real PDFs. */
   | { kind: "table"; title: string; header: string[]; rows: string[][]; note?: string; widths: number[] }
   /** One line made of pieces with their own size and vertical shift (subscripts), optionally at a given x. */
-  | { kind: "inline"; parts: { text: string; size: number; dy?: number; x?: number }[] }
+  | { kind: "inline"; parts: { text: string; size: number; dy?: number; x?: number; mono?: boolean }[] }
   /** Graphics only (a table embedded as an image): no text layer. */
   | { kind: "image"; height: number };
 
 export interface PageSpec {
   /** Running head drawn in the top margin. */
   header?: string;
+  /** Running head in the top-right corner (journals alternate it with the left one). */
+  headerRight?: string;
   footer?: string;
   /** Page number printed in the outer side margin (Emerald style). */
   side?: { text: string; at: "left" | "right" };
@@ -43,6 +45,8 @@ export interface RenderSpec {
 interface Fonts {
   regular: PDFFont;
   bold: PDFFont;
+  /** Fixed width: equal-length lines are equally wide, like the justified columns of a journal. */
+  mono: PDFFont;
 }
 
 function drawBlock(page: PDFPage, block: Block, y: number, fonts: Fonts): number {
@@ -88,8 +92,9 @@ function drawBlock(page: PDFPage, block: Block, y: number, fonts: Fonts): number
       let x = MARGIN;
       for (const part of block.parts) {
         if (part.x !== undefined) x = part.x;
-        page.drawText(part.text, { x, y: y + (part.dy ?? 0), size: part.size, font: fonts.regular });
-        x += fonts.regular.widthOfTextAtSize(part.text, part.size);
+        const font = part.mono ? fonts.mono : fonts.regular;
+        page.drawText(part.text, { x, y: y + (part.dy ?? 0), size: part.size, font });
+        x += font.widthOfTextAtSize(part.text, part.size);
       }
       return y - LINE - 6;
     }
@@ -120,11 +125,19 @@ export async function renderPdf(spec: RenderSpec): Promise<Uint8Array> {
   const fonts = {
     regular: await doc.embedFont(StandardFonts.Helvetica),
     bold: await doc.embedFont(StandardFonts.HelveticaBold),
+    // Embedded only when a part asks for it, so documents without it stay byte for byte as committed.
+    mono: spec.pages.some((p) => p.blocks.some((b) => b.kind === "inline" && b.parts.some((x) => x.mono)))
+      ? await doc.embedFont(StandardFonts.Courier)
+      : (undefined as unknown as PDFFont),
   };
 
   for (const pageSpec of spec.pages) {
     const page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
     if (pageSpec.header) page.drawText(pageSpec.header, { x: MARGIN, y: PAGE_HEIGHT - 30, size: 8, font: fonts.regular });
+    if (pageSpec.headerRight) {
+      const x = PAGE_WIDTH - MARGIN - fonts.regular.widthOfTextAtSize(pageSpec.headerRight, 8);
+      page.drawText(pageSpec.headerRight, { x, y: PAGE_HEIGHT - 30, size: 8, font: fonts.regular });
+    }
     if (pageSpec.footer) page.drawText(pageSpec.footer, { x: MARGIN, y: 25, size: 8, font: fonts.regular });
     if (pageSpec.side) {
       const x = pageSpec.side.at === "right" ? PAGE_WIDTH - 40 : 18;

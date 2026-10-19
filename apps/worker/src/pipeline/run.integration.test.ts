@@ -105,6 +105,41 @@ describe("runPaper", () => {
   });
 });
 
+describe("two runs on the same paper (the first real run paid about $3.5 twice)", () => {
+  it("lets only one run work on a paper, and the other one sends and spends nothing", async () => {
+    await rm(path.join(dir, "extracted"), { recursive: true, force: true });
+    const other = await connect(); // another process, with its own connection
+    try {
+      await other.query("select pg_advisory_lock(hashtextextended($1, 0))", [fileHash]); // it is working on the paper
+      const d = deps();
+      const outcome = await runPaper(d.value, queued());
+      expect(outcome).toMatchObject({ status: "busy", fileHash });
+      expect(d.requests).toHaveLength(0);
+      expect(d.ledger.entries).toHaveLength(0);
+    } finally {
+      await other.end(); // a closed connection (or a crashed run) releases its lock
+    }
+    const d2 = deps();
+    expect((await runPaper(d2.value, queued())).status).toBe("done");
+    expect(d2.requests).toHaveLength(6);
+  });
+
+  it("releases the lock when a run ends, also after an error", async () => {
+    await rm(path.join(dir, "extracted"), { recursive: true, force: true });
+    const dies: GeneratePdfJson = async () => {
+      throw new Error("boom");
+    };
+    await expect(runPaper({ ...deps().value, generate: dies }, queued())).rejects.toThrow("boom");
+    const probe = await connect();
+    try {
+      const free = await probe.query<{ ok: boolean }>("select pg_try_advisory_lock(hashtextextended($1, 0)) as ok", [fileHash]);
+      expect(free.rows[0]!.ok).toBe(true);
+    } finally {
+      await probe.end();
+    }
+  });
+});
+
 describe("a run that stops half-way (the first real run lost 10 paid calls, $1.49)", () => {
   it("keeps every paid answer on disk, and the next run reuses them without asking or paying again", async () => {
     await rm(path.join(dir, "extracted"), { recursive: true, force: true });

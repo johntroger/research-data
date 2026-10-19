@@ -2,6 +2,14 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.9 (so với 3.9.8)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 1.9b:** lớp đọc PDF nhận ra **khe giữa hai cột** (dải dọc không mảnh văn bản nào phủ) và luôn cắt đoạn tại đó; tiêu đề chạy ở góc trên bên phải xếp trước cả hai cột; chữ cái Hy Lạp được gập về chữ Latin khi so câu (font ký hiệu lưu α thành a); dấu trừ lưu thành "2" trong khoảng tin cậy được khôi phục (Mục 6.3) | Bài hai cột khe hẹp (11,9 pt, dưới ngưỡng nối 12 pt) bị nối cột thành một dòng: 46/135 trường bị ẩn oan. Sau sửa: ✓ 35→85, ⚠ 45→28, ẩn 46→3; trên 4 bài thật 70 trường tốt lên, 0 xấu đi, 479 giữ nguyên |
+| 2 | **Khóa theo bài:** mỗi bài chỉ một lần chạy tại một thời điểm (khóa tư vấn PostgreSQL theo mã băm tệp); lần chạy thứ hai bỏ qua và không tốn tiền | Hai tiến trình nền chạy song song cùng một bài làm tốn thêm khoảng 3,5 USD trong lần chạy thật đầu tiên |
+| 3 | Kết quả chạy thật đầu tiên (5 bài, ghi để rút kinh nghiệm): tổng đã chi 9,72 USD (cả 2,3 USD ước tính trước khi có sổ), trong đó khoảng 5,5 USD lãng phí (1,49 USD mất khi Docker sập; khoảng 4 USD gọi trùng); bài dùng được tốn 0,29–2,16 USD, trung bình 0,88 USD/bài, 0,043 USD/trang | Số liệu cho quyết định ngân sách D6 |
+
 ### Version 3.9.8 (so với 3.9.7)
 
 | # | Thay đổi | Lý do |
