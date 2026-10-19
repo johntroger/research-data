@@ -15,7 +15,7 @@ import { resolvePrintedPages } from "../pdf/printed-page.js";
 import { readTextLayer } from "../pdf/text-layer.js";
 import { analysePaper, type PaperAnalysis } from "../verify/analyse.js";
 import type { FullData } from "../verify/verify-full.js";
-import { attachPaper, processingKey, runStep, type StepOutcome } from "./runs.js";
+import { attachPaper, processingKey, runStep, type StepOutcome, type Versions } from "./runs.js";
 
 /** The file written by `extract:full` or by the Batch flow. */
 export interface SavedExtraction extends FullData {
@@ -48,15 +48,17 @@ export function runInputs(saved: SavedExtraction): RunInput[] {
 
 export async function publishExtracted(
   db: pg.Client,
-  input: { pdf: Uint8Array; pdfPath: string; saved: SavedExtraction; force?: boolean },
+  input: { pdf: Uint8Array; pdfPath: string; saved: SavedExtraction; force?: boolean; /** Other versions than the current ones, e.g. a prompt suffix for a source (manual import). */ versions?: Versions },
 ): Promise<PublishStepsResult> {
   const { saved } = input;
   if (saved.status !== "done") throw new Error(`The saved extraction did not finish (${saved.status})`);
 
   const layer = await readTextLayer(input.pdf);
   const printed = resolvePrintedPages(layer);
-  const ctx = { processingKey: processingKey(layer.fileHash), paperId: null as string | null, fileHash: layer.fileHash, zoteroItemKey: null };
+  const ctx = { processingKey: processingKey(layer.fileHash, input.versions), paperId: null as string | null, fileHash: layer.fileHash, zoteroItemKey: null };
   const steps: PublishStepsResult["steps"] = {};
+  // A forced publish (after a better check, or a re-import) records every step again instead of showing the first run's details.
+  if (input.force) await db.query("delete from pipeline_runs where processing_key = $1 and step in ('S4', 'S5', 'S6', 'S7', 'S8')", [ctx.processingKey]);
 
   const analysis = analysePaper(layer, saved);
   const mapping = mapExtraction(saved);

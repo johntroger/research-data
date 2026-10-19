@@ -2,6 +2,15 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.25 (so với 3.9.24)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 1b.8c:** lệnh `pnpm worker manual import <gói>|--all --tool T --model M [--yes] [--no-backup]` (`manual/import.ts`): xem trước mặc định; với `--yes`: kiểm tra gói, sao lưu database (`pg_dump` qua Docker, một lần mỗi lượt), giữ file Gemini thành `<hash>.gemini.json`, publish thay bản Gemini (giữ dòng đã khóa), ghi `IMPORTED.json` để không nhập trùng; `model_name = manual:<công cụ>:<model>`, chi phí 0, không ghi `api_spend` | D16: Claude Code đưa dữ liệu của tác tử vào database |
+| 2 | `publishExtracted` nhận `versions` (khóa xử lý theo nguồn: `prompt@full-1.5.0-manual` khác khóa Gemini nên nguồn này không bỏ qua nguồn kia); `force` nay làm mới cả S4–S8 chứ không chỉ S10 | Bước chi tiết không còn hiển thị số liệu của lần nhập đầu |
+| 3 | `pnpm worker report` có thêm nhóm nguồn "manual" | Phân biệt đơn giá và nguồn |
+| 4 | Test: 9 test DB cho import (xem trước không ghi gì, nhập có sao lưu, nhập lại cùng câu trả lời bỏ qua, đổi câu trả lời thì nhập lại và giữ trường sửa tay, gói sai bị từ chối, bài chưa có trong database), 3 test đơn vị; tổng 344 unit, 83 DB. Chạy thật: xem trước gói Codex Q1 cho 1 Study, 208 trường (✓ 153 ⚠ 3 ◇ 27 ẩn 25); `pg_dump` thật 7,4 MB | Kiểm thử 1b.8c |
+
 ### Version 3.9.24 (so với 3.9.23)
 
 | # | Thay đổi | Lý do |

@@ -9,6 +9,7 @@
  *   pnpm worker batch submit [--limit N] [--paper X] [--compare] [--yes] | poll [--wait [minutes]] | status   (step 1.7)
  *   pnpm worker manual export --paper X [--code NAME] [--force]   work packet for an external extractor such as Codex (step 1b.8a)
  *   pnpm worker manual check <packet> [--no-feedback]   validate the answers in a packet's out/ (no database, no keys; step 1b.8b)
+ *   pnpm worker manual import <packet>|--all --tool codex --model <name> [--yes] [--no-backup]   publish a packet's answers, replacing the paper's data (step 1b.8c; preview without --yes)
  *   pnpm worker quality [--top N]     ✓ / ⚠ / ◇ / ẩn by study design, field and failed check (step 1b.1)
  *   pnpm worker compare --paper X     Batch result vs synchronous result, field by field (step 1.9c)
  * Uses a READ-ONLY Zotero key (Mục 3.3) and the local Supabase database.
@@ -19,6 +20,7 @@ import path from "node:path";
 import { geminiConfig, loadEnv, packetsDir, REPO_ROOT, zoteroConfig } from "../config.js";
 import { checkPacket, formatCheck } from "../manual/check.js";
 import { checkCode, exportPacket } from "../manual/export.js";
+import { backupFile, importPacket, once, pgDumpViaDocker } from "../manual/import.js";
 import { connect } from "../db/client.js";
 import { geminiBatchClient } from "../extract/batch-client.js";
 import { type BatchDeps, listBatches, pollOnce, submitPaper } from "../extract/batch.js";
@@ -238,7 +240,7 @@ async function report(): Promise<number> {
     const files = (await readdir(EXTRACTED_DIR)).filter((f) => f.endsWith(".full.json"));
     const rows: { file: string; pages: number; source: string; studies: number; calls: number; costUsd: number | null; input: number; output: number }[] = [];
     for (const f of files) {
-      const d = JSON.parse(await readFile(path.join(EXTRACTED_DIR, f), "utf8")) as { status: string; file: string; file_hash: string; batch?: boolean; studies: unknown[]; calls: { costUsd: number | null; usage: { inputTokens: number; outputTokens: number } }[]; top_ups?: { calls: { costUsd: number | null; usage: { inputTokens: number; outputTokens: number } }[] }[] };
+      const d = JSON.parse(await readFile(path.join(EXTRACTED_DIR, f), "utf8")) as { status: string; model: string; file: string; file_hash: string; batch?: boolean; studies: unknown[]; calls: { costUsd: number | null; usage: { inputTokens: number; outputTokens: number } }[]; top_ups?: { calls: { costUsd: number | null; usage: { inputTokens: number; outputTokens: number } }[] }[] };
       if (d.status !== "done") continue;
       const calls = [...d.calls, ...(d.top_ups ?? []).flatMap((t) => t.calls)];
       const pages = (await db.query<{ page_count: number | null }>("select page_count from papers where file_hash = $1", [d.file_hash])).rows[0]?.page_count ?? 0;
@@ -246,7 +248,7 @@ async function report(): Promise<number> {
       rows.push({
         file: d.file,
         pages,
-        source: d.batch ? "batch" : "sync",
+        source: d.batch ? "batch" : d.model.startsWith("manual:") ? "manual" : "sync",
         studies: d.studies.length,
         calls: calls.length,
         costUsd: costs.includes(null) ? null : costs.reduce<number>((n, c) => n + c!, 0),
@@ -257,7 +259,7 @@ async function report(): Promise<number> {
     // Synthetic fixtures are test papers (4 pages): they say nothing about the price of real papers.
     const real = rows.filter((r) => !r.file.startsWith("synthetic-"));
     for (const r of real) console.log(`${r.file.slice(0, 44).padEnd(44)} ${String(r.pages).padStart(3)}p ${r.source.padEnd(5)} ${r.studies} study ${String(r.calls).padStart(2)} calls  ${usd(r.costUsd).padStart(6)}  ${(r.costUsd && r.pages ? `$${(r.costUsd / r.pages).toFixed(3)}/page` : "").padEnd(12)} in ${r.input} out ${r.output}`);
-    for (const source of ["sync", "batch"]) {
+    for (const source of ["sync", "batch", "manual"]) {
       const s = summariseCost(real.filter((r) => r.source === source));
       if (s.papers) console.log(`\n${source}: ${s.papers} paper(s), mean ${usd(s.meanUsd)}, median ${usd(s.medianUsd)}, $${s.usdPerPage.toFixed(3)} per page`);
     }
@@ -421,6 +423,67 @@ async function quality(args: string[]): Promise<number> {
   }
 }
 
+/** pnpm worker manual import <packet>|--all --tool T --model M [--yes] [--no-backup] (step 1b.8c). Preview unless --yes. */
+async function manualImport(args: string[]): Promise<number> {
+  const tool = option(args, "--tool");
+  const model = option(args, "--model");
+  if (!tool || !model) {
+    console.error("--tool (for example codex) and --model (for example gpt-6.1-sol-medium) are required: they are recorded as the source of the data");
+    return 1;
+  }
+  const root = packetsDir();
+  const flagValues = new Set([tool, model]);
+  const named = args.filter((a) => !a.startsWith("--") && !flagValues.has(a));
+  let packets = named.map((n) => (/[\\/:]/.test(n) ? path.resolve(n) : path.join(root, checkCode(n))));
+  if (args.includes("--all")) {
+    const entries = await readdir(root, { withFileTypes: true }).catch(() => []);
+    packets = entries.filter((e) => e.isDirectory() && existsSync(path.join(root, e.name, "packet.json"))).map((e) => path.join(root, e.name));
+  }
+  if (!packets.length) {
+    console.error("Name a packet, or use --all");
+    return 1;
+  }
+  const yes = args.includes("--yes");
+  const container = process.env.SUPABASE_DB_CONTAINER?.trim() || "supabase_db_research-data";
+  const backup = once(async () => {
+    const file = backupFile(EXTRACTED_DIR);
+    console.log(`Backing up the database to ${file} …`);
+    await pgDumpViaDocker(container, file);
+  });
+  const db = await connect();
+  let failed = 0;
+  try {
+    for (const dir of packets) {
+      const name = path.basename(dir);
+      const deps = { repoRoot: REPO_ROOT, extractedDir: EXTRACTED_DIR, log: console.log, ...(args.includes("--no-backup") ? {} : { backup }) };
+      const outcome = await importPacket(db, deps, dir, { tool, model }, { yes });
+      if (outcome.status === "invalid") {
+        failed++;
+        console.log(`${name}: NOT VALID, not imported:`);
+        for (const e of outcome.errors) console.log(`    ${e.file}: ${e.message.slice(0, 200)}`);
+      } else if (outcome.status === "unknown_paper") {
+        failed++;
+        console.log(`${name}: the paper (${outcome.fileHash.slice(0, 12)}) is not in the database; run "pnpm worker extract" first`);
+      } else if (outcome.status === "already_imported") {
+        console.log(`${name}: already imported (same answers), skipped`);
+      } else {
+        const s = outcome.summary;
+        const r = s.replaces;
+        console.log(
+          `${name}: ${outcome.status === "preview" ? "PREVIEW" : "IMPORTED"} ${s.studies} stud${s.studies === 1 ? "y" : "ies"}, ${s.fields} fields: ✓ ${s.badges.verified} ⚠ ${s.badges.attention} ◇ ${s.badges.interpreted} ẩn ${s.badges.hidden}, ${s.completeness}\n    replaces what is published: ${r.studies} studies, ${r.paths} paths, ${r.measurements} measurements (models: ${r.models.join(", ") || "none"})`,
+        );
+      }
+    }
+    if (!yes) console.log("\nNothing written. Add --yes to import (the database is backed up first).");
+    return failed ? 1 : 0;
+  } catch (error) {
+    console.error((error as Error).message);
+    return 1;
+  } finally {
+    await db.end();
+  }
+}
+
 /** pnpm worker manual export --paper X [--code NAME] [--force]: the work packet of one paper for an external extractor (D16). */
 async function manual(args: string[]): Promise<number> {
   const [sub, ...rest] = args;
@@ -436,8 +499,9 @@ async function manual(args: string[]): Promise<number> {
     console.log(formatCheck(result));
     return result.ok ? 0 : 2;
   }
+  if (sub === "import") return manualImport(rest);
   if (sub !== "export") {
-    console.error("Usage: pnpm worker manual export --paper X [--code NAME] [--force] | manual check <packet>");
+    console.error("Usage: pnpm worker manual export --paper X [--code NAME] [--force] | manual check <packet> | manual import <packet>|--all --tool T --model M [--yes] [--no-backup]");
     return 1;
   }
   const paper = option(rest, "--paper");
