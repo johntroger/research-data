@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.20 (so với 3.9.19)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Pha A2 với Codex (GPT 6.1 Sol medium)** ghi vào Mục 6.9: Q2 (số liệu trong hình) gần như y hệt Gemini (97,7% khóa chung bằng nhau, tỷ lệ vấn đề 51,7% so với 61,3%); Q3 đạt các tiêu chí chính sau khi ghép nhãn Study; C3 (bài khái niệm) trích quá nhiều mục thảo luận (37 hướng nghiên cứu so với 3) và 4 mục bị ẩn vì gạch nối cuối dòng. Thời gian người làm 2–10 phút mỗi bài | Số liệu chọn nguồn chính |
+| 2 | Bốn việc đưa vào 1b.8 / 1b.4 (giới hạn số mục thảo luận trong chỉ dẫn, dung thứ gạch nối cuối dòng khi so câu trích, so văn bản tự do theo độ giống, tiêu chí 7 đo tương đối khi số nằm trong hình) | Rút ra từ A1–A2 |
+
 ### Version 3.9.19 (so với 3.9.18)
 
 | # | Thay đổi | Lý do |

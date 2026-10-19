@@ -158,6 +158,18 @@ Bài "Power and Perception" (144 trang, định tính) nằm ngoài phạm vi MV
 * Gemini suy luận `market_type` = "b2c" dù PDF không nói; Codex để trống (đúng luật "không đoán").
 * **Việc đưa vào 1b.8:** (1) gói việc ghi tên file đầy đủ từng cái (`study_1_study_paths.json`; ở A1 Codex đã rút gọn thành `study_1_paths.json`); (2) `compare` ghép khái niệm theo cặp số liệu (α, CR, AVE) chứ không chỉ theo tên nhãn.
 
+**Kết quả pha A2 (Codex, GPT 6.1 Sol medium, 19/10/2026):**
+
+| Bài | Phút | Tỷ lệ vấn đề (Codex / Gemini) | Câu trích nguyên văn | Khóa chung cùng giá trị | Đường dẫn giả thuyết ẩn | Ghi chú |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Q1 (dễ) | chưa ghi | 5,1% / 7,7% | 100% / 98,5% | 92,2% | 0/3 | đạt |
+| Q3 (CSR) | 10 | 7,7% / 8,0% | 95,2% / 96,0% | 82,3% (cấu trúc 89,8%) | 0/9 | tách focus group thành Study thứ hai → đã thêm quy tắc (codebook 1.0.2); phần lệch chủ yếu là văn bản tự do và định dạng trích dẫn |
+| Q2 (số liệu trong hình) | 6 | 51,7% / 61,3% | 54,0% / 47,6% | 97,7% (cấu trúc 99,3%) | 4/15 (Gemini 3/15) | giống Gemini cả ở điểm yếu: số trong hình không có trong lớp chữ |
+| C3 (bài khái niệm) | 2 | 28,6% / 8,3% | 94,8% / 100% | 48,4% | — | trích **quá nhiều mục thảo luận** (hàm ý thực tiễn 11 mục, hướng nghiên cứu 37 mục so với 3 mục của Gemini); 4 mục bị ẩn vì câu trích có gạch nối cuối dòng ("experi- ence") nên chỉ giống 0,88 |
+
+* Thời gian người làm 2–10 phút mỗi bài, dưới ngưỡng 20 phút. Chưa đo độ lặp lại (A3).
+* **Việc đưa vào 1b.8 hoặc 1b.4:** (1) chỉ dẫn giới hạn số mục thảo luận (chỉ những câu tác giả nêu rõ là đóng góp / hàm ý / hạn chế / hướng nghiên cứu, không liệt kê từng câu hỏi nghiên cứu trong bảng); (2) máy đối chiếu câu trích dung thứ gạch nối cuối dòng; (3) so sánh văn bản tự do bằng độ giống thay vì bằng nhau tuyệt đối, và tiêu chí khóa chung chỉ tính giá trị cấu trúc; (4) tiêu chí 7 đo tương đối với Gemini khi số liệu nằm trong hình.
+
 **Cổng quyết định sau pha A:**
 * Cả hai đạt: làm pha B với cả hai (chọn công cụ mặc định theo thời gian và số ⚠ thấp hơn).
 * Chỉ một đạt: làm pha B với công cụ đó.
