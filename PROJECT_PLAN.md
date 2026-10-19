@@ -198,6 +198,7 @@ Bước 0.4–0.8 tạo thành **bộ khung chạy được** (Giai đoạn 0, m
 | **1b.4** | Chỉnh prompt / codebook / quy tắc cho loại trường hay ⚠ nhất; mỗi sửa có test và chạy lại bộ bài giả lập | Không | Duyệt danh sách sửa |
 | **1b.5** | Trang `/admin/quality` và danh sách "Cần chú ý" bản đơn giản (web local, chỉ quản trị) | Không | Xem trang |
 | **1b.6** | Chốt đơn giá mỗi bài (Pro, Flash), đề xuất trần hằng tháng (D6) | Không | Đồng ý trần |
+| **1b.7** | Phương án dự phòng khi Gemini không dùng được (D16, Mục 4.5): `pnpm worker manual export` (gói prompt + schema cho một bài) và `manual import` (Zod kiểm tra, ghi `SavedExtraction`, chạy đối chiếu và publish như luồng chính). Làm sớm hơn nếu Gemini gặp sự cố trước đó | Không | Thử một bài qua LLM chat, so `quality` với bản Gemini của cùng bài |
 
 ### 📍 Giai đoạn 3a: Web dùng thật trên máy (local, nhóm *Must*)
 Chủ dự án là người dùng chính, nên **web chạy local với Supabase local đã đủ để dùng hằng ngày**. Cloud và Vercel chỉ cần khi chia sẻ công khai.
@@ -302,3 +303,4 @@ Chưa bắt đầu các bước kỹ thuật (Giai đoạn 0 trở đi, tạo re
 | D13 | Cài Docker Desktop (WSL2) để chạy Supabase local làm môi trường `dev` | Giai đoạn 0–1, Mục 2 | **Cài Docker Desktop** (máy 16 GB RAM, đã có WSL2); chỉ bật khi phát triển. Cài ở bước đầu Giai đoạn 0 | ✅ Đã chốt |
 | D14 | Chính sách tải PDF trên web công khai | Mục 7, 7.1 | Khách: chỉ tải bài OA có giấy phép mở; bài Bronze / không rõ giấy phép: chỉ link OA gốc + DOI; bài không OA: chỉ link DOI. Chủ dự án: tải mọi bài | ✅ Đã chốt |
 | D15 | Model làm trọng tài | — | Không còn trọng tài trong v3.8 (chỉ một lượt trích xuất). Nếu sau này bật lại thì dùng Gemini | ⛔ Không áp dụng (v3.8) |
+| D16 | Dự phòng khi Gemini API không dùng được | Mục 4.5, bước 1b.7 | **Trích xuất thủ công**: xuất gói prompt + schema, chủ dự án đưa PDF cho LLM khác (chat), nhập file JSON trả về; đi qua cùng các lớp đối chiếu và huy hiệu; `model_name` = `manual:<model>`, không tính vào ngân sách D6. Chỉ để dự phòng, không trích hàng loạt | ✅ Đã chốt (19/10/2026) |

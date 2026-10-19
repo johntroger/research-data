@@ -107,3 +107,20 @@ Chủ dự án đã có tài khoản Cloudflare (máy đã cài `cloudflared`). 
 ### 4.4. Quyền riêng tư dữ liệu
 * Theo điều khoản gói trả phí, dữ liệu gửi lên không dùng để cải thiện sản phẩm của Google; kiểm tra lại điều khoản hiện hành khi bắt đầu.
 * API key Gemini và Zotero chỉ nằm trong `.env` của máy chạy worker; không commit, không đưa lên Vercel.
+
+### 4.5. Phương án dự phòng: trích xuất thủ công qua LLM khác (D16)
+Dùng khi Gemini API không dùng được (sự cố, hết hạn mức, hết ngân sách D6). Chỉ là đường dự phòng, **không** thay luồng chính và không dùng để trích hàng loạt.
+
+**Luồng:**
+1. `pnpm worker manual export --paper X` tạo **gói prompt** cho một bài: chỉ dẫn chung (`FULL_INSTRUCTIONS`), prompt các lượt và JSON Schema sinh từ `EXTRACTION_SCHEMAS` (cùng nguồn với luồng Gemini, nên đổi prompt / schema ở một chỗ là đủ). Gói gộp mọi lượt thành **một JSON** `{ paper_structure, paper_discussion, studies: [{ study_label, study_design_sample_bias, study_measurements, study_paths, study_tables }] }`; giới hạn kích thước schema ở 4.2 chỉ là của structured output Gemini, không áp dụng cho chat.
+2. Chủ dự án đính kèm PDF + dán gói prompt vào một LLM (Claude.ai, ChatGPT, Gemini app…), lưu câu trả lời thành file `.json`. Bài nhiều Study có thể vượt độ dài trả lời: gói có hướng dẫn trả lời theo từng phần (cấu trúc trước, rồi mỗi Study một lượt), file nhập nhận cả dạng gộp lẫn nhiều phần.
+3. `pnpm worker manual import --paper X --file kết_quả.json --model <tên>`: kiểm tra từng phần bằng `parseAnswer` (Zod, rút gọn câu trích dài như luồng chính), lỗi in ra **dễ dán lại cho LLM sửa**; hợp lệ thì ghi `extracted_data/<hash>.full.json` dạng `SavedExtraction` rồi chạy `publishExtracted` như mọi bài khác.
+4. Các lớp máy đối chiếu với PDF (S5–S8), huy hiệu ✓ / ⚠ / ◇ / ẩn, khóa trường sửa tay: **giữ nguyên**, vì chúng không phụ thuộc ai trích xuất. Chất lượng thủ công vì vậy được đo bằng cùng thước (`pnpm worker quality`).
+
+**Quy ước:**
+* `model_name` = `manual:<tên model>` (VD `manual:claude-opus-5-5`), `prompt_version` = phiên bản prompt của gói kèm hậu tố `-manual`; vì vậy khóa xử lý khác luồng Gemini và trích lại bằng Gemini sau này không bị bỏ qua. Trích lại vẫn không ghi đè trường đã sửa tay (Mục 6.7).
+* `cost_usd` = 0, không ghi vào `api_spend` (không tốn ngân sách Gemini).
+* Bước trích bổ sung mục thiếu (dùng Flash) bị bỏ qua; danh sách mục thiếu được in ra để chủ dự án hỏi tiếp LLM nếu cần.
+* File câu trả lời là phản hồi thô: chỉ để trong `extracted_data/` (đã gitignore), không commit.
+* **Quyền riêng tư (4.4):** bản chat miễn phí / gói cá nhân của một số nhà cung cấp có thể dùng dữ liệu để huấn luyện; trước khi tải PDF có bản quyền lên, tắt tùy chọn dùng dữ liệu để huấn luyện hoặc dùng gói có cam kết không huấn luyện.
+* Claude Code có thể tự làm bước 2 (đọc PDF và ghi file JSON) thay cho chép–dán; đầu ra vẫn đi qua `manual import` như trên.

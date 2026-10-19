@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.15 (so với 3.9.14)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **D16 (mới): phương án dự phòng trích xuất thủ công** khi Gemini API không dùng được: xuất gói prompt + schema, đưa PDF cho LLM khác qua chat, nhập file JSON trả về; đi qua cùng các lớp đối chiếu với PDF và huy hiệu; `model_name` = `manual:<model>`, không tính vào ngân sách D6. Chi tiết ở Mục 4.5 (`docs/integrations.md`) | Chủ dự án đề xuất và duyệt ngày 19/10/2026; tránh bị chặn khi Gemini sự cố hoặc hết ngân sách |
+| 2 | Thêm **bước 1b.7** (lệnh `manual export` / `manual import`) vào danh sách bước Giai đoạn 1b; chưa code | Làm sau 1b.6, hoặc sớm hơn nếu Gemini gặp sự cố |
+
 ### Version 3.9.14 (so với 3.9.13)
 
 | # | Thay đổi | Lý do |
