@@ -118,7 +118,8 @@ export function buildPlan({ data, analysis, mapping }: PlanInput): PublishPlan {
       const field = fieldKey ? byKey.get(fieldKey) : undefined;
       if (fieldKey && field) fieldColumns[column] = fieldKey;
       const hiddenValue = visible && field?.badge === "hidden" && !spec.required?.includes(column);
-      columns[column] = hiddenValue ? null : value;
+      // List columns are `not null default '{}'`: a hidden list is empty, not NULL.
+      columns[column] = hiddenValue ? (Array.isArray(value) ? [] : null) : value;
     }
     sanitize(columns);
     return { table: spec.table, naturalKey: spec.key, studyKey: spec.studyKey, columns, fieldColumns, evidence: spec.evidence ?? {}, badge, source: spec.source, raw: spec.raw };

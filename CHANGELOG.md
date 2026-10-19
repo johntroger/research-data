@@ -2,6 +2,16 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.12 (so với 3.9.11)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Chạy Batch 7 bài còn lại** (đã publish cả 7; tổng 3,64 USD so với ước tính 2,18 USD vì ước tính chỉ giả định một Study): bài tổng quan hoặc khái niệm không có Study chỉ 0,08 USD; bài một Study 0,14–0,63 USD; bài 8 Study (34 trang) 2,32 USD; sổ chi tiêu 13,94/20 USD | Đo đơn giá Batch trên bài thật; trung bình 0,52 USD/bài, 0,021 USD/trang |
+| 2 | Pha `study_parts` của Batch **chia thành nhiều lô dưới 15 MB** (mỗi yêu cầu mang cả PDF; bài 8 Study vượt giới hạn 20 MB); thêm `batch_jobs.chunk`; bài chỉ được lắp ráp một lần khi đủ mọi lô | Bài Authentic Brand Ethicality (32 yêu cầu) bị Batch từ chối |
+| 3 | Cột dạng danh sách bị ẩn được ghi `[]` thay vì NULL (các cột này `not null`) | Publish bài 8 Study lỗi vì `analysis_method` NULL |
+| 4 | Bộ test Batch chỉ nhìn các bài của chính nó (`onlyFiles`) | Lần chạy test đã đụng nhầm hai job Batch thật trong DB (đã khôi phục) |
+| 5 | Ghi nhận chưa giải quyết: bài Authentic Brand Ethicality có hai Study ma trận tương quan lớn (Study 3 và 5) với phần lớn giá trị r bị ⚠/ẩn (số không tìm thấy trong lớp chữ của PDF); chưa rõ nguyên nhân (bảng quay ngang, ảnh, hay cách làm tròn) | Cần xem bằng mắt trước khi sửa lớp đọc PDF |
+
 ### Version 3.9.11 (so với 3.9.10)
 
 | # | Thay đổi | Lý do |

@@ -13,6 +13,7 @@ import path from "node:path";
 import type pg from "pg";
 import type { BatchAnswer, BatchClient, BatchItem } from "./batch-client.js";
 import type { Budget } from "./budget.js";
+import { chunkByStudy } from "./chunking.js";
 import { estimatePaper } from "./estimate.js";
 import type { CallRecord } from "./extract-full.js";
 import { FULL_INSTRUCTIONS, FULL_PROMPT_VERSION, PASS_PROMPTS, studyPrompt } from "./full-prompt.js";
@@ -28,6 +29,10 @@ export interface BatchDeps {
   model: string;
   loadPdf: (pdfPath: string) => Promise<Uint8Array>;
   /** Stores a finished extraction. `compare` results must go to a separate place and never replace the real one. */
+  /** Size limit of one study_parts job; the default keeps it under the provider's inline limit. */
+  chunkBytes?: number;
+  /** Look only at jobs of these papers (file hashes); every unfinished job when absent. */
+  onlyFiles?: string[];
   saveResult: (fileHash: string, result: Record<string, unknown>, purpose: Purpose) => Promise<void>;
   log?: (line: string) => void;
   now?: () => Date;
@@ -79,18 +84,19 @@ function item(model: string, pdf: Uint8Array, pass: ExtractionSchemaName, prompt
 }
 
 /** USD already set aside for jobs still running. */
-async function reservedUsd(db: pg.Client): Promise<number> {
-  const res = await db.query<{ total: string }>(
-    "select coalesce(sum((payload->>'reserved_usd')::numeric), 0) as total from batch_jobs where state = 'submitted'",
+async function reservedUsd(deps: BatchDeps): Promise<number> {
+  const res = await deps.db.query<{ total: string }>(
+    "select coalesce(sum((payload->>'reserved_usd')::numeric), 0) as total from batch_jobs where state = 'submitted' and ($1::text[] is null or file_hash = any($1))",
+    [deps.onlyFiles ?? null],
   );
   return Number(res.rows[0]!.total);
 }
 
-async function insertJob(deps: BatchDeps, job: { name: string; phase: Phase; fileHash: string; pdfPath: string; keys: string[]; payload: Payload; purpose: Purpose }) {
+async function insertJob(deps: BatchDeps, job: { name: string; phase: Phase; fileHash: string; pdfPath: string; keys: string[]; payload: Payload; purpose: Purpose; chunk?: number }) {
   await deps.db.query(
-    `insert into batch_jobs (job_name, model, phase, file_hash, pdf_path, request_keys, payload, purpose)
-     values ($1, $2, $3, $4, $5, $6, $7, $8)`,
-    [job.name, deps.model, job.phase, job.fileHash, job.pdfPath, job.keys, JSON.stringify(job.payload), job.purpose],
+    `insert into batch_jobs (job_name, model, phase, file_hash, pdf_path, request_keys, payload, purpose, chunk)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    [job.name, deps.model, job.phase, job.fileHash, job.pdfPath, job.keys, JSON.stringify(job.payload), job.purpose, job.chunk ?? 0],
   );
 }
 
@@ -109,7 +115,7 @@ export async function submitPaper(deps: BatchDeps, paper: { fileHash: string; pd
   const estimate = estimatePaper(deps.model, pages, 1, { batch: true, at: now(deps) });
   const needed = estimate.costUsd;
   if (needed === null) throw new Error(`No price known for model "${deps.model}": add it to extract/pricing.ts before using it`);
-  await deps.budget.assertCanSpend(needed + (await reservedUsd(deps.db)));
+  await deps.budget.assertCanSpend(needed + (await reservedUsd(deps)));
 
   const items = [
     item(deps.model, pdf, "paper_structure", PASS_PROMPTS.paper_structure, "paper_structure"),
@@ -124,7 +130,7 @@ export async function submitPaper(deps: BatchDeps, paper: { fileHash: string; pd
 /** Looks at every unfinished job once: asks the provider, ingests finished ones, submits the next phase. */
 export async function pollOnce(deps: BatchDeps): Promise<BatchEvent[]> {
   const events: BatchEvent[] = [];
-  const jobs = await deps.db.query<JobRow>("select id, job_name, phase, file_hash, pdf_path, purpose, state, payload from batch_jobs where state in ('submitted', 'succeeded') order by submitted_at");
+  const jobs = await deps.db.query<JobRow>("select id, job_name, phase, file_hash, pdf_path, purpose, state, payload from batch_jobs where state in ('submitted', 'succeeded') and ($1::text[] is null or file_hash = any($1)) order by submitted_at", [deps.onlyFiles ?? null]);
 
   for (const job of jobs.rows) {
     if (job.state === "submitted") {
@@ -228,20 +234,39 @@ async function continuePaper(deps: BatchDeps, job: JobRow): Promise<BatchEvent[]
     const estimate = estimatePaper(deps.model, pages, labels.length, { batch: true, at: now(deps) });
     const needed = estimate.calls.slice(2).reduce((n, c) => n + (c.costUsd ?? 0), 0);
     try {
-      await deps.budget.assertCanSpend(needed + (await reservedUsd(deps.db)));
+      await deps.budget.assertCanSpend(needed + (await reservedUsd(deps)));
     } catch (error) {
       // The first phase is paid and safe in the database; the next one waits until there is room again.
       return [{ ...base, event: "waiting_for_budget", detail: (error as Error).message }];
     }
     const items = labels.flatMap((label, i) => STUDY_PASSES.map((pass) => item(deps.model, pdf, pass, studyPrompt(pass as never, label, labels), `${i}:${pass}`)));
-    const { name } = await deps.client.create(deps.model, items, `rd-studies-${job.file_hash.slice(0, 12)}`);
-    await insertJob(deps, { name, phase: "study_parts", fileHash: job.file_hash, pdfPath: job.pdf_path, keys: items.map((i) => i.key), payload: { reserved_usd: needed, labels }, purpose: job.purpose });
+    // A paper with many Studies does not fit in one inline batch: one job per group of Studies.
+    const chunks = chunkByStudy(items, deps.chunkBytes);
+    for (const [c, chunk] of chunks.entries()) {
+      const { name } = await deps.client.create(deps.model, chunk, `rd-studies-${job.file_hash.slice(0, 12)}-${c}`);
+      await insertJob(deps, { name, phase: "study_parts", fileHash: job.file_hash, pdfPath: job.pdf_path, keys: chunk.map((i) => i.key), payload: { reserved_usd: (needed * chunk.length) / items.length, labels }, purpose: job.purpose, chunk: c });
+      log(deps, `submitted ${name} (study_parts ${c + 1}/${chunks.length}) for ${job.file_hash.slice(0, 12)}`);
+    }
     await deps.db.query("update batch_jobs set state = 'ingested', updated_at = now() where id = $1", [job.id]);
-    log(deps, `submitted ${name} (study_parts, ${labels.length} study) for ${job.file_hash.slice(0, 12)}`);
-    return [{ ...base, event: "next_phase_submitted", detail: `${labels.length} study(ies), ${items.length} requests` }];
+    return [{ ...base, event: "next_phase_submitted", detail: `${labels.length} study(ies), ${items.length} requests in ${chunks.length} batch(es)` }];
   }
 
-  // study_parts: pair it with its structure job and assemble.
+  // study_parts: wait for every chunk of the paper, then pair them with the structure job and assemble.
+  const mine = await deps.db.query<{ state: string }>("select state from batch_jobs where id = $1", [job.id]);
+  if (mine.rows[0]?.state !== "succeeded") return []; // already assembled by an earlier job of this poll
+  const chunks = await deps.db.query<JobRow>(
+    "select id, job_name, phase, file_hash, pdf_path, purpose, state, payload from batch_jobs where file_hash = $1 and phase = 'study_parts' and purpose = $2 and state in ('submitted', 'succeeded') order by chunk",
+    [job.file_hash, job.purpose],
+  );
+  if (chunks.rows.some((c) => c.state === "submitted")) return [{ ...base, event: "running", detail: "waiting for the other batches of this paper" }];
+  job = {
+    ...job,
+    payload: {
+      ...job.payload,
+      answers: Object.assign({}, ...chunks.rows.map((c) => c.payload.answers ?? {})),
+      calls: chunks.rows.flatMap((c) => c.payload.calls ?? []),
+    },
+  };
   const first = await deps.db.query<JobRow>(
     "select id, job_name, phase, file_hash, pdf_path, purpose, state, payload from batch_jobs where file_hash = $1 and phase = 'structure' and purpose = $2 and state in ('ingested', 'succeeded') limit 1",
     [job.file_hash, job.purpose],
@@ -258,7 +283,9 @@ async function continuePaper(deps: BatchDeps, job: JobRow): Promise<BatchEvent[]
         tables: answer("study_tables") as never,
       });
     });
-    return [await finish(deps, first.rows[0], job, studies)];
+    const event = await finish(deps, first.rows[0], job, studies);
+    await deps.db.query("update batch_jobs set state = 'ingested', updated_at = now() where id = any($1)", [chunks.rows.map((c) => c.id)]);
+    return [event];
   } catch (error) {
     const message = `could not assemble the studies: ${(error as Error).message}`;
     await deps.db.query("update batch_jobs set state = 'failed', error = $2, updated_at = now() where id = $1", [job.id, message.slice(0, 2000)]);

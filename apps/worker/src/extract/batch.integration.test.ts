@@ -14,6 +14,7 @@ import type { BatchAnswer, BatchClient, BatchItem, BatchStatus } from "./batch-c
 import { type BatchDeps, listBatches, pollOnce, submitPaper } from "./batch.js";
 import { Budget, BudgetExceeded, MemoryLedger, PgLedger, type SpendLedger } from "./budget.js";
 import { extractFull } from "./extract-full.js";
+import { FULL_INSTRUCTIONS } from "./full-prompt.js";
 
 const MODEL = "gemini-4-argon";
 const AT = () => new Date("2026-10-19");
@@ -74,7 +75,7 @@ function answersFrom(paper: SyntheticPaper, tamper?: Parameters<typeof answerKey
 }
 
 /** Tests that look at the `api_spend` table pass a PgLedger; the others use memory, so real spending in the table cannot change their outcome. */
-function setup(paper: SyntheticPaper, client: FakeBatch, limitUsd = 10, offsetUsd = 0, ledger: SpendLedger = new MemoryLedger()) {
+function setup(paper: SyntheticPaper, client: FakeBatch, limitUsd = 1_000_000, offsetUsd = 0, ledger: SpendLedger = new MemoryLedger()) {
   const saved = new Map<string, Record<string, unknown>>();
   const purposes: string[] = [];
   const hash = HASHES[0]!;
@@ -89,6 +90,7 @@ function setup(paper: SyntheticPaper, client: FakeBatch, limitUsd = 10, offsetUs
       saved.set(fileHash, result);
     },
     now: AT,
+    onlyFiles: HASHES, // the database may hold real jobs in flight, which a fake provider must never touch
   };
   return { deps, saved, purposes, hash, paper: { fileHash: hash, pdfPath: `raw_papers/zotero/${paper.id}.pdf` } };
 }
@@ -107,6 +109,30 @@ async function runToEnd(deps: BatchDeps, max = 10) {
 describe("Batch flow: submit → poll → ingest", () => {
   const paper = SYNTHETIC_PAPERS[2]!; // two studies
 
+  it("splits the study calls of a paper into several batches when they do not fit in one, and assembles the same result", async () => {
+    const pdfSize = pdfs.get(paper.id)!.length;
+    const oneStudy = (Math.ceil((pdfSize * 4) / 3) + FULL_INSTRUCTIONS.length) * 6; // room for one Study (4 requests), not two (8)
+    const client = new FakeBatch(answersFrom(paper));
+    const { deps, saved, hash, paper: input } = setup(paper, client, 1_000_000, 0, new PgLedger(db));
+    deps.chunkBytes = oneStudy;
+    await submitPaper(deps, input);
+    const events = await runToEnd(deps, 30);
+    expect(events.filter((e) => e.event === "next_phase_submitted")[0]!.detail).toBe("2 study(ies), 8 requests in 2 batch(es)");
+    expect(client.created.slice(1).map((c) => c.items.map((i) => i.key.split(":")[0]))).toEqual([["0", "0", "0", "0"], ["1", "1", "1", "1"]]);
+    expect(events.filter((e) => e.event === "done")).toHaveLength(1); // assembled once, not once per batch
+    const sync = await extractFull(pdfs.get(paper.id)!, { model: MODEL, generate: answerKeyGenerator(paper).generate });
+    expect(saved.get(hash)!.studies).toEqual(sync.studies);
+    expect((saved.get(hash)!.calls as unknown[]).length).toBe(10);
+    const states = await db.query("select phase, chunk, state from batch_jobs where file_hash = $1 order by phase, chunk", [hash]);
+    expect(states.rows).toEqual([
+      { phase: "structure", chunk: 0, state: "ingested" },
+      { phase: "study_parts", chunk: 0, state: "ingested" },
+      { phase: "study_parts", chunk: 1, state: "ingested" },
+    ]);
+    const booked = await db.query("select count(*) as n from api_spend where file_hash = $1", [hash]);
+    expect(booked.rows[0].n).toBe("10"); // every answer booked exactly once
+  });
+
   it("compare mode runs next to a real extraction of the same paper, and hands its result over as 'compare'", async () => {
     const client = new FakeBatch(answersFrom(paper));
     const { deps, saved, purposes, hash, paper: input } = setup(paper, client);
@@ -124,7 +150,7 @@ describe("Batch flow: submit → poll → ingest", () => {
 
   it("extracts a paper in two batches and saves exactly what the synchronous extraction gives, at half the price", async () => {
     const client = new FakeBatch(answersFrom(paper));
-    const { deps, saved, hash, paper: input } = setup(paper, client, 10, 0, new PgLedger(db));
+    const { deps, saved, hash, paper: input } = setup(paper, client, 1_000_000, 0, new PgLedger(db));
 
     const submitted = await submitPaper(deps, input);
     expect(submitted).toMatchObject({ status: "submitted", jobName: "batches/fake-1" });
@@ -198,7 +224,7 @@ describe("Batch flow: submit → poll → ingest", () => {
 
   it("books the cost of a batch whose answer is unusable, keeps the raw text, and fails the job", async () => {
     const client = new FakeBatch(answersFrom(paper, { tamper: (pass) => (pass === "paper_discussion" ? "Sorry, I cannot" : null) }), 0);
-    const { deps, hash, paper: input } = setup(paper, client, 10, 0, new PgLedger(db));
+    const { deps, hash, paper: input } = setup(paper, client, 1_000_000, 0, new PgLedger(db));
     await submitPaper(deps, input);
     const events = await pollOnce(deps);
     expect(events).toMatchObject([{ event: "failed", detail: expect.stringContaining("paper_discussion: Gemini did not return valid JSON") }]);

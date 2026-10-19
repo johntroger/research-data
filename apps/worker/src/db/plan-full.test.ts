@@ -96,6 +96,14 @@ describe("buildPlan on the synthetic answer keys", () => {
     expect(h1.badge).toBe("auto_verified");
   });
 
+  it("empties a hidden list column to [] (list columns are NOT NULL), not NULL", () => {
+    const { plan: p, analysis } = plan(p01, (d) => (d.studies[0]!.design.evidence = { ...d.studies[0]!.design.evidence, quote: "This sentence is not printed anywhere in the paper." }));
+    const study = p.rows.find((r) => r.table === "studies" && r.naturalKey === "study_1")!;
+    expect(analysis.fields.find((f) => f.fieldName === "analysis_method")!.badge).toBe("hidden");
+    expect(study.columns.analysis_method).toEqual([]);
+    expect(study.badge).not.toBe("hidden");
+  });
+
   it("hides the whole row when the key value failed the check, and keeps its values for the owner", () => {
     const { plan: p } = plan(p01, (d) => (d.studies[0]!.paths[0]!.estimate = 0.47));
     const h1 = p.rows.find((r) => r.table === "path_results" && r.naturalKey.startsWith("study_1:h1"))!;
