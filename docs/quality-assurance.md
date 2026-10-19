@@ -137,8 +137,26 @@ Bài "Power and Perception" (144 trang, định tính) nằm ngoài phạm vi MV
 * Cùng số Study và mã giả thuyết với Gemini ở mọi bài.
 * Tỷ lệ vấn đề không cao hơn Gemini quá **10 điểm phần trăm** ở từng bài, và tỷ lệ câu trích khớp nguyên văn không thấp hơn Gemini quá 10 điểm.
 * Khóa chung cùng giá trị với Gemini ≥ **90%** (trường T1 / T2); độ lặp lại giữa hai lần chạy ≥ 90%.
+* **Kết quả của mọi giả thuyết hiển thị được:** không đường dẫn có mã giả thuyết nào (H1…Hn) có hệ số bị ẩn. Tiêu chí này thêm sau pha A1 vì tỷ lệ vấn đề chung có thể che mất việc kết quả giả thuyết bị ẩn (xem kết quả A1).
 * Thời gian người làm trung vị ≤ **20 phút** mỗi bài (300 bài ≈ 100 giờ); trên mức này chủ dự án quyết định có chấp nhận không.
 * Không phát hiện tác tử đọc `.env` hay ghi khóa vào gói việc.
+
+**Kết quả pha A1 (bài Q1, ngày 19/10/2026):**
+
+| | Gemini Batch | Codex | Antigravity (Gemini 3.8 Flash Medium) |
+| :--- | :--- | :--- | :--- |
+| ✓ / ⚠ / ◇ / ẩn | 167 / 4 / 26 / 10 | 168 / 3 / 34 / 6 | 220 / 0 / 19 / 31 |
+| Tỷ lệ vấn đề | 7,7% | 5,1% | 12,4% |
+| Câu trích nguyên văn | 98,5% | 100% | 90,7% |
+| Khóa chung cùng giá trị với Gemini | — | 92,2% | 95,3% |
+| Đường dẫn giả thuyết bị ẩn (tiêu chí 7) | 0/3 | **0/3** | **3/3** |
+| Thời gian người làm (phút) / vòng sửa | — | chưa ghi | 6 / 0 |
+| Kết luận | mốc | **đạt** | đạt 5 tiêu chí đầu, **không đạt tiêu chí 7** |
+
+* Các khóa lệch phần lớn là cùng một đối tượng đặt tên khác (2 khái niệm đo lường × 10 trường, tên lý thuyết): Codex và Antigravity dùng tên đúng với tác giả ("Polarity", "Intent"), Gemini ghép nhãn lệch; số liệu y hệt.
+* Antigravity bị ẩn cả ba đường dẫn giả thuyết vì câu trích "The path coefficients (see Fig. 1) from…" sai vài chữ (độ giống 0,86); nó cũng lấy thêm hai ma trận tương quan (khoảng 75 ô) mà hai bên kia không lấy. Chưa thử với model mạnh hơn Flash nên chưa kết luận về công cụ.
+* Gemini suy luận `market_type` = "b2c" dù PDF không nói; Codex để trống (đúng luật "không đoán").
+* **Việc đưa vào 1b.8:** (1) gói việc ghi tên file đầy đủ từng cái (`study_1_study_paths.json`; ở A1 Codex đã rút gọn thành `study_1_paths.json`); (2) `compare` ghép khái niệm theo cặp số liệu (α, CR, AVE) chứ không chỉ theo tên nhãn.
 
 **Cổng quyết định sau pha A:**
 * Cả hai đạt: làm pha B với cả hai (chọn công cụ mặc định theo thời gian và số ⚠ thấp hơn).

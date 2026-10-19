@@ -2,6 +2,15 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.18 (so với 3.9.17)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Kết quả pha A1 (bài Q1, thử khả thi nguồn ngoài)** ghi vào Mục 6.9: Codex đạt (tỷ lệ vấn đề 5,1% so với Gemini 7,7%, câu trích nguyên văn 100%, 92,2% khóa chung cùng giá trị, 0/3 đường dẫn giả thuyết ẩn); Antigravity với Gemini 3.8 Flash Medium đạt 5 tiêu chí đầu (6 phút, 0 vòng sửa) nhưng ẩn 31 trường, gồm **cả 3 đường dẫn giả thuyết**, vì câu trích sai vài chữ | Chọn nguồn chính theo số liệu |
+| 2 | **Tiêu chí 7 mới ở Mục 6.9:** kết quả của mọi giả thuyết (đường dẫn có mã H1…Hn) không bị ẩn | Tỷ lệ vấn đề chung che mất việc kết quả giả thuyết bị ẩn |
+| 3 | Việc đưa vào bước 1b.8: tên file đầy đủ trong gói việc (Codex rút gọn `study_1_paths.json`); `compare` ghép khái niệm theo cặp số liệu α / CR / AVE thay vì chỉ theo tên nhãn (hai bên đặt tên khác cho cùng khái niệm làm lệch 40 khóa) | Phát hiện ở A1 |
+| 4 | Gói pha A2 cho Codex: Q3 (CSR), Q2 (hình sơ đồ), C3 (bài khái niệm dài); công cụ chấm tạm thêm tiêu chí 7 (script tạm ngoài repo) | Chuẩn bị A2 |
+
 ### Version 3.9.17 (so với 3.9.16)
 
 | # | Thay đổi | Lý do |
