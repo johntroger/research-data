@@ -61,14 +61,18 @@ function periodFor(periods: PricePeriod[], day: string): PricePeriod {
 }
 
 /** Cost of one call in USD, or null when the model is not in the price table. */
-export function callCostUsd(model: string, usage: TokenUsage, at: Date = new Date()): number | null {
+/** Batch API requests cost half the standard rate (https://ai.google.dev/gemini-api/docs/batch-api, checked 2026-10-19). */
+export const BATCH_DISCOUNT = 0.5;
+
+export function callCostUsd(model: string, usage: TokenUsage, at: Date = new Date(), options: { batch?: boolean | undefined } = {}): number | null {
   const periods = PRICES[model];
   if (!periods) return null;
   const price = periodFor(periods, at.toISOString().slice(0, 10));
   const high = price.tierThreshold !== undefined && usage.inputTokens > price.tierThreshold;
   const inputRate = high ? (price.inputHigh ?? price.input) : price.input;
   const outputRate = high ? (price.outputHigh ?? price.output) : price.output;
-  return (usage.inputTokens * inputRate + usage.outputTokens * outputRate) / 1_000_000;
+  const standard = (usage.inputTokens * inputRate + usage.outputTokens * outputRate) / 1_000_000;
+  return options.batch ? standard * BATCH_DISCOUNT : standard;
 }
 
 export function knownModels(): string[] {

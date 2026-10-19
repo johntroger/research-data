@@ -19,7 +19,8 @@ import type { z } from "zod";
 import { FULL_INSTRUCTIONS, FULL_PROMPT_VERSION, PASS_PROMPTS, studyPrompt, type StudyPartName } from "./full-prompt.js";
 import type { GeneratePdfJson } from "./gemini.js";
 import { callCostUsd, type TokenUsage } from "./pricing.js";
-import { type ShortenedQuote, shortenQuotes } from "./quotes.js";
+import { parseAnswer } from "./parse.js";
+import type { ShortenedQuote } from "./quotes.js";
 
 export interface CallRecord {
   pass: ExtractionSchemaName;
@@ -91,20 +92,10 @@ export async function extractFull(pdf: Uint8Array, options: ExtractFullOptions):
     const record: CallRecord = { pass, studyLabel, usage, costUsd: callCostUsd(options.model, usage), rawText: text, durationMs: now() - started };
     calls.push(record);
 
-    let json: unknown;
-    try {
-      json = JSON.parse(text);
-    } catch {
-      throw new FullExtractionError(`${pass}: Gemini did not return valid JSON`, pass, studyLabel, text, calls);
-    }
-    const shortened = shortenQuotes(json);
-    if (shortened.length > 0) record.shortenedQuotes = shortened;
-    const parsed = schema.safeParse(json);
-    if (!parsed.success) {
-      const issues = parsed.error.issues.map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`).join("; ");
-      throw new FullExtractionError(`${pass}: output does not match the schema: ${issues}`, pass, studyLabel, text, calls);
-    }
-    return parsed.data as z.infer<(typeof EXTRACTION_SCHEMAS)[S]>;
+    const parsed = parseAnswer(pass, text);
+    if (!parsed.ok) throw new FullExtractionError(parsed.error, pass, studyLabel, text, calls);
+    if (parsed.shortened.length > 0) record.shortenedQuotes = parsed.shortened;
+    return parsed.data;
   }
 
   const structure = await call("paper_structure", PASS_PROMPTS.paper_structure, null);

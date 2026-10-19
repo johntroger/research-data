@@ -91,14 +91,16 @@ Chủ dự án đã có tài khoản Cloudflare (máy đã cài `cloudflared`). 
   * **Đã kiểm chứng ở bước 0.11:** Gemini **từ chối** schema gộp cả Study (23 KB, 31 đối tượng lồng nhau, lỗi `INVALID_ARGUMENT`). Mọi schema từ 8,5 KB / 12 đối tượng trở xuống đều được chấp nhận. Vì vậy mỗi Study được trích bằng **4 lượt gọi**: thiết kế + mẫu + kiểm soát sai lệch; đo lường; đường quan hệ; bảng (tương quan, ô thực nghiệm). Kết quả được ghép lại bằng `assembleStudy`. Giới hạn `GEMINI_SCHEMA_LIMITS` (10 KB, 15 đối tượng) được test tự động giữ cho mọi schema mới.
   * Kiểm tra thật bằng `pnpm schema:gemini-check` (khoảng $0,09 mỗi lần, dùng bài báo giả lập tự viết).
 * **Trích xuất hai lượt:** Pass 1 lấy cấu trúc và vị trí bảng; Pass 2 lấy chi tiết theo từng Study (có thể tách riêng lượt gọi cho ma trận tương quan).
-* **Batch API là bất đồng bộ** (trả kết quả trong tối đa 24 giờ): worker có luồng riêng `submit → poll → ingest`, lưu `batch_job_id`.
+* **Batch API là bất đồng bộ**, giá bằng một nửa giá chuẩn (đo thực tế: bài giả lập 4 trang xong trong khoảng 4 phút; đích của Google là tối đa 24 giờ). Luồng `pnpm worker batch submit → poll → status` lưu trạng thái trong bảng `batch_jobs`, chạy lại an toàn và không nộp trùng. Một bài đi qua **hai đợt** vì các lượt theo Study cần nhãn Study của đợt 1. Tiền được giữ chỗ khi nộp và ghi sổ theo chi phí thật khi nhận kết quả.
+  * **Giới hạn độ sâu schema của Batch (đo thực tế 19/10/2026):** Batch từ chối schema lồng quá 3 tầng (đối tượng, mảng, hoặc nhóm `anyOf` chứa đối tượng) và **một yêu cầu bị từ chối làm hỏng cả lô**; API đồng bộ nhận được schema sâu hơn. Mọi schema trích xuất của ta sâu 5–6 tầng, nên với Batch schema được đặt vào chỉ dẫn (đầu ra vẫn ép JSON) và Zod kiểm tra từng câu trả lời như mọi lời gọi khác (`extract/batch-client.ts`, `extract/schema-depth.ts`).
 * **Context Caching** có ngưỡng token tối thiểu và tính phí lưu theo thời gian; **chưa mặc định bật**. Giai đoạn 1b đo chi phí ba phương án (đồng bộ, đồng bộ + cache, batch) rồi mới chốt.
-* **Rate limiting:** token bucket theo RPM/TPM; exponential backoff có jitter; tuân theo `Retry-After`; quá N lần thử thì chuyển `FAILED` kèm lý do.
+* **Rate limiting:** cửa sổ trượt 60 giây theo RPM/TPM (`GEMINI_RPM`, `GEMINI_TPM`); thử lại 429/5xx/lỗi mạng với exponential backoff có jitter, tuân theo `Retry-After` và `retryDelay` do máy chủ báo; quá số lần thử thì dừng kèm lý do (`extract/limits.ts`).
 
 ### 4.3. Kiểm soát chi phí
-* Lệnh `estimate`: `countTokens` cho toàn bộ hàng đợi, in chi phí dự kiến trước khi xác nhận chạy.
+* Lệnh `pnpm worker estimate`: in chi phí dự kiến của toàn bộ hàng đợi (giá đồng bộ và giá Batch) trước khi chạy; `pnpm worker spend` cho biết đã dùng và còn lại bao nhiêu.
+  * **Không dùng `countTokens` để ước tính tiền:** với PDF, `countTokens` đếm khoảng 560 token/trang trong khi hóa đơn tính khoảng 1.500 token/trang (đo trên hai bài thật ở bước 1.7, thấp hơn 2,7 lần). Ước tính dùng hằng số theo trang đo từ lời gọi thật (`extract/estimate.ts`), cố ý hơi cao.
 * Mỗi bài chỉ có **một lượt trích xuất chính**; các lớp kiểm tra còn lại chạy bằng code, không tốn phí API. Đơn giá thật đo trên 5 bài đầu ở Giai đoạn 1 rồi mới đặt trần hằng tháng (D6).
-* `GEMINI_BUDGET_LIMIT` (USD): worker dừng an toàn khi chạm trần.
+* `GEMINI_BUDGET_LIMIT` (USD, mặc định 10): worker dừng **trước** lời gọi có thể vượt trần (kiểm tra theo chi phí xấu nhất của lời gọi đó), mọi lời gọi đã trả tiền được ghi vào bảng `api_spend` kể cả khi kết quả bị loại. `GEMINI_SPENT_OFFSET_USD` là số đã dùng trước khi có sổ (lấy từ Google AI Studio, mục Billing); `GEMINI_RUN_LIMIT` là trần tùy chọn cho một lần chạy.
 * Ghi `input_tokens`, `cached_tokens`, `output_tokens`, `cost_usd` theo bài và theo pass vào `extraction_runs`.
 * Đơn giá trong `pricing.json`, cập nhật theo bảng giá hiện hành.
 

@@ -135,7 +135,7 @@ const BADGE_TABLES = [
   "correlation_matrices",
   "condition_cells",
 ];
-const PRIVATE_TABLES = ["zotero_annotations", "pipeline_runs", "review_changes", "user_reports", "extraction_runs"];
+const PRIVATE_TABLES = ["zotero_annotations", "pipeline_runs", "review_changes", "user_reports", "extraction_runs", "api_spend", "batch_jobs"];
 
 describe("business tables (step 1.1)", () => {
   it("creates every table of Mục 5.1", async () => {

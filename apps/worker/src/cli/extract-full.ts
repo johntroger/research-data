@@ -6,10 +6,14 @@
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { geminiConfig, REPO_ROOT } from "../config.js";
+import { geminiConfig, loadEnv, REPO_ROOT } from "../config.js";
+import { connect } from "../db/client.js";
+import { Budget, BudgetExceeded, budgetConfigFromEnv, PgLedger } from "../extract/budget.js";
 import { type CallRecord, extractFull, FullExtractionError } from "../extract/extract-full.js";
 import { FULL_PROMPT_VERSION } from "../extract/full-prompt.js";
 import { geminiGenerator } from "../extract/gemini.js";
+import { guardedGenerator } from "../extract/guarded.js";
+import { RateLimiter, rateLimitsFromEnv } from "../extract/limits.js";
 import { PRICES_LAST_UPDATED } from "../extract/pricing.js";
 import { sha256 } from "../pdf/text-layer.js";
 
@@ -41,8 +45,20 @@ async function main(): Promise<number> {
   const base = { file: path.basename(file), file_hash: sha256(pdf), model: config.strongModel, prompt_version: FULL_PROMPT_VERSION };
 
   console.log(`File : ${base.file}\nModel: ${base.model} · prompt ${FULL_PROMPT_VERSION}\n`);
+
+  // Every paid call goes through the budget cap, the rate limit and the retry rules (step 1.7).
+  loadEnv();
+  const db = await connect();
+  const budget = new Budget(new PgLedger(db), budgetConfigFromEnv());
+  const generate = guardedGenerator(geminiGenerator(config.apiKey), {
+    budget,
+    limiter: new RateLimiter(rateLimitsFromEnv()),
+    fileHash: base.file_hash,
+    retry: { onRetry: ({ attempt, delayMs }) => console.log(`  … retry ${attempt} in ${(delayMs / 1000).toFixed(0)}s`) },
+  });
+  console.log(`Budget: ${(await budget.remainingUsd()).toFixed(2)} USD left of ${budget.config.limitUsd.toFixed(2)}\n`);
   try {
-    const result = await extractFull(pdf, { model: config.strongModel, generate: geminiGenerator(config.apiKey) });
+    const result = await extractFull(pdf, { model: config.strongModel, generate });
     await writeFile(outFile, JSON.stringify({ ...base, status: "done", ...result }, null, 2));
     const s = result.structure;
     console.log(`paper_type ${s.paper_type} · ${s.studies.length} study(ies) · ${s.hypothesis_codes.length} hypotheses · ${s.tables.length} tables · ${s.theories.length} theories`);
@@ -58,12 +74,18 @@ async function main(): Promise<number> {
     console.log(`Saved: ${path.relative(REPO_ROOT, outFile)}`);
     return 0;
   } catch (error) {
+    if (error instanceof BudgetExceeded) {
+      console.error(`${error.message}\nStopped before the call; the calls already made are in the ledger (pnpm worker spend).`);
+      return 1;
+    }
     if (!(error instanceof FullExtractionError)) throw error;
     await writeFile(outFile, JSON.stringify({ ...base, status: "failed", error: error.message, failed_raw: error.rawText, calls: error.calls }, null, 2));
     console.error(`Extraction failed at ${error.pass}${error.studyLabel ? ` (${error.studyLabel})` : ""}: ${error.message.slice(0, 500)}\n`);
     printCalls(error.calls);
     console.error(`Saved partial result: ${path.relative(REPO_ROOT, outFile)}`);
     return 1;
+  } finally {
+    await db.end();
   }
 }
 

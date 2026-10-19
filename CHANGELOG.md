@@ -2,6 +2,14 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.6 (so với 3.9.5)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 1.7:** trần ngân sách, giới hạn tốc độ, thử lại, ước tính chi phí và luồng Batch (Mục 4.2–4.3); thêm bảng `api_spend` và `batch_jobs` | Giai đoạn 1: kiểm soát chi phí trước khi chạy hàng loạt |
+| 2 | Mục 4.3: bỏ `countTokens` khỏi `estimate`, dùng hằng số theo trang đo từ hóa đơn thật | `countTokens` thấp hơn hóa đơn 2,7 lần với PDF, làm trần ngân sách mất tác dụng |
+| 3 | Mục 4.2: Batch từ chối schema lồng quá 3 tầng; với Batch, schema đặt trong chỉ dẫn và Zod kiểm tra | Đo trực tiếp trên API; API đồng bộ không bị giới hạn này |
+
 ### Version 3.9.5 (so với 3.9.4)
 
 | # | Thay đổi | Lý do |

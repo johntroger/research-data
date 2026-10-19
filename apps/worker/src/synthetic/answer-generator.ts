@@ -3,16 +3,13 @@
  * (step 1.3). It recognises the pass from the JSON schema it is sent and the study from the prompt,
  * so the whole extraction flow runs offline and its result can be compared with the key.
  */
-import { EXTRACTION_SCHEMAS, type ExtractionSchemaName, toGeminiJsonSchema } from "@research-data/schema";
+import type { ExtractionSchemaName } from "@research-data/schema";
+import { passOfSchema } from "../extract/passes.js";
 import type { GeneratePdfJson, PdfJsonRequest } from "../extract/gemini.js";
 import type { SyntheticPaper } from "./papers.js";
 
-const SCHEMA_BY_JSON = new Map(
-  (Object.keys(EXTRACTION_SCHEMAS) as ExtractionSchemaName[]).map((name) => [JSON.stringify(toGeminiJsonSchema(EXTRACTION_SCHEMAS[name])), name]),
-);
-
 export function passOf(request: PdfJsonRequest): ExtractionSchemaName {
-  const name = SCHEMA_BY_JSON.get(JSON.stringify(request.jsonSchema));
+  const name = passOfSchema(request.jsonSchema);
   if (!name) throw new Error("fake generator: unknown schema");
   return name;
 }
