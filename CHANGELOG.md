@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.16 (so với 3.9.15)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Mục 4.5: ba đường cho bước trích thủ công (**Codex**, **Antigravity** tự làm trong repo; **ChatGPT web** chép–dán cho bài có bảng dạng ảnh); nhập cả thư mục `manual/inbox/` bằng `import --all`; `AGENTS.md` ở gốc repo; một nguồn duy nhất cho prompt / schema và import từ chối file sai phiên bản; `model_name` = `manual:<công cụ>:<model>` | Chủ dự án muốn dùng Codex / Antigravity / ChatGPT khi Gemini hoặc usage Claude Code không đủ |
+| 2 | Bước 1b.7 tách thành **1b.7 thử khả thi** (script tạm, không vào repo, so với bản Gemini, có tiêu chí đạt) và **1b.8 làm thật**; cả hai chỉ bắt đầu sau khi 1b.1–1b.6 với Gemini API đã xong | Chủ dự án duyệt ngày 19/10/2026: test Gemini xong mới test Codex và Antigravity |
+
 ### Version 3.9.15 (so với 3.9.14)
 
 | # | Thay đổi | Lý do |
