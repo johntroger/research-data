@@ -100,7 +100,7 @@ Chủ dự án đã có tài khoản Cloudflare (máy đã cài `cloudflared`). 
 * Lệnh `pnpm worker estimate`: in chi phí dự kiến của toàn bộ hàng đợi (giá đồng bộ và giá Batch) trước khi chạy; `pnpm worker spend` cho biết đã dùng và còn lại bao nhiêu.
   * **Không dùng `countTokens` để ước tính tiền:** với PDF, `countTokens` đếm khoảng 560 token/trang trong khi hóa đơn tính khoảng 1.500 token/trang (đo trên hai bài thật ở bước 1.7, thấp hơn 2,7 lần). Ước tính dùng hằng số theo trang đo từ lời gọi thật (`extract/estimate.ts`), cố ý hơi cao.
 * Mỗi bài chỉ có **một lượt trích xuất chính**; các lớp kiểm tra còn lại chạy bằng code, không tốn phí API. Đơn giá thật đo trên 5 bài đầu ở Giai đoạn 1 rồi mới đặt trần hằng tháng (D6).
-* `GEMINI_BUDGET_LIMIT` (USD, mặc định 10): worker dừng **trước** lời gọi có thể vượt trần (kiểm tra theo chi phí xấu nhất của lời gọi đó), mọi lời gọi đã trả tiền được ghi vào bảng `api_spend` kể cả khi kết quả bị loại. `GEMINI_SPENT_OFFSET_USD` là số đã dùng trước khi có sổ (lấy từ Google AI Studio, mục Billing); `GEMINI_RUN_LIMIT` là trần tùy chọn cho một lần chạy.
+* `GEMINI_BUDGET_LIMIT` (USD, mặc định 25 cho pilot, D6): worker dừng **trước** lời gọi có thể vượt trần (kiểm tra theo chi phí xấu nhất của lời gọi đó), mọi lời gọi đã trả tiền được ghi vào bảng `api_spend` kể cả khi kết quả bị loại. `GEMINI_SPENT_OFFSET_USD` là số đã dùng trước khi có sổ (lấy từ Google AI Studio, mục Billing); `GEMINI_RUN_LIMIT` là trần tùy chọn cho một lần chạy.
 * Ghi `input_tokens`, `cached_tokens`, `output_tokens`, `cost_usd` theo bài và theo pass vào `extraction_runs`.
 * Đơn giá trong `pricing.json`, cập nhật theo bảng giá hiện hành.
 

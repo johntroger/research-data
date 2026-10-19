@@ -188,6 +188,17 @@ Bước 0.4–0.8 tạo thành **bộ khung chạy được** (Giai đoạn 0, m
 * **Việc của chủ dự án:** xem bảng tỷ lệ ✓ / ⚠ và đồng ý trần ngân sách. Không mã hóa, không duyệt.
 * **Bàn giao:** đơn giá mỗi bài, trần ngân sách đề xuất, prompt đã chỉnh.
 
+**Danh sách bước của Giai đoạn 1b** (chủ dự án duyệt ngày 19/10/2026; quy trình theo Mục 10.0; mục tiêu **20 bài**, trần pilot 25 USD):
+
+| Bước | Nội dung | Tốn API | Cần chủ dự án |
+| :--- | :--- | :--- | :--- |
+| **1b.1** | Lệnh `pnpm worker quality`: bảng tỷ lệ ✓ / ⚠ / ◇ / ẩn theo loại thiết kế, nhóm trường và lý do hỏng nhiều nhất; chạy trên các bài đã có | Không | Xem bảng |
+| **1b.2** | Thêm khoảng 11 bài thực nghiệm định lượng vào Zotero Inbox; chạy Batch từng đợt 3–4 bài, báo chi phí thật mỗi bài | ~5–6 USD | Thêm bài, duyệt từng đợt |
+| **1b.3** | So Pro với Flash trên 3 bài đã có (chế độ `--compare` thêm tham số model); kiểm tra Context Cache có dùng cùng Batch không, nếu không thì bỏ đo cache | ~1 USD | Duyệt kết luận |
+| **1b.4** | Chỉnh prompt / codebook / quy tắc cho loại trường hay ⚠ nhất; mỗi sửa có test và chạy lại bộ bài giả lập | Không | Duyệt danh sách sửa |
+| **1b.5** | Trang `/admin/quality` và danh sách "Cần chú ý" bản đơn giản (web local, chỉ quản trị) | Không | Xem trang |
+| **1b.6** | Chốt đơn giá mỗi bài (Pro, Flash), đề xuất trần hằng tháng (D6) | Không | Đồng ý trần |
+
 ### 📍 Giai đoạn 3a: Web dùng thật trên máy (local, nhóm *Must*)
 Chủ dự án là người dùng chính, nên **web chạy local với Supabase local đã đủ để dùng hằng ngày**. Cloud và Vercel chỉ cần khi chia sẻ công khai.
 1. `apps/web` chạy local, đọc Supabase local; làm các hạng mục nhóm **Must** ở bảng MoSCoW (Giai đoạn 3b).
@@ -281,7 +292,7 @@ Chưa bắt đầu các bước kỹ thuật (Giai đoạn 0 trở đi, tạo re
 | D3 | Người mã hóa thứ hai | — | Không cần | ⛔ Không áp dụng (v3.5) |
 | D4 | Thư viện Zotero dùng cho dự án | Cấu hình API, chia sẻ PDF (3) | **Thư viện cá nhân**, bài dự án trong collection `Research Data`; worker chỉ đọc/ghi trong collection này (xem 3.3) | ✅ Đã chốt |
 | D5 | Repository GitHub: tên, private / public | Giai đoạn 4 | `research-data`, **public**; chỉ chứa mã nguồn, không có dữ liệu có bản quyền (rủi ro 12, 12b) | ✅ Đã chốt |
-| D6 | Ngân sách Gemini | `GEMINI_BUDGET_LIMIT` (4.3) | **20 USD cho pilot** (nâng từ 10 USD ngày 19/10/2026), dùng để đo đơn giá thật và chạy thử 20–30 bài; trần hằng tháng chốt sau Giai đoạn 1b. Lý do nâng: đo thật trên 5 bài (đồng bộ) cho trung bình 0,88 USD/bài (0,29–2,16; bài nhiều Study đắt gấp đôi ước tính), và khoảng 5,5 USD trong 10 USD đầu bị lãng phí do sự cố (Docker sập, chạy trùng) nên 10 USD không đủ cho 20–30 bài | ✅ Đã chốt (pilot, đã nâng) |
+| D6 | Ngân sách Gemini | `GEMINI_BUDGET_LIMIT` (4.3) | **25 USD cho pilot** (nâng từ 10 lên 20 rồi 25 USD ngày 19/10/2026), dùng để đo đơn giá thật, chạy thử khoảng 20 bài và so Pro với Flash; trần hằng tháng chốt sau Giai đoạn 1b. Lý do nâng: đo thật trên 5 bài (đồng bộ) cho trung bình 0,88 USD/bài (0,29–2,16; bài nhiều Study đắt gấp đôi ước tính), và khoảng 5,5 USD trong 10 USD đầu bị lãng phí do sự cố (Docker sập, chạy trùng) nên 10 USD không đủ cho 20–30 bài. Nâng lên 25 USD khi bắt đầu 1b: đã chi 13,94 USD cho 12 bài, còn 11,06 USD cho khoảng 11 bài thực nghiệm thêm (0,4–0,6 USD/bài Batch, bài nhiều Study đến 2,5 USD) và so sánh Flash (~1 USD) | ✅ Đã chốt (pilot, đã nâng) |
 | D7 | Thời gian dành cho dự án mỗi tuần | Mốc thời gian của lộ trình (10) | 5–10 giờ/tuần; xem lịch dự kiến ở Mục 10.1 | ✅ Đã chốt |
 | D9 | Cách bảo đảm chất lượng | Mục 6 | **Công cụ tham khảo**: một lượt trích xuất + máy đối chiếu với PDF + huy hiệu; người dùng tự đối chiếu với bài gốc; không có bộ bài chuẩn hay bộ đối chứng | ✅ Đã chốt (sửa ở v3.8) |
 | D8 | Tên dự án / tên miền web | Giao diện, Vercel, R2 custom domain | Tên tạm "Research Data" + địa chỉ `*.vercel.app`; đặt tên chính thức và mua tên miền trước khi mở công khai | ✅ Đã chốt (tạm) |

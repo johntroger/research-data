@@ -2,7 +2,7 @@
  * Budget cap (step 1.7, Mục 4.3, D6): the worker stops safely BEFORE a call that could pass the
  * limit. Every paid call is booked in the spend ledger (`api_spend`), also when its answer is
  * later rejected, because the money is gone either way.
- *   GEMINI_BUDGET_LIMIT       total USD the project may spend (pilot: 10)
+ *   GEMINI_BUDGET_LIMIT       total USD the project may spend (pilot: 25)
  *   GEMINI_SPENT_OFFSET_USD   money spent before the ledger existed (see Google AI Studio billing)
  *   GEMINI_RUN_LIMIT          optional cap for one run of the worker
  */
@@ -109,7 +109,7 @@ export class PgLedger implements SpendLedger {
   }
 }
 
-/** Budget settings from the environment (D6: 20 USD for the pilot, raised from 10 on 2026-10-19). */
+/** Budget settings from the environment (D6: 25 USD for the pilot, raised from 10 to 20 and then to 25 on 2026-10-19). */
 export function budgetConfigFromEnv(env: NodeJS.ProcessEnv = process.env): BudgetConfig {
   const number = (name: string): number | undefined => {
     const raw = env[name]?.trim();
@@ -118,5 +118,5 @@ export function budgetConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Budge
     if (!Number.isFinite(value) || value < 0) throw new Error(`${name} must be a non-negative number of USD, got "${raw}"`);
     return value;
   };
-  return { limitUsd: number("GEMINI_BUDGET_LIMIT") ?? 20, offsetUsd: number("GEMINI_SPENT_OFFSET_USD") ?? 0, runLimitUsd: number("GEMINI_RUN_LIMIT") };
+  return { limitUsd: number("GEMINI_BUDGET_LIMIT") ?? 25, offsetUsd: number("GEMINI_SPENT_OFFSET_USD") ?? 0, runLimitUsd: number("GEMINI_RUN_LIMIT") };
 }

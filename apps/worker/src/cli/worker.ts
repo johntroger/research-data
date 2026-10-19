@@ -7,6 +7,7 @@
  *   pnpm worker run [--limit N] [--paper X] [--yes]   extract, verify and publish queued papers under the cap (step 1.9)
  *   pnpm worker report                cost per paper, unit price and projection
  *   pnpm worker batch submit [--limit N] [--paper X] [--compare] [--yes] | poll [--wait [minutes]] | status   (step 1.7)
+ *   pnpm worker quality [--top N]     ✓ / ⚠ / ◇ / ẩn by study design, field and failed check (step 1b.1)
  *   pnpm worker compare --paper X     Batch result vs synchronous result, field by field (step 1.9c)
  * Uses a READ-ONLY Zotero key (Mục 3.3) and the local Supabase database.
  */
@@ -30,6 +31,7 @@ import { readTextLayer } from "../pdf/text-layer.js";
 import type { SavedExtraction } from "../pipeline/extracted.js";
 import { analysePaper } from "../verify/analyse.js";
 import { type BadgeCounts, compareExtractions } from "../verify/compare.js";
+import { formatQuality, loadQualityFields, summariseQuality } from "../report/quality.js";
 import { readOnlyKeyProblems, ZoteroClient } from "../zotero/client.js";
 import { findCollection, inboxPath, listInbox } from "../zotero/inbox.js";
 
@@ -399,6 +401,22 @@ ${c.pass ? "PASS" : "FAIL"}: ${p.fileHash.slice(0, 12)}`);
   }
 }
 
+/** pnpm worker quality [--top N]: where the machine checks disagree with the extraction, from what is published. */
+async function quality(args: string[]): Promise<number> {
+  const top = Number(option(args, "--top") ?? 15);
+  if (!(top > 0)) {
+    console.error("--top must be a positive number");
+    return 1;
+  }
+  const db = await connect();
+  try {
+    console.log(formatQuality(summariseQuality(await loadQualityFields(db)), top));
+    return 0;
+  } finally {
+    await db.end();
+  }
+}
+
 async function main(): Promise<number> {
   const [command, ...args] = process.argv.slice(2);
   if (command === "extract") return extract(args);
@@ -409,7 +427,8 @@ async function main(): Promise<number> {
   if (command === "report") return report();
   if (command === "batch") return batch(args);
   if (command === "compare") return compare(args);
-  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X");
+  if (command === "quality") return quality(args);
+  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N]");
   return 1;
 }
 

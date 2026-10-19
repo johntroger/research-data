@@ -2,6 +2,14 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.14 (so với 3.9.13)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **D6: trần ngân sách pilot nâng từ 20 lên 25 USD** (`GEMINI_BUDGET_LIMIT`, mặc định trong mã, `.env.example`, `.env` cục bộ); chủ dự án quyết định ngày 19/10/2026 khi duyệt kế hoạch Giai đoạn 1b | Đã chi 13,94 USD cho 12 bài; còn 11,06 USD cho khoảng 11 bài thực nghiệm thêm (mục tiêu 20 bài) và so sánh Flash (~1 USD) |
+| 2 | **Bước 1b.1:** lệnh `pnpm worker quality [--top N]`: bảng ✓ / ⚠ / ◇ / ẩn theo loại thiết kế, theo trường, theo bài và theo kiểm tra hỏng nhiều nhất, đọc từ `extracted_fields`; tỷ lệ vấn đề = (⚠ + ẩn) / (✓ + ⚠ + ẩn), không tính ◇ vì trường ◇ không kiểm được | Thấy chỗ máy đối chiếu không khớp nhiều nhất để chỉnh ở 1b.4 |
+| 3 | Kế hoạch Giai đoạn 1b ghi vào `PROJECT_PLAN.md` (6 bước, mục tiêu 20 bài) | Chủ dự án duyệt ngày 19/10/2026 |
+
 ### Version 3.9.13 (so với 3.9.12)
 
 | # | Thay đổi | Lý do |
