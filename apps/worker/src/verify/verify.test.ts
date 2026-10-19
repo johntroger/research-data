@@ -4,6 +4,7 @@ import { buildPdf } from "../pdf/test-fixtures.js";
 import { readTextLayer, type PdfTextLayer } from "../pdf/text-layer.js";
 import { normaliseForMatch } from "./normalize.js";
 import { numberForms, parsePValue, verifyNumber, verifyPValue } from "./number.js";
+import { textCheck } from "./checks.js";
 import { verifyQuote } from "./quote.js";
 import { verifySkeleton } from "./verify-skeleton.js";
 
@@ -306,5 +307,41 @@ describe("verifySkeleton", () => {
   it("returns only paper_type for a review with no studies", () => {
     const review: SkeletonExtraction = { ...EXTRACTION, paper_type: "conceptual", studies: [], example_hypothesis: null };
     expect(verifySkeleton(layer, review).map((f) => f.naturalKey)).toEqual(["paper_type"]);
+  });
+});
+
+describe("a word split over two lines (step 1b.8d)", () => {
+  const PAGE = [
+    "Future work should also ask questions related to uses and gratifica - tions in the context of advertising.",
+    "All data was ano - nymized and is presented in aggregate; the four- component model by Rest ( 1986 ) guided us.",
+  ].join("\n");
+  let hyphenLayer: PdfTextLayer;
+  beforeAll(async () => {
+    hyphenLayer = await readTextLayer(await buildPdf({ pages: [{ body: PAGE }] }));
+  });
+
+  it("joins the word in every spelling the PDF and the AI use", () => {
+    expect(normaliseForMatch("gratifica - tions")).toBe("gratifications");
+    expect(normaliseForMatch("experi- ence")).toBe("experience");
+    expect(normaliseForMatch("per-\nceive")).toBe("perceive");
+    expect(normaliseForMatch("long-term loyalty")).toBe("long-term loyalty"); // a real compound keeps its hyphen
+    expect(normaliseForMatch("Self- Disclosure")).toBe("self- disclosure"); // only a lower-case rest of the word is joined
+  });
+
+  it("finds a quote written without the hyphen (the AI joined the word) as an exact match", () => {
+    const check = verifyQuote(hyphenLayer, "Future work should also ask questions related to uses and gratifications in the context of advertising", 1);
+    expect(check).toMatchObject({ match: "exact", score: 1 });
+  });
+
+  it("finds a quote that kept the hyphen tight where the PDF has it spaced", () => {
+    expect(verifyQuote(hyphenLayer, "All data was ano-nymized and is presented in aggregate", 1)).toMatchObject({ match: "exact" });
+  });
+
+  it("still rejects a quote that differs in a real word", () => {
+    expect(verifyQuote(hyphenLayer, "Future work should also ask questions related to uses and gratifications in the context of marketing", 1).match).not.toBe("exact");
+  });
+
+  it("finds a name whose compound hyphen is spaced in the PDF", () => {
+    expect(textCheck(hyphenLayer, "name_in_quote", "four-component model by Rest (1986)", 1)).toMatchObject({ passed: true });
   });
 });

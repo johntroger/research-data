@@ -87,13 +87,16 @@ export function numberCheck(
 export function textCheck(layer: PdfTextLayer, name: string, text: string, page: number): CheckResult {
   const wanted = normaliseForMatch(text);
   const wantedTokens = tokens(wanted).join(" ");
+  // A word split over two lines is written with or without the hyphen ("four- component" in the PDF, "four-component" in the name).
+  const bare = (t: string) => t.replace(/[\s-]+/g, "");
+  const wantedBare = bare(wanted);
   for (const p of [page, page - 1, page + 1]) {
     const pageData = layer.pages[p - 1];
     if (!pageData) continue;
     for (const reading of [pageData.text, pageData.rowText, repairSymbolFont(pageData.text)]) {
       if (!reading) continue;
       const normalised = normaliseForMatch(reading);
-      if (normalised.includes(wanted) || tokens(normalised).join(" ").includes(wantedTokens)) {
+      if (normalised.includes(wanted) || tokens(normalised).join(" ").includes(wantedTokens) || bare(normalised).includes(wantedBare)) {
         return pass(name, `Tìm thấy "${text}" trên trang PDF ${p}`, "attention");
       }
     }

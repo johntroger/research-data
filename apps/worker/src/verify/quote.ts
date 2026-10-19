@@ -133,7 +133,8 @@ function checkText(text: string, quote: string, quoteTokens: string[]): PageResu
   if (text.includes(quote)) return { exact: true, score: 1, criticalDifferences: [] };
   // Same characters, different spacing (e.g. "Mbrand familiarity" vs "M brand familiarity",
   // where the PDF typesets a subscript): still an exact match.
-  const spaceless = (s: string) => s.replace(/\s+/g, "");
+  // Hyphens count as spacing too: a word split over two lines ("ano-nymized") is written with or without the hyphen.
+  const spaceless = (s: string) => s.replace(/[\s-]+/g, "");
   if (spaceless(text).includes(spaceless(quote))) return { exact: true, score: 1, criticalDifferences: [] };
   const { score, window } = bestWindow(quoteTokens, tokens(text));
   return { exact: false, score, criticalDifferences: critical(differingTokens(quoteTokens, window)) };

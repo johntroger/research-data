@@ -38,7 +38,8 @@ PDF ─► [A] Trích xuất một lượt (Gemini Pro) ─► [B] Máy đối c
 
 | Loại dữ liệu | Phương pháp kiểm chứng |
 | :--- | :--- |
-| Câu văn (định nghĩa, giả thuyết, hạn chế) | Fuzzy match với text của trang được ghi (cho phép lệch ±1 trang), ngưỡng ≥ 0,90 |
+| Câu văn (định nghĩa, giả thuyết, hạn chế) | Fuzzy match với text của trang được ghi (cho phép lệch ±1 trang), ngưỡng ≥ 0,90. **Từ bị ngắt dòng bằng gạch nối** được nối lại ở cả hai phía ('per-
+ceive', 'experi- ence', 'gratifica - tions' đều thành một từ); phép so "không tính khoảng trắng" cũng bỏ gạch nối ('ano-nymized' và 'ano - nymized' khớp nhau); hợp từ thật ('long-term') giữ nguyên gạch nối |
 | Số liệu (β, p, n, α…) | Tìm đúng chuỗi số trên trang được ghi, chấp nhận các dạng `.35` / `0.35` / `0,35` / `< .001` |
 | Bảng (ma trận tương quan, bảng kết quả) | Số có xuất hiện trên trang; nhất quán nội tại (đối xứng, r ∈ [−1, 1], đường chéo khớp √AVE nếu có) |
 | Bảng điều kiện thực nghiệm (`condition_cells`) | Số có xuất hiện trên trang; SD > 0; M nằm trong khoảng thang đo |

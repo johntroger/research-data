@@ -2,6 +2,14 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.26 (so với 3.9.25)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 1b.8d:** máy đối chiếu câu trích dung thứ **từ bị ngắt dòng bằng gạch nối**: `normaliseForMatch` nối "chữ- chữ thường" và "chữ - chữ thường" ở cả hai phía; phép so "không tính khoảng trắng" của câu trích và kiểm tra tên (`textCheck`) bỏ cả gạch nối; hợp từ thật ("long-term") và chữ hoa sau gạch nối giữ nguyên | Câu đúng bị ẩn oan vì "experi- ence", "gratifica - tions" (C3: 4 mục thảo luận; Q1) |
+| 2 | Đo trên 18 bài Gemini đã lưu (không API): 13 bài không đổi; 5 bài tốt lên, **không trường nào xấu đi**: Authentic Brand ✓ 629→635, ẩn 269→261; Z85D3HAI ✓ 172→175, ⚠ 5→2; D6VEQBJH ✓ 487→489, ẩn 21→19; Q1 ✓ 167→168, ẩn 10→7; meta-analysis ✓ 14→15, ⚠ 5→4. Trên kết quả Codex: C3 ẩn 4→1 (tỷ lệ vấn đề 28,6%→9,1%), Q3 ẩn 5→1, Q2 câu trích nguyên văn 54%→72% (✓ 169→227), Q1 lần 2 ẩn 25→20 | Đo lại như yêu cầu của 1b.8d |
+| 3 | Lần đầu sửa gây hồi quy (một tên lý thuyết ✓ → ⚠ vì phía trang nối còn phía tên thì không); phát hiện nhờ đo trước-sau và vá bằng phép so đối xứng; 5 test mới (kiểm tra đột biến: bỏ từng bản vá thì test tương ứng thất bại). Chưa chạy lại `publish:full`: cơ sở dữ liệu giữ số liệu cũ cho đến khi các bài được nhập lại | Ghi nhận trung thực |
+
 ### Version 3.9.25 (so với 3.9.24)
 
 | # | Thay đổi | Lý do |

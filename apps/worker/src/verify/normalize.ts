@@ -40,7 +40,10 @@ const foldGreek = (text: string) => text.replace(/[αβγδεηθλμρσχω]/g
  */
 export function normaliseForMatch(text: string): string {
   return foldGreek(normaliseChars(text))
-    .replace(/(\p{L})-\s*\n\s*(\p{Ll})/gu, "$1$2")
+    // A hyphen at a line end, followed by the rest of the word: "per-\nceive", also "experi- ence" when the AI
+    // copied the line break as a space, and "gratifica - tions" as justified columns put it in the text layer.
+    // Both sides are treated the same way, so a real dash between words ("trust - which") still matches itself.
+    .replace(/(\p{L})(?:-\s+|\s+-\s+)(\p{Ll})/gu, "$1$2")
     .replace(/\s+/g, " ")
     .replace(/" (.*?) "/g, '"$1"')
     .replace(/ ' /g, "'")
