@@ -16,6 +16,14 @@
 | 1 | **D16 (mới): phương án dự phòng trích xuất thủ công** khi Gemini API không dùng được: xuất gói prompt + schema, đưa PDF cho LLM khác qua chat, nhập file JSON trả về; đi qua cùng các lớp đối chiếu với PDF và huy hiệu; `model_name` = `manual:<model>`, không tính vào ngân sách D6. Chi tiết ở Mục 4.5 (`docs/integrations.md`) | Chủ dự án đề xuất và duyệt ngày 19/10/2026; tránh bị chặn khi Gemini sự cố hoặc hết ngân sách |
 | 2 | Thêm **bước 1b.7** (lệnh `manual export` / `manual import`) vào danh sách bước Giai đoạn 1b; chưa code | Làm sau 1b.6, hoặc sớm hơn nếu Gemini gặp sự cố |
 
+### Version 3.9.15 (so với 3.9.14)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 1b.2:** nguồn bài thử là thư mục Zotero "Dissertation / 1 - Social Media Marketing Ethics" (`ZOTERO_INBOX_PATH`, chủ dự án chỉ định, không lấy thêm bài ngoài thư mục này). Nạp 7 bài; chạy Batch 6 bài, **bỏ bài "Power and Perception" 144 trang** (có vẻ định tính, ước tính 1,42 USD) | Tiết kiệm ngân sách; bài định tính ngoài phạm vi MVP |
+| 2 | Chi phí thật 6 bài (Batch): 0,04 / 0,04 / 0,25 / 0,24 / 0,26 / 0,09 USD, tổng **0,92 USD** so với ước tính 1,21 USD; bài khái niệm hoặc tổng quan không có Study chỉ 0,04–0,09 USD. Sổ chi tiêu 14,86/25 USD | Đơn giá cho quyết định D6 |
+| 3 | Báo cáo `quality` trên 20 bản ghi (18 bài thật): tỷ lệ vấn đề 35% trên trường kiểm được; khảo sát 39%, thí nghiệm online 26%, trường ở cấp bài 16%. Trường hay hỏng nhất: `r` (ma trận ảnh), `r2_dv` (89%), `t_or_z` (66%), `estimate` (43%). Nguyên nhân thường gặp: kết quả đường dẫn lấy từ **hình sơ đồ** (Figure 2) nên số không có trong lớp chữ | Dữ liệu cho bước 1b.4 |
+
 ### Version 3.9.14 (so với 3.9.13)
 
 | # | Thay đổi | Lý do |
