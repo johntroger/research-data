@@ -16,7 +16,8 @@
       1,
       1
     ],
-    "pagesWithoutText": []
+    "pagesWithoutText": [],
+    "attention": []
   },
   "known_issues": {},
   "discussion": {
@@ -229,7 +230,7 @@
           "HTMT_max": null,
           "reliability_evidence": {
             "pdf_page": 2,
-            "quote": "Brand Trust 4 0.86 0.9 0.7",
+            "quote": "Brand Trust 4 0.86 0.90 0.70",
             "section": "results",
             "table_or_figure": "Table 1",
             "table_cell": null

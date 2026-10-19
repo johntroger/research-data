@@ -1,5 +1,5 @@
 import type { PdfTextLayer } from "../pdf/text-layer.js";
-import { normaliseChars } from "./normalize.js";
+import { normaliseChars, repairSymbolFont } from "./normalize.js";
 
 export interface NumberCheck {
   found: boolean;
@@ -48,7 +48,8 @@ export function numberForms(value: number | string): string[] {
 
 /** Forms of a p-value as reported, e.g. "< .001" → "<.001", "<0.001". */
 export function pValueForms(reported: string): string[] {
-  const text = normaliseChars(reported).replace(/\s+/g, "").replace(/^p/i, "");
+  // Star notation as written from a table note: "* p < .05", "***p<.001" → "<.05".
+  const text = normaliseChars(reported).replace(/\s+/g, "").replace(/^[*†‡]+/, "").replace(/^p/i, "");
   const match = /^([<>=≤≥]?)(-?\d*\.?\d+)$/.exec(text);
   if (!match) return [text];
   const [, operator = "", number = ""] = match;
@@ -58,13 +59,14 @@ export function pValueForms(reported: string): string[] {
 function findOnPage(layer: PdfTextLayer, pdfPage: number, forms: string[]): string | null {
   const page = layer.pages[pdfPage - 1];
   if (!page) return null;
-  const text = numberSearchText(page.text);
+  // Also search with symbol-font signs restored ("2 0.288" printed as "−0.288", see repairSymbolFont).
+  const texts = [page.text, repairSymbolFont(page.text)].filter((t): t is string => t !== null).map(numberSearchText);
   for (const form of forms) {
     // The number must not be part of a longer number (412 must not match 4120 or 1.412),
     // but decimals may carry extra trailing zeros in print (0.7 matches "0.70").
     const trailingZeros = /[.,]\d/.test(form) ? "0*" : "";
     const pattern = new RegExp(`(?<![\\d.,])${escapeRegExp(form)}${trailingZeros}(?![\\d]|[.,]\\d)`);
-    if (pattern.test(text)) return form;
+    if (texts.some((text) => pattern.test(text))) return form;
   }
   return null;
 }
@@ -89,7 +91,8 @@ export function verifyPValue(layer: PdfTextLayer, reported: string, pdfPage: num
 
 /** Parses a reported p-value into its upper bound or exact value: "< .001" → 0.001, "= .03" → 0.03. */
 export function parsePValue(reported: string): { operator: "<" | ">" | "=" | "≤" | "≥"; value: number } | null {
-  const text = normaliseChars(reported).replace(/\s+/g, "").replace(/^p/i, "");
+  // Star notation as written from a table note: "* p < .05", "***p<.001" → "<.05".
+  const text = normaliseChars(reported).replace(/\s+/g, "").replace(/^[*†‡]+/, "").replace(/^p/i, "");
   const match = /^([<>=≤≥]?)(\d*\.?\d+)$/.exec(text);
   if (!match) return null;
   const operator = (match[1] || "=") as "<" | ">" | "=" | "≤" | "≥";

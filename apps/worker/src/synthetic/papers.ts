@@ -25,6 +25,8 @@ export interface SyntheticPaper {
     columns: (1 | 2)[];
     /** 1-based PDF pages that have no text layer (evidence there cannot be checked by the machine). */
     pagesWithoutText: number[];
+    /** Natural keys that rightly get ⚠ when the answer key itself is verified (everything else is ✓ or ◇). */
+    attention: string[];
   };
   /**
    * Known gaps the set exposed in the worker, kept visible until fixed: a test marked with one of
@@ -242,23 +244,23 @@ const paper01: SyntheticPaper = {
           evidence: ev(2, "Harman's single-factor test showed no dominant factor."),
         },
         measurements: [
-          ["Influencer Credibility", 5, 0.89, 0.91, 0.67],
-          ["Brand Trust", 4, 0.86, 0.9, 0.7],
-          ["Purchase Intention", 3, 0.84, 0.88, 0.71],
+          ["Influencer Credibility", "5", "0.89", "0.91", "0.67"],
+          ["Brand Trust", "4", "0.86", "0.90", "0.70"],
+          ["Purchase Intention", "3", "0.84", "0.88", "0.71"],
         ].map(([label, items, alpha, cr, ave]) => ({
           construct_label_original: label as string,
           definition: null,
           definition_evidence: null,
           scale_source: null,
           adapted: null,
-          n_items: items as number,
+          n_items: Number(items),
           items: [],
           scale_type: null,
           order: "first" as const,
           parent_label_original: null,
-          alpha: alpha as number,
-          CR: cr as number,
-          AVE: ave as number,
+          alpha: Number(alpha),
+          CR: Number(cr),
+          AVE: Number(ave),
           HTMT_max: null,
           reliability_evidence: ev(2, `${label} ${items} ${alpha} ${cr} ${ave}`, "Table 1"),
         })),
@@ -330,6 +332,7 @@ const paper01: SyntheticPaper = {
     printedPageMethod: "header_footer",
     columns: [1, 1, 1, 1],
     pagesWithoutText: [],
+    attention: [],
   },
 };
 
@@ -514,6 +517,7 @@ const paper02: SyntheticPaper = {
     printedPageMethod: "page_labels",
     columns: [2, 2, 2],
     pagesWithoutText: [],
+    attention: ["study_1:exclusion_rate"],
   },
 };
 
@@ -738,6 +742,7 @@ const paper03: SyntheticPaper = {
     printedPageMethod: "header_footer",
     columns: [1, 1, 1, 1, 1],
     pagesWithoutText: [4],
+    attention: ["study_2:research_design"],
   },
 };
 

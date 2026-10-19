@@ -1,5 +1,5 @@
 import type { PdfTextLayer } from "../pdf/text-layer.js";
-import { normaliseForMatch, tokens } from "./normalize.js";
+import { normaliseForMatch, repairSymbolFont, tokens } from "./normalize.js";
 
 /** Minimum token similarity for a fuzzy match (Mục 6.3: ngưỡng ≥ 0,90). */
 export const FUZZY_THRESHOLD = 0.9;
@@ -88,7 +88,48 @@ interface PageResult {
 function checkOnPage(layer: PdfTextLayer, quote: string, quoteTokens: string[], pdfPage: number): PageResult {
   const page = layer.pages[pdfPage - 1];
   if (!page) return { exact: false, score: 0, criticalDifferences: [] };
-  const text = normaliseForMatch(page.text);
+  // Ways to read the same page, tried in turn until one gives an exact match:
+  //   reading order; visual rows (a table row is one line per cell in reading order, whole here);
+  //   both with symbol-font signs restored; the page followed by the next one (a quote across a page break).
+  const next = layer.pages[pdfPage];
+  const readings = [page.text, page.rowText ?? ""];
+  for (const r of [...readings]) {
+    const repaired = repairSymbolFont(r);
+    if (repaired) readings.push(repaired);
+  }
+
+  let best: PageResult = { exact: false, score: 0, criticalDifferences: [] };
+  for (const reading of readings) {
+    if (!reading) continue;
+    const result = checkText(normaliseForMatch(reading), quote, quoteTokens);
+    if (result.exact) return result;
+    if (result.score > best.score) best = result;
+  }
+
+  // A quote running over the page break: it must START on the cited page, otherwise a passage that
+  // lies wholly on the next page would be credited to this one (the neighbour-page check finds those).
+  if (next) {
+    const own = normaliseForMatch(page.text);
+    const joined = `${own} ${normaliseForMatch(next.text)}`;
+    const at = joined.indexOf(quote);
+    if (at >= 0 && at < own.length && at + quote.length > own.length) return { exact: true, score: 1, criticalDifferences: [] };
+    // Near-match across the break (a running title in the margin may sit inside the passage):
+    // only the end of this page and the start of the next one are compared.
+    // The passage must really straddle the break: its first words end this page, its last words open the next.
+    const span = Math.ceil(quoteTokens.length * 1.5);
+    const tail = tokens(own).slice(-span);
+    const head = tokens(normaliseForMatch(next.text)).slice(0, span);
+    const edge = Math.min(2, Math.floor(quoteTokens.length / 3));
+    const contains = (list: string[], part: string[]) => list.join(" ").includes(part.join(" "));
+    if (edge > 0 && contains(tail, quoteTokens.slice(0, edge)) && contains(head, quoteTokens.slice(-edge))) {
+      const acrossBreak = checkText([...tail, ...head].join(" "), quote, quoteTokens);
+      if (acrossBreak.score > best.score) best = acrossBreak;
+    }
+  }
+  return best;
+}
+
+function checkText(text: string, quote: string, quoteTokens: string[]): PageResult {
   if (text.includes(quote)) return { exact: true, score: 1, criticalDifferences: [] };
   // Same characters, different spacing (e.g. "Mbrand familiarity" vs "M brand familiarity",
   // where the PDF typesets a subscript): still an exact match.

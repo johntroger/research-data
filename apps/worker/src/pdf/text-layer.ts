@@ -34,6 +34,11 @@ export interface PageText {
   columns: 1 | 2;
   /** False when the page has (almost) no extractable text, e.g. a table or figure embedded as an image. */
   hasTextLayer: boolean;
+  /**
+   * The page as visual rows: every piece at (about) the same height joined left to right, across
+   * columns. Table rows come out whole here, while `text` has one line per cell (step 1.4).
+   */
+  rowText: string;
 }
 
 export interface PdfTextLayer {
@@ -213,6 +218,21 @@ function orderForReading(segments: Segment[], pageWidth: number): { lines: Segme
   return { lines: [...above, ...leftSide.sort(topDown), ...rightSide.sort(topDown), ...below], columns: 2 };
 }
 
+/** Vertical distance (points) within which pieces count as one visual row (cells set on slightly different baselines). */
+const ROW_TOLERANCE = 2.5;
+
+/** Groups segments into visual rows, top to bottom, each row read left to right. */
+function visualRows(segments: Segment[]): string[] {
+  const sorted = [...segments].sort((a, b) => b.y - a.y);
+  const rows: Segment[][] = [];
+  for (const s of sorted) {
+    const row = rows.at(-1);
+    if (row && row[0]!.y - s.y <= ROW_TOLERANCE) row.push(s);
+    else rows.push([s]);
+  }
+  return rows.map((row) => row.sort((a, b) => a.x0 - b.x0).map((s) => s.text).join(" "));
+}
+
 /** Reads the text layer of a PDF page by page, plus page labels and header/footer lines. */
 export async function readTextLayer(bytes: Uint8Array): Promise<PdfTextLayer> {
   const fileHash = sha256(bytes);
@@ -247,6 +267,7 @@ export async function readTextLayer(bytes: Uint8Array): Promise<PdfTextLayer> {
 
     const { lines, columns } = orderForReading(segments, width);
     const text = lines.map((l) => l.text).join("\n");
+    const rowText = visualRows(segments).join("\n");
 
     pages.push({
       pdfPageIndex: i,
@@ -258,6 +279,7 @@ export async function readTextLayer(bytes: Uint8Array): Promise<PdfTextLayer> {
       marginNotes: rotated.length ? [normaliseSpaces(rotated.join(" "))] : [],
       columns,
       hasTextLayer: text.replace(/\s/g, "").length >= MIN_CHARS_PER_PAGE,
+      rowText,
     });
   }
 

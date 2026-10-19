@@ -42,6 +42,30 @@ export function normaliseForMatch(text: string): string {
     .toLowerCase();
 }
 
+/**
+ * Some PDFs (seen in Emerald papers, step 1.4) set mathematical signs in a symbol font whose text
+ * layer maps them to other characters: "+" → "þ", "−" → "2 ", "=" → "¼", "<" → ",", and the decimal
+ * point in "0.05" → "0 : 05". The reader sees the right sign, and so does Gemini. Returns the text
+ * with these signs restored, or null when the text shows no sign of this substitution.
+ */
+export function repairSymbolFont(text: string): string | null {
+  // Signature: a thorn or ¼ for a sign, or a p-value note written "p , 0 : 05".
+  if (!/[þ¼]|\bp , ?0 : \d/.test(text)) return null;
+  let repaired = text
+    .replace(/þ/g, "+")
+    .replace(/¼/g, "=")
+    .replace(/(\d) : (\d)/g, "$1.$2")
+    .replace(/ , (?=\.?\d)/g, " < ");
+  // A lone "2" before a decimal number (or before another lone "2") is a minus sign:
+  // "2 0.288" → "− 0.288", "H2 2 2 0.288" → "H2 − − 0.288". Repeated because matches touch.
+  for (let previous = ""; previous !== repaired; ) {
+    previous = repaired;
+    // Any whitespace, since in reading order the sign and the number can sit on two lines.
+    repaired = repaired.replace(/(^|[\s(])2\s+(?=2\s|\d*\.\d)/gm, "$1− ");
+  }
+  return repaired;
+}
+
 /** Splits normalised text into word tokens (punctuation is ignored for fuzzy matching). */
 export function tokens(normalised: string): string[] {
   return normalised
