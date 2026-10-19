@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.21 (so với 3.9.20)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Pha A3 (độ lặp lại)** ghi vào Mục 6.9: Codex chạy Q1 hai lần, giá trị cấu trúc bằng nhau 95,1%, mọi khóa chung 84,3%; lần 2 ẩn nhiều hơn vì thêm khái niệm không có bằng chứng | Đo độ ổn định |
+| 2 | **Cổng 1b.7:** Codex đạt (A1–A3); **Antigravity hoãn** thử lại với model mạnh (Gemini 4 Argon hết token), gói Q3-antigravity và Q2-antigravity sẵn; làm 1b.8 với Codex là nguồn chính | Theo cổng "chỉ một công cụ đạt" của Mục 6.9 |
+
 ### Version 3.9.20 (so với 3.9.19)
 
 | # | Thay đổi | Lý do |

@@ -170,6 +170,10 @@ Bài "Power and Perception" (144 trang, định tính) nằm ngoài phạm vi MV
 * Thời gian người làm 2–10 phút mỗi bài, dưới ngưỡng 20 phút. Chưa đo độ lặp lại (A3).
 * **Việc đưa vào 1b.8 hoặc 1b.4:** (1) chỉ dẫn giới hạn số mục thảo luận (chỉ những câu tác giả nêu rõ là đóng góp / hàm ý / hạn chế / hướng nghiên cứu, không liệt kê từng câu hỏi nghiên cứu trong bảng); (2) máy đối chiếu câu trích dung thứ gạch nối cuối dòng; (3) so sánh văn bản tự do bằng độ giống thay vì bằng nhau tuyệt đối, và tiêu chí khóa chung chỉ tính giá trị cấu trúc; (4) tiêu chí 7 đo tương đối với Gemini khi số liệu nằm trong hình.
 
+**Kết quả pha A3 (độ lặp lại, Codex chạy Q1 hai lần, 19/10/2026):** số Study và mã giả thuyết giống nhau; giá trị cấu trúc bằng nhau **95,1%** (155/163, đạt ngưỡng 90%); mọi khóa chung bằng nhau 84,3% (văn bản tự do và `scale_source` thay đổi giữa hai lần). Lần 2 ẩn 25 trường (lần 1: 6) vì thêm hai khái niệm bậc cao không có bằng chứng, máy chặn đúng; cần thêm vào chỉ dẫn "không ghi đối tượng nào mà không có câu trích". `n_items` Codex 4 so với Gemini 12–16 chưa rõ bên nào đúng.
+
+**Tình trạng cổng sau A1–A3 (19/10/2026):** Codex đạt; Antigravity mới thử Q1 với Gemini 3.8 Flash (không đạt tiêu chí 7) và **hoãn** thử lại với model mạnh khi có token (gói Q3-antigravity, Q2-antigravity đã sẵn). Theo cổng bên dưới ("chỉ một công cụ đạt") làm 1b.8 với Codex.
+
 **Cổng quyết định sau pha A:**
 * Cả hai đạt: làm pha B với cả hai (chọn công cụ mặc định theo thời gian và số ⚠ thấp hơn).
 * Chỉ một đạt: làm pha B với công cụ đó.
