@@ -11,6 +11,7 @@ import type { CallRecord } from "./extract-full.js";
 import { FULL_INSTRUCTIONS } from "./full-prompt.js";
 import type { GeneratePdfJson } from "./gemini.js";
 import { callCostUsd } from "./pricing.js";
+import { shortenQuotes } from "./quotes.js";
 import { tableKey, type MissingItem } from "../verify/completeness.js";
 import type { FullData } from "../verify/verify-full.js";
 
@@ -63,7 +64,10 @@ export async function topUp(
     });
     calls.push({ pass, studyLabel, usage, costUsd: callCostUsd(options.model, usage), rawText: text, durationMs: now() - started });
     try {
-      const parsed = EXTRACTION_SCHEMAS[pass].safeParse(JSON.parse(text));
+      const json: unknown = JSON.parse(text);
+      const shortened = shortenQuotes(json);
+      if (shortened.length > 0) calls[calls.length - 1]!.shortenedQuotes = shortened;
+      const parsed = EXTRACTION_SCHEMAS[pass].safeParse(json);
       return parsed.success ? (parsed.data as z.infer<(typeof EXTRACTION_SCHEMAS)[S]>) : null;
     } catch {
       return null; // a top-up that does not parse is simply a miss; the item stays in the missing list

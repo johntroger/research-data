@@ -19,6 +19,7 @@ import type { z } from "zod";
 import { FULL_INSTRUCTIONS, FULL_PROMPT_VERSION, PASS_PROMPTS, studyPrompt, type StudyPartName } from "./full-prompt.js";
 import type { GeneratePdfJson } from "./gemini.js";
 import { callCostUsd, type TokenUsage } from "./pricing.js";
+import { type ShortenedQuote, shortenQuotes } from "./quotes.js";
 
 export interface CallRecord {
   pass: ExtractionSchemaName;
@@ -28,6 +29,8 @@ export interface CallRecord {
   /** Raw model output, kept for reproducibility (local only, never committed). */
   rawText: string;
   durationMs: number;
+  /** Quotes longer than the schema allows that were shortened before checking (step 1.3b). */
+  shortenedQuotes?: ShortenedQuote[];
 }
 
 export interface FullExtraction {
@@ -85,7 +88,8 @@ export async function extractFull(pdf: Uint8Array, options: ExtractFullOptions):
       prompt,
       jsonSchema: toGeminiJsonSchema(schema),
     });
-    calls.push({ pass, studyLabel, usage, costUsd: callCostUsd(options.model, usage), rawText: text, durationMs: now() - started });
+    const record: CallRecord = { pass, studyLabel, usage, costUsd: callCostUsd(options.model, usage), rawText: text, durationMs: now() - started };
+    calls.push(record);
 
     let json: unknown;
     try {
@@ -93,6 +97,8 @@ export async function extractFull(pdf: Uint8Array, options: ExtractFullOptions):
     } catch {
       throw new FullExtractionError(`${pass}: Gemini did not return valid JSON`, pass, studyLabel, text, calls);
     }
+    const shortened = shortenQuotes(json);
+    if (shortened.length > 0) record.shortenedQuotes = shortened;
     const parsed = schema.safeParse(json);
     if (!parsed.success) {
       const issues = parsed.error.issues.map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`).join("; ");

@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { SECTIONS } from "./enums.js";
 
+/** Longest quote the schema accepts (about 50 words); the worker shortens longer ones (extract/quotes.ts). */
+export const MAX_QUOTE_CHARS = 400;
+
 /** Evidence for a value (codebook Phần M and A.2). */
 export const Evidence = z
   .object({
@@ -12,7 +15,7 @@ export const Evidence = z
     quote: z
       .string()
       .min(1)
-      .max(400)
+      .max(MAX_QUOTE_CHARS)
       .describe(
         "ONE continuous passage copied word for word (max 50 words). Never join fragments with '...' or '…'. For table values, copy the table row as printed.",
       ),
