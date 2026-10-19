@@ -6,12 +6,12 @@
  */
 import { CODEBOOK_VERSION, SCHEMA_VERSION } from "@research-data/schema";
 import type pg from "pg";
-import { SKELETON_PROMPT_VERSION } from "../extract/skeleton-schema.js";
+import { FULL_PROMPT_VERSION } from "../extract/full-prompt.js";
 
 export type StepName = "S1" | "S2" | "S3" | "S4" | "S5" | "S6" | "S7" | "S8" | "S9" | "S10" | "S11";
 
-/** Prompt version of the extraction (S4). Until step 1.3 this is the skeleton prompt. */
-export const PIPELINE_PROMPT_VERSION = SKELETON_PROMPT_VERSION;
+/** Prompt version of the extraction (S4): the full extraction prompt since step 1.3. */
+export const PIPELINE_PROMPT_VERSION = FULL_PROMPT_VERSION;
 
 export interface Versions {
   schema: string;

@@ -25,6 +25,7 @@
     "verify:skeleton": "pnpm --filter @research-data/worker verify:skeleton",
     "verify:full": "pnpm --filter @research-data/worker verify:full",
     "map:concepts": "pnpm --filter @research-data/worker map:concepts",
+    "publish:full": "pnpm --filter @research-data/worker publish:full",
     "publish:skeleton": "pnpm --filter @research-data/worker publish:skeleton",
     "web:dev": "pnpm --filter @research-data/web dev",
     "test:e2e": "pnpm --filter @research-data/web test:e2e",

@@ -284,13 +284,15 @@ describe("business tables (step 1.1)", () => {
 
   it("deletes everything of a paper with the paper", async () => {
     await inRollback(async () => {
-      const { paperId } = await seedPaper();
+      const { paperId, matrixId } = await seedPaper();
       await client.query("delete from papers where id = $1", [paperId]);
       for (const table of [...BADGE_TABLES, "evidence", "paper_tables", "pipeline_runs", "review_changes"]) {
         const row = await one<{ n: string }>(`select count(*) as n from ${table} where paper_id = $1`, [paperId]);
         expect({ table, n: row.n }).toEqual({ table, n: "0" });
       }
-      expect((await one<{ n: string }>("select count(*) as n from matrix_cells")).n).toBe("0");
+      for (const table of ["matrix_cells", "matrix_descriptives"]) {
+        expect((await one<{ n: string }>(`select count(*) as n from ${table} where matrix_id = $1`, [matrixId])).n, table).toBe("0");
+      }
     });
   });
 
@@ -304,7 +306,7 @@ describe("business tables (step 1.1)", () => {
         );
         expect({ table, n: row.n }).toEqual({ table, n: "1" });
       }
-      expect((await one<{ n: string }>("select count(*) as n from matrix_cells")).n).toBe("1");
+      expect((await one<{ n: string }>("select count(*) as n from matrix_cells x join correlation_matrices m on m.id = x.matrix_id join papers p on p.id = m.paper_id where p.file_hash = 'hash-1-1'")).n).toBe("1");
       expect(Number((await one<{ n: string }>("select count(*) as n from constructs")).n)).toBe(CANONICAL_CONSTRUCTS.length);
       expect(Number((await one<{ n: string }>("select count(*) as n from theories")).n)).toBe(CANONICAL_THEORIES.length);
     });
@@ -321,8 +323,8 @@ describe("business tables (step 1.1)", () => {
         );
         expect({ table, n: row.n }).toEqual({ table, n: "0" });
       }
-      expect((await one<{ n: string }>("select count(*) as n from matrix_cells")).n).toBe("0");
-      expect((await one<{ n: string }>("select count(*) as n from matrix_descriptives")).n).toBe("0");
+      expect((await one<{ n: string }>("select count(*) as n from matrix_cells x join correlation_matrices m on m.id = x.matrix_id join papers p on p.id = m.paper_id where p.file_hash = 'hash-1-1'")).n).toBe("0");
+      expect((await one<{ n: string }>("select count(*) as n from matrix_descriptives x join correlation_matrices m on m.id = x.matrix_id join papers p on p.id = m.paper_id where p.file_hash = 'hash-1-1'")).n).toBe("0");
       for (const table of PRIVATE_TABLES) {
         expect({ table, n: (await one<{ n: string }>(`select count(*) as n from ${table}`)).n }).toEqual({ table, n: "0" });
       }

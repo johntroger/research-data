@@ -10,6 +10,8 @@ import { type FullData, type GroupRefs, verifyFull } from "./verify-full.js";
 
 export interface PaperAnalysis {
   fields: FieldVerification[];
+  /** Group (natural-key prefix) of every extracted object, to link rows to their verified fields. */
+  refs: GroupRefs;
   stats: StatResult[];
   missing: MissingItem[];
   /** "incomplete" when the PDF has hypotheses or tables that were not extracted. */
@@ -21,5 +23,5 @@ export function analysePaper(layer: PdfTextLayer, data: FullData): PaperAnalysis
   const rows = verifyFull(layer, data, refs);
   const { findings, stats } = crossCheck(data, refs, rows);
   const missing = findMissing(layer, data);
-  return { fields: applyFindings(rows, findings), stats, missing, completeness: missing.length ? "incomplete" : "complete" };
+  return { fields: applyFindings(rows, findings), refs, stats, missing, completeness: missing.length ? "incomplete" : "complete" };
 }

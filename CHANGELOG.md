@@ -2,6 +2,15 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.7 (so với 3.9.6)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 1.8:** publish đủ dữ liệu (`pnpm publish:full`): mỗi lượt gọi AI một dòng `extraction_runs` (phiên bản model / prompt / schema / codebook, token, chi phí, phản hồi thô), mỗi câu trích một dòng `evidence` (trang thật, trang in, mức khớp), các bảng nghiệp vụ và `extracted_fields` kèm kết quả từng kiểm tra; các bước S4–S8, S10 ghi vào `pipeline_runs` | Giai đoạn 1: dữ liệu trích xuất đưa được vào cơ sở dữ liệu để web dùng |
+| 2 | Mục 6.7: khóa ở **hai mức**: cả hàng (`locked` của bảng nghiệp vụ) và từng trường (cột của trường đã khóa giữ nguyên giá trị); mục của lần trích xuất cũ không còn thì bị xóa, trừ mục đã khóa (được giữ và báo `orphanedLocked`) | Trích xuất lại không được làm mất chỗ chủ dự án đã sửa |
+| 3 | Mục 6.5, 5.1: ở hàng còn hiển thị, cột của trường bị **ẩn** (không khớp PDF) để NULL; huy hiệu của hàng là huy hiệu nặng nhất trong các trường còn hiển thị; hàng ẩn khi trường chính bị ẩn | Khách không được thấy giá trị không qua kiểm tra (VD 12 giá trị R² AI bịa ở bài jtaer) |
+| 4 | Cột `raw_extraction` của 8 bảng nghiệp vụ **không đọc được với khách** (quyền theo cột) | RLS chỉ lọc theo hàng nên `raw_extraction` làm lộ giá trị đã bị ẩn |
+
 ### Version 3.9.6 (so với 3.9.5)
 
 | # | Thay đổi | Lý do |

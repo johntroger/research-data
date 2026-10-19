@@ -19,7 +19,7 @@ papers ─┬─ studies ─┬─ samples
         └─ extraction_runs, pipeline_runs, reviews, review_changes (kiểm soát chất lượng)
 ```
 
-Mỗi bảng nghiệp vụ có `raw_extraction JSONB` để truy vết. Mỗi trường trong [Codebook](codebook.md) được gán **tầng T1 / T2 / T3** (Mục 1.4); định nghĩa vận hành từng trường nằm trong Codebook.
+Mỗi bảng nghiệp vụ có `raw_extraction JSONB` để truy vết; cột này **khách không đọc được** (quyền theo cột, bước 1.8) vì nó chứa cả giá trị đã bị ẩn. Mỗi trường trong [Codebook](codebook.md) được gán **tầng T1 / T2 / T3** (Mục 1.4); định nghĩa vận hành từng trường nằm trong Codebook.
 
 ### 5.2. Các phân hệ thực thể
 

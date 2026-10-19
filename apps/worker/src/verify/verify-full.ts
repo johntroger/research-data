@@ -73,10 +73,13 @@ export function verifyFull(layer: PdfTextLayer, data: FullData, refs: GroupRefs 
   add("paper_type", "paper_type", "T2", s.paper_type, s.paper_type_evidence);
   for (const t of s.tables) {
     // The table label must be printed on its page ("Table 3" / "TABLE 3").
-    add(key(`table:${slug(t.table_label)}`), "table", "T1", t, { pdf_page: t.pdf_page, quote: t.table_label });
+    const tk = key(`table:${slug(t.table_label)}`);
+    refs.set(t, tk);
+    add(tk, "table", "T1", t, { pdf_page: t.pdf_page, quote: t.table_label });
   }
   for (const t of s.theories) {
     const k = key(`theory:${slug(t.theory_name_original)}`);
+    refs.set(t, k);
     add(k, "theory_name_original", "T1", t.theory_name_original, t.evidence, text("name_in_quote", t.theory_name_original));
     add(`${k}:role`, "application_role", "T3", t.application_role, t.evidence);
   }
@@ -89,7 +92,10 @@ export function verifyFull(layer: PdfTextLayer, data: FullData, refs: GroupRefs 
     ["limitation", d.limitations],
     ["future_direction", d.future_directions],
   ] as const) {
-    list.forEach((statement, i) => add(`${kind}:${i + 1}`, kind, "T3", statement.quote, statement));
+    list.forEach((statement, i) => {
+      refs.set(statement, `${kind}:${i + 1}`);
+      add(`${kind}:${i + 1}`, kind, "T3", statement.quote, statement);
+    });
   }
   if (d.gap_type) add("gap_type", "gap_type", "T3", d.gap_type, d.gap_evidence);
 
