@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.22 (so với 3.9.21)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 1b.8 chia thành 1b.8a–1b.8f** và chốt 4 lựa chọn: (1) bản Codex **thay** bản Gemini của cùng bài (sao lưu và in tóm tắt trước, giữ dòng đã khóa); (2) **tối đa 8 mục** mỗi loại ở phần thảo luận (prompt full-1.5.0); (3) gói việc ở `C:ProjectsResearch Data Packets` (`PACKETS_DIR`); (4) giữ tên lệnh `manual` | Chủ dự án chọn theo đề xuất, hỏi từng câu một |
+
 ### Version 3.9.21 (so với 3.9.20)
 
 | # | Thay đổi | Lý do |

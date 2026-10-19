@@ -202,6 +202,11 @@ Bước 0.4–0.8 tạo thành **bộ khung chạy được** (Giai đoạn 0, m
 | **1b.7** ✅ Codex | **Nguồn chính D16, thử khả thi** (Mục 4.5, kế hoạch kiểm thử Mục 6.9): script tạm (không vào repo) tạo gói việc cho các bài thư mục "1 - Social Media Marketing Ethics" đã có bản Gemini; giao cho **Codex** và **Antigravity**; kiểm tra JSON bằng schema thật và so với bản Gemini theo tiêu chí `compare`. Không ghi database | Không | Chạy gói trên Codex và Antigravity; duyệt kết quả so sánh |
 | **1b.8** | **Nguồn chính D16, làm thật** (chỉ khi 1b.7 đạt): lệnh `manual export` (gói việc), `manual check` (chỉ kiểm tra Zod, không database, để tác tử tự sửa lỗi), `manual import --all` (Zod, kiểm tra phiên bản, publish như luồng chính; **Claude Code chạy**), `AGENTS.md` cho gói việc, tên file đầy đủ trong gói, `compare` ghép khái niệm theo cặp số liệu (kết quả A1, Mục 6.9); có test tự động. Chạy thật các bài đến database và web | Không | Chạy gói trên hai công cụ; xem `quality` |
 
+**Bước 1b.8 chia nhỏ (chủ dự án chốt các lựa chọn ngày 19/10/2026):** mỗi bước nhỏ làm riêng, kiểm thử, báo cáo, chờ duyệt (Mục 10.0).
+* **1b.8a** `manual export` (gói việc, prompt **full-1.5.0**: tên file đầy đủ, **tối đa 8 mục** mỗi loại ở phần thảo luận, mỗi đối tượng phải có câu trích). **1b.8b** `manual check`. **1b.8c** `manual import --all`. **1b.8d** máy đối chiếu dung thứ gạch nối cuối dòng. **1b.8e** nâng `compare` và `quality`. **1b.8f** chạy thật các bài thư mục "1 - Social Media Marketing Ethics" qua Codex đến database và web local.
+* **Bản Gemini của cùng bài bị thay bởi bản Codex** khi import: sao lưu database (`pg_dump`) trước, in bảng tóm tắt trước khi ghi; dòng đã khóa bằng sửa tay được giữ; bản Gemini vẫn nằm trong lịch sử trích xuất.
+* Gói việc ở `C:ProjectsResearch Data Packets` (biến `PACKETS_DIR`), ngoài repo; tên nhóm lệnh giữ là `manual`.
+
 ### 📍 Giai đoạn 3a: Web dùng thật trên máy (local, nhóm *Must*)
 Chủ dự án là người dùng chính, nên **web chạy local với Supabase local đã đủ để dùng hằng ngày**. Cloud và Vercel chỉ cần khi chia sẻ công khai.
 1. `apps/web` chạy local, đọc Supabase local; làm các hạng mục nhóm **Must** ở bảng MoSCoW (Giai đoạn 3b).
