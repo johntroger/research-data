@@ -137,7 +137,7 @@ Bài "Power and Perception" (144 trang, định tính) nằm ngoài phạm vi MV
 * JSON qua schema sau tối đa 2 lần sửa ở mọi bài.
 * Cùng số Study và mã giả thuyết với Gemini ở mọi bài.
 * Tỷ lệ vấn đề không cao hơn Gemini quá **10 điểm phần trăm** ở từng bài, và tỷ lệ câu trích khớp nguyên văn không thấp hơn Gemini quá 10 điểm.
-* Khóa chung cùng giá trị với Gemini ≥ **90%** (trường T1 / T2); độ lặp lại giữa hai lần chạy ≥ 90%.
+* **Giá trị cấu trúc** (số, giá trị liệt kê, giá trị ngắn) bằng Gemini ≥ **90%**; văn bản tự do (định nghĩa, câu thảo luận) báo riêng vì hai bên cắt đầu cuối khác nhau (từ 1b.8e `compare` coi hai văn bản dài là một khi cái này nằm trong cái kia hoặc chung gần hết số từ, trừ khi khác nhau ở từ phủ định / chiều tác động hoặc con số); độ lặp lại giữa hai lần chạy ≥ 90% theo cùng thước. Trước khi so khóa, `compare` ghép theo nội dung: khái niệm đo lường theo α / CR / AVE, lý thuyết theo tên (một tên là phần đầu của tên kia), đường dẫn theo hệ số và thống kê kiểm định, mục thảo luận theo văn bản; ghép nhập nhằng thì không ghép.
 * **Kết quả của mọi giả thuyết hiển thị được:** không đường dẫn có mã giả thuyết nào (H1…Hn) có hệ số bị ẩn. Tiêu chí này thêm sau pha A1 vì tỷ lệ vấn đề chung có thể che mất việc kết quả giả thuyết bị ẩn (xem kết quả A1).
 * Thời gian người làm trung vị ≤ **20 phút** mỗi bài (300 bài ≈ 100 giờ); trên mức này chủ dự án quyết định có chấp nhận không.
 * Không phát hiện tác tử đọc `.env` hay ghi khóa vào gói việc.

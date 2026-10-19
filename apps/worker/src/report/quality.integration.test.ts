@@ -58,4 +58,13 @@ describe("loadQualityFields", () => {
     expect(s.total.verified + s.total.attention + s.total.interpreted + s.total.hidden).toBe(fieldsInAnalysis);
     expect(s.byDesign.reduce((n, r) => n + r.verified + r.attention + r.interpreted + r.hidden, 0)).toBe(fieldsInAnalysis);
   });
+
+  it("knows the model of the run each field came from, and filters by it (step 1b.8e)", async () => {
+    const all = (await loadQualityFields(db)).filter((f) => f.paperId === paperId);
+    expect(new Set(all.map((f) => f.source))).toEqual(new Set(["gemini-4-argon"]));
+    const same = (await loadQualityFields(db, { source: "GEMINI" })).filter((f) => f.paperId === paperId); // case does not matter
+    expect(same).toHaveLength(all.length);
+    expect((await loadQualityFields(db, { source: "manual:codex" })).filter((f) => f.paperId === paperId)).toHaveLength(0);
+    expect(summariseQuality(all).bySource.map((r) => r.name)).toEqual(["gemini-4-argon"]);
+  });
 });

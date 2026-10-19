@@ -16,6 +16,8 @@ export interface QualityField {
   badge: BadgeName;
   /** Names of the checks that failed, as "check" strings. */
   failedChecks: string[];
+  /** Model of the extraction run the field came from: gemini-4-argon, manual:codex:gpt-… (step 1b.8e). */
+  source?: string | null;
 }
 
 export interface Counts {
@@ -37,6 +39,8 @@ export interface QualitySummary {
   papers: number;
   total: Counts & { problemRate: number };
   byDesign: Row[];
+  /** By extraction source (the model of the run), so Gemini and an external extractor can be told apart. */
+  bySource: Row[];
   byField: Row[];
   byPaper: Row[];
   /** Failed checks on ⚠ or hidden fields, most frequent first. */
@@ -66,6 +70,7 @@ function rows(groups: Map<string, { counts: Counts; papers: Set<string> }>): Row
 export function summariseQuality(fields: QualityField[]): QualitySummary {
   const total = empty();
   const designs = new Map<string, { counts: Counts; papers: Set<string> }>();
+  const sources = new Map<string, { counts: Counts; papers: Set<string> }>();
   const names = new Map<string, { counts: Counts; papers: Set<string> }>();
   const papers = new Map<string, { counts: Counts; papers: Set<string> }>();
   const checks = new Map<string, { fields: number; papers: Set<string> }>();
@@ -80,6 +85,7 @@ export function summariseQuality(fields: QualityField[]): QualitySummary {
   for (const f of fields) {
     add(total, f.badge);
     group(designs, f.design ?? "(paper-level)", f);
+    group(sources, f.source ?? "(unknown)", f);
     group(names, f.fieldName, f);
     group(papers, f.paperTitle, f);
     if (f.badge === "needs_attention" || f.badge === "hidden") {
@@ -98,20 +104,25 @@ export function summariseQuality(fields: QualityField[]): QualitySummary {
     papers: new Set(fields.map((f) => f.paperId)).size,
     total: { ...total, problemRate: problemRate(total) },
     byDesign: rows(designs),
+    bySource: rows(sources),
     byField: rows(names),
     byPaper: rows(papers),
     byCheck: [...checks.entries()].map(([name, g]) => ({ name, fields: g.fields, papers: g.papers.size })).sort((a, b) => b.fields - a.fields || a.name.localeCompare(b.name)),
   };
 }
 
-/** Every published field with its design and failed checks. */
-export async function loadQualityFields(db: pg.Client): Promise<QualityField[]> {
-  const res = await db.query<{ paper_id: string; title: string | null; file_hash: string; field_name: string; badge: BadgeName; check_results: { checks?: { name: string; passed: boolean }[] }; design: string | null }>(
-    `select f.paper_id, p.title, p.file_hash, f.field_name, f.badge, f.check_results,
+/** Every published field with its design, source and failed checks; `source` keeps only runs whose model contains that text. */
+export async function loadQualityFields(db: pg.Client, options: { source?: string } = {}): Promise<QualityField[]> {
+  const res = await db.query<{ paper_id: string; title: string | null; file_hash: string; field_name: string; badge: BadgeName; check_results: { checks?: { name: string; passed: boolean }[] }; design: string | null; source: string | null }>(
+    `select f.paper_id, p.title, p.file_hash, f.field_name, f.badge, f.check_results, er.model_name as source,
             (select s.research_design from studies s
               where s.paper_id = f.paper_id and (f.natural_key = s.natural_key or f.natural_key like s.natural_key || ':%')
               order by length(s.natural_key) desc limit 1) as design
-       from extracted_fields f join papers p on p.id = f.paper_id`,
+       from extracted_fields f
+       join papers p on p.id = f.paper_id
+       left join extraction_runs er on er.id = f.extraction_run_id
+      where ($1::text is null or er.model_name ilike '%' || $1 || '%')`,
+    [options.source ?? null],
   );
   return res.rows.map((r) => ({
     paperId: r.paper_id,
@@ -120,6 +131,7 @@ export async function loadQualityFields(db: pg.Client): Promise<QualityField[]> 
     fieldName: r.field_name,
     badge: r.badge,
     failedChecks: (r.check_results?.checks ?? []).filter((c) => !c.passed).map((c) => c.name),
+    source: r.source,
   }));
 }
 
@@ -137,6 +149,7 @@ export function formatQuality(s: QualitySummary, limit = 15): string {
   const lines = [
     `${s.papers} paper(s), ${s.fields} field(s): ✓ ${t.verified}  ⚠ ${t.attention}  ◇ ${t.interpreted}  ẩn ${t.hidden}   (problem rate ${pct(t.problemRate)} of checkable fields = (⚠ + ẩn) / (✓ + ⚠ + ẩn))`,
     ...table("By study design", s.byDesign, limit),
+    ...table("By source (model of the extraction run)", s.bySource, limit),
     ...table("By field (most ⚠ + ẩn first)", s.byField, limit),
     ...table("By paper", s.byPaper, limit),
     "\nFailed checks on ⚠ / ẩn fields",

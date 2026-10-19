@@ -2,6 +2,15 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.27 (so với 3.9.26)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 1b.8e, `compare`:** ghép theo nội dung trước khi so khóa (khái niệm đo lường theo α / CR / AVE, lý thuyết theo tên, đường dẫn theo hệ số + thống kê kiểm định, mục thảo luận theo văn bản; nhập nhằng thì không ghép); văn bản dài coi là một khi cái này nằm trong cái kia hoặc chung ≥ 90% số từ, **trừ khi khác ở từ phủ định / chiều tác động hoặc con số**; tiêu chí 5 đổi thành "giá trị cấu trúc ≥ 90% bằng nhau", văn bản tự do báo riêng; lệnh in thêm số khớp cấu trúc / tự do và số nhóm đã ghép | Hai nguồn đặt tên khác và cắt câu khác nhau làm lệch khóa (A1–A3) |
+| 2 | **`quality`:** bảng "theo nguồn" (model của lượt trích xuất: gemini-4-argon, manual:codex:…) và `--source TEXT` để lọc | Phân biệt Gemini và Codex trong cùng database |
+| 3 | Đo trên kết quả Codex thật: Q1 khóa chung bằng nhau 92,2% → 94,1% (khóa chỉ ở một bên: 21 và 26 → 3 và 3), Q2 97,7% → 98,4%, Q3 (đã ghép nhãn Study) 82,3% → 87,5%, C3 48,4% → 58,1%, độ lặp lại Q1 84,3% → 88,7% (cấu trúc 95,1%) | Hiệu quả của việc ghép |
+| 4 | 19 test mới (ghép khái niệm, lý thuyết, đường dẫn; so văn bản dài, kể cả phủ định và số; nguồn trong `quality`); tổng 368 unit, 84 DB | Kiểm thử 1b.8e |
+
 ### Version 3.9.26 (so với 3.9.25)
 
 | # | Thay đổi | Lý do |

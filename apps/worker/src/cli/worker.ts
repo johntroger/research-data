@@ -10,7 +10,7 @@
  *   pnpm worker manual export --paper X [--code NAME] [--force]   work packet for an external extractor such as Codex (step 1b.8a)
  *   pnpm worker manual check <packet> [--no-feedback]   validate the answers in a packet's out/ (no database, no keys; step 1b.8b)
  *   pnpm worker manual import <packet>|--all --tool codex --model <name> [--yes] [--no-backup]   publish a packet's answers, replacing the paper's data (step 1b.8c; preview without --yes)
- *   pnpm worker quality [--top N]     ✓ / ⚠ / ◇ / ẩn by study design, field and failed check (step 1b.1)
+ *   pnpm worker quality [--top N] [--source TEXT]     ✓ / ⚠ / ◇ / ẩn by study design, field and failed check (step 1b.1)
  *   pnpm worker compare --paper X     Batch result vs synchronous result, field by field (step 1.9c)
  * Uses a READ-ONLY Zotero key (Mục 3.3) and the local Supabase database.
  */
@@ -393,7 +393,9 @@ async function compare(args: string[]): Promise<number> {
     const line = (name: string, b: BadgeCounts) => `  ${name.padEnd(6)} ✓ ${b.verified}  ⚠ ${b.attention}  ◇ ${b.interpreted}  ẩn ${b.hidden}`;
     console.log(line("sync", c.sync));
     console.log(line("batch", c.batch));
-    console.log(`  keys: ${c.keys.shared} shared, ${c.keys.equal} equal, ${c.keys.different.length} different, ${c.keys.onlySync.length} only in sync, ${c.keys.onlyBatch.length} only in Batch
+    console.log(`  keys: ${c.keys.shared} shared, ${c.keys.equal} equal, ${c.keys.different.length} different, ${c.keys.onlySync.length} only in sync, ${c.keys.onlyBatch.length} only in Batch`);
+    const part = (a: { shared: number; equal: number }) => `${a.equal}/${a.shared}`;
+    console.log(`  structured values ${part(c.agreement.structured)} equal; free text ${part(c.agreement.freeText)} equal; paired by content: ${c.paired.constructs} construct(s), ${c.paired.theories} theor(ies), ${c.paired.paths} path(s)
 `);
     for (const d of c.keys.different.slice(0, 40)) console.log(`  ≠ ${d.key}: sync ${JSON.stringify(d.sync)} | batch ${JSON.stringify(d.batch)}`);
     if (c.keys.different.length > 40) console.log(`  … and ${c.keys.different.length - 40} more`);
@@ -416,7 +418,8 @@ async function quality(args: string[]): Promise<number> {
   }
   const db = await connect();
   try {
-    console.log(formatQuality(summariseQuality(await loadQualityFields(db)), top));
+    const source = option(args, "--source");
+    console.log(formatQuality(summariseQuality(await loadQualityFields(db, source ? { source } : {})), top));
     return 0;
   } finally {
     await db.end();
