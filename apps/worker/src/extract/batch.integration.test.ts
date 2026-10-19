@@ -76,6 +76,7 @@ function answersFrom(paper: SyntheticPaper, tamper?: Parameters<typeof answerKey
 /** Tests that look at the `api_spend` table pass a PgLedger; the others use memory, so real spending in the table cannot change their outcome. */
 function setup(paper: SyntheticPaper, client: FakeBatch, limitUsd = 10, offsetUsd = 0, ledger: SpendLedger = new MemoryLedger()) {
   const saved = new Map<string, Record<string, unknown>>();
+  const purposes: string[] = [];
   const hash = HASHES[0]!;
   const deps: BatchDeps = {
     db,
@@ -83,10 +84,13 @@ function setup(paper: SyntheticPaper, client: FakeBatch, limitUsd = 10, offsetUs
     budget: new Budget(ledger, { limitUsd, offsetUsd }),
     model: MODEL,
     loadPdf: async () => pdfs.get(paper.id)!,
-    saveResult: async (fileHash, result) => void saved.set(fileHash, result),
+    saveResult: async (fileHash, result, purpose) => {
+      purposes.push(purpose);
+      saved.set(fileHash, result);
+    },
     now: AT,
   };
-  return { deps, saved, hash, paper: { fileHash: hash, pdfPath: `raw_papers/zotero/${paper.id}.pdf` } };
+  return { deps, saved, purposes, hash, paper: { fileHash: hash, pdfPath: `raw_papers/zotero/${paper.id}.pdf` } };
 }
 
 /** Polls until the paper is done (or `max` polls), returning every event. */
@@ -102,6 +106,21 @@ async function runToEnd(deps: BatchDeps, max = 10) {
 
 describe("Batch flow: submit → poll → ingest", () => {
   const paper = SYNTHETIC_PAPERS[2]!; // two studies
+
+  it("compare mode runs next to a real extraction of the same paper, and hands its result over as 'compare'", async () => {
+    const client = new FakeBatch(answersFrom(paper));
+    const { deps, saved, purposes, hash, paper: input } = setup(paper, client);
+    await submitPaper(deps, input); // the real extraction is in flight...
+    const compare = await submitPaper(deps, { ...input, purpose: "compare" }); // ...and does not block the comparison
+    expect(compare.status).toBe("submitted");
+    expect((await submitPaper(deps, { ...input, purpose: "compare" })).status).toBe("already_submitted"); // but a second comparison is refused
+    const jobs = await db.query("select purpose, phase from batch_jobs where file_hash = $1 order by purpose", [hash]);
+    expect(jobs.rows).toEqual([{ purpose: "compare", phase: "structure" }, { purpose: "extract", phase: "structure" }]);
+    await runToEnd(deps, 20);
+    await runToEnd(deps, 20);
+    expect(purposes.sort()).toEqual(["compare", "extract"]);
+    expect(saved.get(hash)).toMatchObject({ status: "done" });
+  });
 
   it("extracts a paper in two batches and saves exactly what the synchronous extraction gives, at half the price", async () => {
     const client = new FakeBatch(answersFrom(paper));

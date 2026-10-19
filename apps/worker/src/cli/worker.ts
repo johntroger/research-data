@@ -6,9 +6,11 @@
  *   pnpm worker estimate              cost of the queue before anything is sent (step 1.7)
  *   pnpm worker run [--limit N] [--paper X] [--yes]   extract, verify and publish queued papers under the cap (step 1.9)
  *   pnpm worker report                cost per paper, unit price and projection
- *   pnpm worker batch submit [--limit N] [--paper X] [--yes] | poll [--wait [minutes]] | status   (step 1.7)
+ *   pnpm worker batch submit [--limit N] [--paper X] [--compare] [--yes] | poll [--wait [minutes]] | status   (step 1.7)
+ *   pnpm worker compare --paper X     Batch result vs synchronous result, field by field (step 1.9c)
  * Uses a READ-ONLY Zotero key (Mục 3.3) and the local Supabase database.
  */
+import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { geminiConfig, loadEnv, REPO_ROOT, zoteroConfig } from "../config.js";
@@ -22,8 +24,12 @@ import { guardedGenerator } from "../extract/guarded.js";
 import { RateLimiter, rateLimitsFromEnv, realClock } from "../extract/limits.js";
 import { fetchCrossref } from "../metadata/crossref.js";
 import { ingestInbox, type PaperOutcome } from "../pipeline/ingest.js";
-import { loadQueue, resultFile } from "../pipeline/queue.js";
+import { batchResultFile, loadExtracted, loadQueue, resultFile } from "../pipeline/queue.js";
 import { type PaperReport, runPaper, summariseCost } from "../pipeline/run.js";
+import { readTextLayer } from "../pdf/text-layer.js";
+import type { SavedExtraction } from "../pipeline/extracted.js";
+import { analysePaper } from "../verify/analyse.js";
+import { type BadgeCounts, compareExtractions } from "../verify/compare.js";
 import { readOnlyKeyProblems, ZoteroClient } from "../zotero/client.js";
 import { findCollection, inboxPath, listInbox } from "../zotero/inbox.js";
 
@@ -269,9 +275,11 @@ function batchDeps(db: Db, budget: Budget, model: string, apiKey: string): Batch
     budget,
     model,
     loadPdf: async (pdfPath) => new Uint8Array(await readFile(path.join(REPO_ROOT, pdfPath))),
-    saveResult: async (fileHash, result) => {
+    saveResult: async (fileHash, result, purpose) => {
       await mkdir(EXTRACTED_DIR, { recursive: true });
-      await writeFile(resultFile(EXTRACTED_DIR, fileHash), JSON.stringify(result, null, 2));
+      // A comparison result never replaces the real extraction.
+      const file = purpose === "compare" ? batchResultFile(EXTRACTED_DIR, fileHash) : resultFile(EXTRACTED_DIR, fileHash);
+      await writeFile(file, JSON.stringify(result, null, 2));
     },
     log: console.log,
   };
@@ -291,7 +299,7 @@ async function batch(args: string[]): Promise<number> {
       if (!rows.length) console.log("No Batch jobs yet.");
       for (const r of rows) {
         console.log(
-          `${r.submitted_at.toISOString().slice(0, 16)}  ${r.phase.padEnd(11)} ${r.state.padEnd(9)} ${(r.gemini_state ?? "-").padEnd(20)} ${r.file_hash.slice(0, 12)}  ` +
+          `${r.submitted_at.toISOString().slice(0, 16)}  ${r.purpose.padEnd(7)} ${r.phase.padEnd(11)} ${r.state.padEnd(9)} ${(r.gemini_state ?? "-").padEnd(20)} ${r.file_hash.slice(0, 12)}  ` +
             `${r.cost_usd ? usd(Number(r.cost_usd)) : ""}${r.error ? `  ${r.error.slice(0, 80)}` : ""}`,
         );
       }
@@ -301,10 +309,17 @@ async function batch(args: string[]): Promise<number> {
     if (sub === "submit") {
       // One paper by default: nothing is sent in bulk unless asked for with --limit.
       const limit = Number(option(rest, "--limit") ?? 1);
-      const queue = pick(await loadQueue(db, EXTRACTED_DIR), rest).slice(0, limit);
+      const compare = rest.includes("--compare");
+      const purpose = compare ? "compare" : "extract";
+      // --compare picks papers already extracted synchronously, and needs --paper so nothing is sent in bulk by mistake.
+      if (compare && !option(rest, "--paper")) {
+        console.error("--compare needs --paper X (a part of the title or the start of the file hash)");
+        return 1;
+      }
+      const queue = pick(compare ? await loadExtracted(db, EXTRACTED_DIR) : await loadQueue(db, EXTRACTED_DIR), rest).slice(0, limit);
       const planned = queue.map((p) => ({ p, est: estimatePaper(gemini.strongModel, p.pages, 1, { batch: true }) }));
       const total = planned.reduce((n, x) => n + (x.est.costUsd ?? 0), 0);
-      console.log(`${queue.length} paper(s), about ${usd(total)} at Batch price (one study assumed per paper); remaining budget ${usd(await budget.remainingUsd())}`);
+      console.log(`${compare ? "COMPARE mode (result kept apart, not published) · " : ""}${queue.length} paper(s), about ${usd(total)} at Batch price (one study assumed per paper); remaining budget ${usd(await budget.remainingUsd())}`);
       for (const { p, est } of planned) console.log(`  ${p.pages} pages  ${usd(est.costUsd)}  ${(p.title ?? p.fileHash.slice(0, 12)).slice(0, 70)}`);
       if (!rest.includes("--yes")) {
         console.log("\nNothing sent. Add --yes to submit.");
@@ -312,7 +327,7 @@ async function batch(args: string[]): Promise<number> {
       }
       for (const { p } of planned) {
         try {
-          const r = await submitPaper(deps, { fileHash: p.fileHash, pdfPath: p.pdfPath });
+          const r = await submitPaper(deps, { fileHash: p.fileHash, pdfPath: p.pdfPath, purpose });
           console.log(r.status === "submitted" ? `submitted ${r.jobName}` : `already in a Batch (${r.jobName}, ${r.state})`);
         } catch (error) {
           if (error instanceof BudgetExceeded) {
@@ -337,8 +352,48 @@ async function batch(args: string[]): Promise<number> {
         await realClock.sleep(minutes * 60_000);
       }
     }
-    console.error("Usage: pnpm worker batch submit [--limit N] [--yes] | poll [--wait [minutes]] | status");
+    console.error("Usage: pnpm worker batch submit [--limit N] [--paper X] [--compare] [--yes] | poll [--wait [minutes]] | status");
     return 1;
+  } finally {
+    await db.end();
+  }
+}
+
+/** pnpm worker compare --paper X: Batch result vs synchronous result of one paper, field by field, against the criteria of step 1.9c. */
+async function compare(args: string[]): Promise<number> {
+  const db = await connect();
+  try {
+    const papers = pick(await loadExtracted(db, EXTRACTED_DIR), args);
+    if (!option(args, "--paper") || papers.length !== 1) {
+      console.error(`Give --paper X matching exactly one extracted paper (matched ${papers.length}).`);
+      return 1;
+    }
+    const p = papers[0]!;
+    const batchFile = batchResultFile(EXTRACTED_DIR, p.fileHash);
+    if (!existsSync(batchFile)) {
+      console.error(`No Batch result for this paper yet (${path.basename(batchFile)}). Run: pnpm worker batch submit --compare --paper X --yes`);
+      return 1;
+    }
+    const layer = await readTextLayer(new Uint8Array(await readFile(path.join(REPO_ROOT, p.pdfPath))));
+    const load = async (file: string) => {
+      const data = JSON.parse(await readFile(file, "utf8")) as SavedExtraction;
+      return { data, analysis: analysePaper(layer, data) };
+    };
+    const c = compareExtractions(await load(resultFile(EXTRACTED_DIR, p.fileHash)), await load(batchFile));
+    console.log(`${(p.title ?? p.fileHash.slice(0, 12)).slice(0, 80)}
+`);
+    const line = (name: string, b: BadgeCounts) => `  ${name.padEnd(6)} ✓ ${b.verified}  ⚠ ${b.attention}  ◇ ${b.interpreted}  ẩn ${b.hidden}`;
+    console.log(line("sync", c.sync));
+    console.log(line("batch", c.batch));
+    console.log(`  keys: ${c.keys.shared} shared, ${c.keys.equal} equal, ${c.keys.different.length} different, ${c.keys.onlySync.length} only in sync, ${c.keys.onlyBatch.length} only in Batch
+`);
+    for (const d of c.keys.different.slice(0, 40)) console.log(`  ≠ ${d.key}: sync ${JSON.stringify(d.sync)} | batch ${JSON.stringify(d.batch)}`);
+    if (c.keys.different.length > 40) console.log(`  … and ${c.keys.different.length - 40} more`);
+    console.log("");
+    for (const k of c.criteria) console.log(`  ${k.pass ? "PASS" : "FAIL"}  ${k.name}  (${k.detail})`);
+    console.log(`
+${c.pass ? "PASS" : "FAIL"}: ${p.fileHash.slice(0, 12)}`);
+    return c.pass ? 0 : 2;
   } finally {
     await db.end();
   }
@@ -353,7 +408,8 @@ async function main(): Promise<number> {
   if (command === "run") return run(args);
   if (command === "report") return report();
   if (command === "batch") return batch(args);
-  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status");
+  if (command === "compare") return compare(args);
+  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X");
   return 1;
 }
 

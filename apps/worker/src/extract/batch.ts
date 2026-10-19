@@ -27,12 +27,16 @@ export interface BatchDeps {
   budget: Budget;
   model: string;
   loadPdf: (pdfPath: string) => Promise<Uint8Array>;
-  saveResult: (fileHash: string, result: Record<string, unknown>) => Promise<void>;
+  /** Stores a finished extraction. `compare` results must go to a separate place and never replace the real one. */
+  saveResult: (fileHash: string, result: Record<string, unknown>, purpose: Purpose) => Promise<void>;
   log?: (line: string) => void;
   now?: () => Date;
 }
 
 type Phase = "structure" | "study_parts";
+
+/** `extract`: the real extraction. `compare`: run only to compare with a synchronous result (step 1.9c). */
+export type Purpose = "extract" | "compare";
 
 interface JobRow {
   id: string;
@@ -40,6 +44,7 @@ interface JobRow {
   phase: Phase;
   file_hash: string;
   pdf_path: string;
+  purpose: Purpose;
   state: "submitted" | "succeeded" | "failed" | "ingested";
   payload: Payload;
 }
@@ -81,19 +86,20 @@ async function reservedUsd(db: pg.Client): Promise<number> {
   return Number(res.rows[0]!.total);
 }
 
-async function insertJob(deps: BatchDeps, job: { name: string; phase: Phase; fileHash: string; pdfPath: string; keys: string[]; payload: Payload }) {
+async function insertJob(deps: BatchDeps, job: { name: string; phase: Phase; fileHash: string; pdfPath: string; keys: string[]; payload: Payload; purpose: Purpose }) {
   await deps.db.query(
-    `insert into batch_jobs (job_name, model, phase, file_hash, pdf_path, request_keys, payload)
-     values ($1, $2, $3, $4, $5, $6, $7)`,
-    [job.name, deps.model, job.phase, job.fileHash, job.pdfPath, job.keys, JSON.stringify(job.payload)],
+    `insert into batch_jobs (job_name, model, phase, file_hash, pdf_path, request_keys, payload, purpose)
+     values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [job.name, deps.model, job.phase, job.fileHash, job.pdfPath, job.keys, JSON.stringify(job.payload), job.purpose],
   );
 }
 
 /** Submits the first batch of a paper (Pass 1 and 1b). Does nothing when the paper is already in a batch. */
-export async function submitPaper(deps: BatchDeps, paper: { fileHash: string; pdfPath: string }): Promise<SubmitResult> {
+export async function submitPaper(deps: BatchDeps, paper: { fileHash: string; pdfPath: string; purpose?: Purpose }): Promise<SubmitResult> {
+  const purpose = paper.purpose ?? "extract";
   const existing = await deps.db.query<{ job_name: string; state: string }>(
-    "select job_name, state from batch_jobs where file_hash = $1 and phase = 'structure' and state in ('submitted', 'succeeded', 'ingested')",
-    [paper.fileHash],
+    "select job_name, state from batch_jobs where file_hash = $1 and phase = 'structure' and purpose = $2 and state in ('submitted', 'succeeded', 'ingested')",
+    [paper.fileHash, purpose],
   );
   if (existing.rows[0]) return { status: "already_submitted", jobName: existing.rows[0].job_name, state: existing.rows[0].state };
 
@@ -110,7 +116,7 @@ export async function submitPaper(deps: BatchDeps, paper: { fileHash: string; pd
     item(deps.model, pdf, "paper_discussion", PASS_PROMPTS.paper_discussion, "paper_discussion"),
   ];
   const { name } = await deps.client.create(deps.model, items, `rd-structure-${paper.fileHash.slice(0, 12)}`);
-  await insertJob(deps, { name, phase: "structure", fileHash: paper.fileHash, pdfPath: paper.pdfPath, keys: items.map((i) => i.key), payload: { reserved_usd: needed } });
+  await insertJob(deps, { name, phase: "structure", fileHash: paper.fileHash, pdfPath: paper.pdfPath, keys: items.map((i) => i.key), payload: { reserved_usd: needed }, purpose });
   log(deps, `submitted ${name} (structure) for ${paper.fileHash.slice(0, 12)}, about $${needed.toFixed(3)} at Batch price`);
   return { status: "submitted", jobName: name, estimatedUsd: needed };
 }
@@ -118,7 +124,7 @@ export async function submitPaper(deps: BatchDeps, paper: { fileHash: string; pd
 /** Looks at every unfinished job once: asks the provider, ingests finished ones, submits the next phase. */
 export async function pollOnce(deps: BatchDeps): Promise<BatchEvent[]> {
   const events: BatchEvent[] = [];
-  const jobs = await deps.db.query<JobRow>("select id, job_name, phase, file_hash, pdf_path, state, payload from batch_jobs where state in ('submitted', 'succeeded') order by submitted_at");
+  const jobs = await deps.db.query<JobRow>("select id, job_name, phase, file_hash, pdf_path, purpose, state, payload from batch_jobs where state in ('submitted', 'succeeded') order by submitted_at");
 
   for (const job of jobs.rows) {
     if (job.state === "submitted") {
@@ -229,7 +235,7 @@ async function continuePaper(deps: BatchDeps, job: JobRow): Promise<BatchEvent[]
     }
     const items = labels.flatMap((label, i) => STUDY_PASSES.map((pass) => item(deps.model, pdf, pass, studyPrompt(pass as never, label, labels), `${i}:${pass}`)));
     const { name } = await deps.client.create(deps.model, items, `rd-studies-${job.file_hash.slice(0, 12)}`);
-    await insertJob(deps, { name, phase: "study_parts", fileHash: job.file_hash, pdfPath: job.pdf_path, keys: items.map((i) => i.key), payload: { reserved_usd: needed, labels } });
+    await insertJob(deps, { name, phase: "study_parts", fileHash: job.file_hash, pdfPath: job.pdf_path, keys: items.map((i) => i.key), payload: { reserved_usd: needed, labels }, purpose: job.purpose });
     await deps.db.query("update batch_jobs set state = 'ingested', updated_at = now() where id = $1", [job.id]);
     log(deps, `submitted ${name} (study_parts, ${labels.length} study) for ${job.file_hash.slice(0, 12)}`);
     return [{ ...base, event: "next_phase_submitted", detail: `${labels.length} study(ies), ${items.length} requests` }];
@@ -237,8 +243,8 @@ async function continuePaper(deps: BatchDeps, job: JobRow): Promise<BatchEvent[]
 
   // study_parts: pair it with its structure job and assemble.
   const first = await deps.db.query<JobRow>(
-    "select id, job_name, phase, file_hash, pdf_path, state, payload from batch_jobs where file_hash = $1 and phase = 'structure' and state in ('ingested', 'succeeded') limit 1",
-    [job.file_hash],
+    "select id, job_name, phase, file_hash, pdf_path, purpose, state, payload from batch_jobs where file_hash = $1 and phase = 'structure' and purpose = $2 and state in ('ingested', 'succeeded') limit 1",
+    [job.file_hash, job.purpose],
   );
   if (!first.rows[0]) return [{ ...base, event: "failed", detail: "the structure job of this paper is missing" }];
   const labels = job.payload.labels ?? [];
@@ -277,7 +283,7 @@ async function finish(deps: BatchDeps, structureJob: JobRow, last: JobRow, studi
     usage: { inputTokens: calls.reduce((n, c) => n + c.usage.inputTokens, 0), outputTokens: calls.reduce((n, c) => n + c.usage.outputTokens, 0) },
     costUsd: costs.includes(null) ? null : costs.reduce<number>((n, c) => n + c!, 0),
   };
-  await deps.saveResult(structureJob.file_hash, result);
+  await deps.saveResult(structureJob.file_hash, result, structureJob.purpose);
   await deps.db.query("update batch_jobs set state = 'ingested', updated_at = now() where id = any($1)", [[structureJob.id, last.id]]);
   return { fileHash: structureJob.file_hash, phase: last.phase, event: "done", detail: `${studies.length} study(ies), $${(result.costUsd ?? 0).toFixed(4)} at Batch price` };
 }
@@ -286,6 +292,7 @@ export interface BatchRow {
   job_name: string;
   phase: string;
   file_hash: string;
+  purpose: string;
   state: string;
   gemini_state: string | null;
   cost_usd: string | null;
@@ -295,7 +302,7 @@ export interface BatchRow {
 
 export async function listBatches(db: pg.Client): Promise<BatchRow[]> {
   const res = await db.query<BatchRow>(
-    "select job_name, phase, file_hash, state, gemini_state, cost_usd, error, submitted_at from batch_jobs order by submitted_at desc",
+    "select job_name, phase, file_hash, purpose, state, gemini_state, cost_usd, error, submitted_at from batch_jobs order by submitted_at desc",
   );
   return res.rows;
 }

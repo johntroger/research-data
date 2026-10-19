@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.11 (so với 3.9.10)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 1.9c:** chế độ so sánh Batch (`pnpm worker batch submit --compare --paper X --yes`): kết quả lưu riêng `<hash>.batch.json`, không ghi đè `.full.json`, không publish; job `compare` và job `extract` của cùng một bài không chặn nhau (`batch_jobs.purpose`). Lệnh `pnpm worker compare --paper X` so từng trường theo 5 tiêu chí | Đo xem Batch (nửa giá) có cho kết quả tương đương đồng bộ trước khi dùng cho cả kho |
+| 2 | Kết quả trên 2 bài thật (chi 0,62 USD): cùng số Study và mã giả thuyết; ✓+◇ lệch dưới 10% ở cả hai; khóa chung cùng giá trị 96,2% và 92,6%; **trường ẩn của Batch vượt ngưỡng ở một bài (8 so với 3)** do Batch trích thêm các đường dẫn trùng lấy từ Hình 2 (số trên hình không có trong lớp chữ). Chưa quyết định dùng Batch cho cả kho | Số liệu cho quyết định D6 và cách chạy 7 bài còn lại |
+
 ### Version 3.9.10 (so với 3.9.9)
 
 | # | Thay đổi | Lý do |
