@@ -2,6 +2,14 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.8 (so với 3.9.7)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 1.9:** `pnpm worker run` (trích xuất, đối chiếu, publish dưới trần ngân sách) và `pnpm worker report` (chi phí từng bài, đơn giá, dự báo); lựa chọn bài bằng `--paper` | Chạy thật trên bài trong kho và đo đơn giá |
+| 2 | Mục 4.2: mỗi câu trả lời của Gemini được **ghi ra đĩa ngay khi nhận** (`extracted_data/<hash>.calls.jsonl`); chạy lại thì phát lại, không gọi và không tính tiền lần hai; lỗi mất kết nối DB không làm sập tiến trình | Lần chạy thật đầu tiên mất 10 lượt đã trả tiền (1,49 USD) khi Docker tắt giữa chừng |
+| 3 | Đơn giá đo được (đồng bộ, 4 bài thật): trung bình 0,56 USD/bài, 0,034 USD/trang; bài nhiều Study tốn nhiều hơn nhiều (bài 3 Study, 16 trang: 0,95 USD, gấp đôi ước tính vì ước tính chỉ giả định 1 Study) | Số liệu cho quyết định ngân sách D6 |
+
 ### Version 3.9.7 (so với 3.9.6)
 
 | # | Thay đổi | Lý do |

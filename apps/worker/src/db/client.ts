@@ -11,6 +11,9 @@ export function dbUrl(): string {
 
 export async function connect(url = dbUrl()): Promise<pg.Client> {
   const client = new pg.Client({ connectionString: url });
+  // A dropped connection (the database restarted, Docker stopped) must not crash a long run with an
+  // unhandled event: the next query fails with a normal error that the caller can handle.
+  client.on("error", (error) => console.error(`database connection lost: ${error.message}`));
   await client.connect();
   return client;
 }

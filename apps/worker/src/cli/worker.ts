@@ -4,10 +4,12 @@
  *   pnpm worker status                count pipeline_runs by step and status
  *   pnpm worker spend                 money spent and left of the cap (GEMINI_BUDGET_LIMIT)
  *   pnpm worker estimate              cost of the queue before anything is sent (step 1.7)
- *   pnpm worker batch submit [--limit N] [--yes] | poll [--wait [minutes]] | status   (step 1.7)
+ *   pnpm worker run [--limit N] [--paper X] [--yes]   extract, verify and publish queued papers under the cap (step 1.9)
+ *   pnpm worker report                cost per paper, unit price and projection
+ *   pnpm worker batch submit [--limit N] [--paper X] [--yes] | poll [--wait [minutes]] | status   (step 1.7)
  * Uses a READ-ONLY Zotero key (Mục 3.3) and the local Supabase database.
  */
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { geminiConfig, loadEnv, REPO_ROOT, zoteroConfig } from "../config.js";
 import { connect } from "../db/client.js";
@@ -15,10 +17,13 @@ import { geminiBatchClient } from "../extract/batch-client.js";
 import { type BatchDeps, listBatches, pollOnce, submitPaper } from "../extract/batch.js";
 import { Budget, BudgetExceeded, budgetConfigFromEnv, PgLedger } from "../extract/budget.js";
 import { estimatePaper } from "../extract/estimate.js";
-import { realClock } from "../extract/limits.js";
+import { geminiGenerator } from "../extract/gemini.js";
+import { guardedGenerator } from "../extract/guarded.js";
+import { RateLimiter, rateLimitsFromEnv, realClock } from "../extract/limits.js";
 import { fetchCrossref } from "../metadata/crossref.js";
 import { ingestInbox, type PaperOutcome } from "../pipeline/ingest.js";
 import { loadQueue, resultFile } from "../pipeline/queue.js";
+import { type PaperReport, runPaper, summariseCost } from "../pipeline/run.js";
 import { readOnlyKeyProblems, ZoteroClient } from "../zotero/client.js";
 import { findCollection, inboxPath, listInbox } from "../zotero/inbox.js";
 
@@ -30,6 +35,12 @@ type Db = Awaited<ReturnType<typeof connect>>;
 function option(args: string[], name: string): string | undefined {
   const i = args.indexOf(name);
   return i >= 0 ? args[i + 1] : undefined;
+}
+
+/** Papers of the queue picked with --paper (a part of the title, or the start of the file hash); all when absent. */
+function pick<T extends { title: string | null; fileHash: string }>(queue: T[], args: string[]): T[] {
+  const only = option(args, "--paper")?.toLowerCase();
+  return only ? queue.filter((p) => p.fileHash.startsWith(only) || (p.title ?? "").toLowerCase().includes(only)) : queue;
 }
 
 const usd = (n: number | null) => (n === null ? "?" : `$${n.toFixed(2)}`);
@@ -140,6 +151,113 @@ async function estimate(): Promise<number> {
   }
 }
 
+/** pnpm worker run [--limit N] [--yes]: extract, verify and publish queued papers under the budget cap (step 1.9). */
+async function run(args: string[]): Promise<number> {
+  const limit = Number(option(args, "--limit") ?? 1);
+  if (!(limit > 0)) {
+    console.error("--limit must be a positive number");
+    return 1;
+  }
+  const gemini = geminiConfig();
+  const db = await connect();
+  try {
+    const budget = newBudget(db);
+    const queue = pick(await loadQueue(db, EXTRACTED_DIR), args).slice(0, limit);
+    const planned = queue.map((p) => ({ p, est: estimatePaper(gemini.strongModel, p.pages, 1) }));
+    const total = planned.reduce((n, x) => n + (x.est.costUsd ?? 0), 0);
+    console.log(`${queue.length} paper(s), about ${usd(total)} (one study assumed per paper; more studies cost more); remaining budget ${usd(await budget.remainingUsd())}`);
+    for (const { p, est } of planned) console.log(`  ${String(p.pages).padStart(3)} pages  ${usd(est.costUsd).padStart(6)}  ${(p.title ?? p.fileHash.slice(0, 12)).slice(0, 70)}`);
+    if (!args.includes("--yes")) {
+      console.log("\nNothing sent. Add --yes to run.");
+      return 0;
+    }
+    const limiter = new RateLimiter(rateLimitsFromEnv());
+    const reports: PaperReport[] = [];
+    for (const { p } of planned) {
+      const outcome = await runPaper(
+        {
+          db,
+          model: gemini.strongModel,
+          repoRoot: REPO_ROOT,
+          extractedDir: EXTRACTED_DIR,
+          generate: geminiGenerator(gemini.apiKey),
+          guard: (generate, fileHash) =>
+            guardedGenerator(generate, {
+              budget,
+              limiter,
+              fileHash,
+              retry: { onRetry: ({ attempt, delayMs }) => console.log(`  … retry ${attempt} in ${(delayMs / 1000).toFixed(0)}s`) },
+            }),
+          log: console.log,
+        },
+        p,
+      );
+      if (outcome.status === "budget_stop") {
+        console.error(`\n${outcome.message}\nStopped before sending anything more.`);
+        break;
+      }
+      if (outcome.status === "extraction_failed") {
+        console.error(`  ✗ ${outcome.message} (spent ${usd(outcome.costUsd)}; raw answers kept in extracted_data/)`);
+        continue;
+      }
+      const r = outcome.report;
+      reports.push(r);
+      console.log(
+        `  ✓ ${r.studies} study, ${r.calls} calls, ${usd(r.costUsd)}, ${r.seconds}s · ✓ ${r.verified} ⚠ ${r.attention} ◇ ${r.interpreted} ẩn ${r.hidden} · ${r.completeness}${r.missing.length ? ` (${r.missing.join("; ")})` : ""}`,
+      );
+    }
+    const s = summariseCost(reports);
+    if (s.papers) console.log(`\nThis run: ${s.papers} paper(s), ${usd(s.totalUsd)}, mean ${usd(s.meanUsd)} per paper.`);
+    console.log(`Budget: ${usd(await budget.spentUsd())} spent of ${usd(budget.config.limitUsd)}, ${usd(await budget.remainingUsd())} left.`);
+    return 0;
+  } finally {
+    await db.end();
+  }
+}
+
+/** pnpm worker report: cost per paper of every saved full extraction, the unit price and a projection. */
+async function report(): Promise<number> {
+  const db = await connect();
+  try {
+    const files = (await readdir(EXTRACTED_DIR)).filter((f) => f.endsWith(".full.json"));
+    const rows: { file: string; pages: number; source: string; studies: number; calls: number; costUsd: number | null; input: number; output: number }[] = [];
+    for (const f of files) {
+      const d = JSON.parse(await readFile(path.join(EXTRACTED_DIR, f), "utf8")) as { status: string; file: string; file_hash: string; batch?: boolean; studies: unknown[]; calls: { costUsd: number | null; usage: { inputTokens: number; outputTokens: number } }[]; top_ups?: { calls: { costUsd: number | null; usage: { inputTokens: number; outputTokens: number } }[] }[] };
+      if (d.status !== "done") continue;
+      const calls = [...d.calls, ...(d.top_ups ?? []).flatMap((t) => t.calls)];
+      const pages = (await db.query<{ page_count: number | null }>("select page_count from papers where file_hash = $1", [d.file_hash])).rows[0]?.page_count ?? 0;
+      const costs = calls.map((c) => c.costUsd);
+      rows.push({
+        file: d.file,
+        pages,
+        source: d.batch ? "batch" : "sync",
+        studies: d.studies.length,
+        calls: calls.length,
+        costUsd: costs.includes(null) ? null : costs.reduce<number>((n, c) => n + c!, 0),
+        input: calls.reduce((n, c) => n + c.usage.inputTokens, 0),
+        output: calls.reduce((n, c) => n + c.usage.outputTokens, 0),
+      });
+    }
+    // Synthetic fixtures are test papers (4 pages): they say nothing about the price of real papers.
+    const real = rows.filter((r) => !r.file.startsWith("synthetic-"));
+    for (const r of real) console.log(`${r.file.slice(0, 44).padEnd(44)} ${String(r.pages).padStart(3)}p ${r.source.padEnd(5)} ${r.studies} study ${String(r.calls).padStart(2)} calls  ${usd(r.costUsd).padStart(6)}  ${(r.costUsd && r.pages ? `$${(r.costUsd / r.pages).toFixed(3)}/page` : "").padEnd(12)} in ${r.input} out ${r.output}`);
+    for (const source of ["sync", "batch"]) {
+      const s = summariseCost(real.filter((r) => r.source === source));
+      if (s.papers) console.log(`\n${source}: ${s.papers} paper(s), mean ${usd(s.meanUsd)}, median ${usd(s.medianUsd)}, $${s.usdPerPage.toFixed(3)} per page`);
+    }
+    const sync = summariseCost(real.filter((r) => r.source === "sync"));
+    if (sync.papers) {
+      console.log(`\nProjection at the synchronous price (mean ${usd(sync.meanUsd)}): 100 papers ${usd(sync.projectUsd(100))} · 300 papers ${usd(sync.projectUsd(300))}`);
+      console.log(`At the Batch price (half): 100 papers ${usd(sync.projectUsd(100) / 2)} · 300 papers ${usd(sync.projectUsd(300) / 2)}`);
+    }
+    const budget = newBudget(db);
+    console.log(`Budget: ${usd(await budget.spentUsd())} spent of ${usd(budget.config.limitUsd)}, ${usd(await budget.remainingUsd())} left.`);
+    return 0;
+  } finally {
+    await db.end();
+  }
+}
+
 function batchDeps(db: Db, budget: Budget, model: string, apiKey: string): BatchDeps {
   return {
     db,
@@ -179,7 +297,7 @@ async function batch(args: string[]): Promise<number> {
     if (sub === "submit") {
       // One paper by default: nothing is sent in bulk unless asked for with --limit.
       const limit = Number(option(rest, "--limit") ?? 1);
-      const queue = (await loadQueue(db, EXTRACTED_DIR)).slice(0, limit);
+      const queue = pick(await loadQueue(db, EXTRACTED_DIR), rest).slice(0, limit);
       const planned = queue.map((p) => ({ p, est: estimatePaper(gemini.strongModel, p.pages, 1, { batch: true }) }));
       const total = planned.reduce((n, x) => n + (x.est.costUsd ?? 0), 0);
       console.log(`${queue.length} paper(s), about ${usd(total)} at Batch price (one study assumed per paper); remaining budget ${usd(await budget.remainingUsd())}`);
@@ -228,8 +346,10 @@ async function main(): Promise<number> {
   if (command === "status") return status();
   if (command === "spend") return spend();
   if (command === "estimate") return estimate();
+  if (command === "run") return run(args);
+  if (command === "report") return report();
   if (command === "batch") return batch(args);
-  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | batch submit|poll|status");
+  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status");
   return 1;
 }
 
