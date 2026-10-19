@@ -108,24 +108,25 @@ Chủ dự án đã có tài khoản Cloudflare (máy đã cài `cloudflared`). 
 * Theo điều khoản gói trả phí, dữ liệu gửi lên không dùng để cải thiện sản phẩm của Google; kiểm tra lại điều khoản hiện hành khi bắt đầu.
 * API key Gemini và Zotero chỉ nằm trong `.env` của máy chạy worker; không commit, không đưa lên Vercel.
 
-### 4.5. Phương án dự phòng: trích xuất thủ công qua LLM khác (D16)
-Dùng khi Gemini API không dùng được (sự cố, hết hạn mức, hết ngân sách D6). Chỉ là đường dự phòng, **không** thay luồng chính và không dùng để trích hàng loạt.
+### 4.5. Nguồn trích xuất chính: tác tử Codex / Antigravity (D16)
+Từ 19/10/2026 (chi phí Gemini API cao) đây là **nguồn chính**; Gemini API (4.1–4.3) là **phương án dự phòng**, đã dựng sẵn và giữ trần D6. Phân vai: Codex / Antigravity (chủ dự án chạy) chỉ **đọc PDF và ghi JSON**; **Claude Code nhập, kiểm tra, publish và đưa lên web**. Chưa dùng cho cả kho trước khi thử khả thi 1b.7 đạt tiêu chí ở Mục 6.9; bộ thử là các bài trong thư mục Zotero "1 - Social Media Marketing Ethics".
 
 **Luồng:**
-1. `pnpm worker manual export --paper X` tạo **gói prompt** `extracted_data/manual/<X>.prompt.md` cho một bài: chỉ dẫn chung (`FULL_INSTRUCTIONS`), prompt các lượt và JSON Schema sinh từ `EXTRACTION_SCHEMAS` (cùng nguồn với luồng Gemini, nên đổi prompt / schema ở một chỗ là đủ). Gói gộp mọi lượt thành **một JSON** `{ prompt_version, schema_version, paper_structure, paper_discussion, studies: [{ study_label, study_design_sample_bias, study_measurements, study_paths, study_tables }] }`; giới hạn kích thước schema ở 4.2 chỉ là của structured output Gemini, không áp dụng cho chat.
+1. `pnpm worker manual export --paper X` tạo **gói việc** `extracted_data/manual/<X>/` cho một bài (bản sao PDF, `AGENTS.md`, và `INSTRUCTIONS.md` là **gói prompt**; mở thư mục này, ngoài repo, khi giao cho tác tử): chỉ dẫn chung (`FULL_INSTRUCTIONS`), prompt các lượt và JSON Schema sinh từ `EXTRACTION_SCHEMAS` (cùng nguồn với luồng Gemini, nên đổi prompt / schema ở một chỗ là đủ). Gói gộp mọi lượt thành **một JSON** `{ prompt_version, schema_version, paper_structure, paper_discussion, studies: [{ study_label, study_design_sample_bias, study_measurements, study_paths, study_tables }] }`; giới hạn kích thước schema ở 4.2 chỉ là của structured output Gemini, không áp dụng cho chat.
 2. Một LLM bên ngoài đọc PDF + gói prompt và trả về JSON, lưu vào `extracted_data/manual/inbox/<X>.json` (ba đường, xem bên dưới). Bài nhiều Study có thể vượt độ dài trả lời: gói có hướng dẫn trả lời theo từng phần (cấu trúc trước, rồi mỗi Study một lượt), file nhập nhận cả dạng gộp lẫn nhiều phần.
-3. `pnpm worker manual import --all` (hoặc `--paper X --file … --model <tên>`): nhập mọi file trong `inbox/`, ghép mỗi file với đúng bài; kiểm tra từng phần bằng `parseAnswer` (Zod, rút gọn câu trích dài như luồng chính); lỗi in ra **dễ dán lại cho LLM sửa**; hợp lệ thì ghi `extracted_data/<hash>.full.json` dạng `SavedExtraction`, chạy `publishExtracted` như mọi bài khác và chuyển file sang `manual/done/`. Đầu ra gọn, mỗi bài một dòng (`✓ · ⚠ · ẩn` hoặc lỗi), để agent chạy giúp tốn ít token.
-4. Các lớp máy đối chiếu với PDF (S5–S8), huy hiệu ✓ / ⚠ / ◇ / ẩn, khóa trường sửa tay: **giữ nguyên**, vì chúng không phụ thuộc ai trích xuất. Chất lượng thủ công vì vậy được đo bằng cùng thước (`pnpm worker quality`).
+3. `pnpm worker manual check --file …` (tác tử tự chạy, không cần database, không cần khóa): kiểm tra Zod bằng `parseAnswer`, in lỗi dễ dán lại để tác tử sửa trước khi trả bài.
+4. **Claude Code** chạy `pnpm worker manual import --all` (hoặc `--paper X --file … --model <tên>`): nhập mọi file trong `inbox/`, ghép mỗi file với đúng bài; kiểm tra từng phần bằng `parseAnswer` (Zod, rút gọn câu trích dài như luồng chính); lỗi in ra **dễ dán lại cho LLM sửa**; hợp lệ thì ghi `extracted_data/<hash>.full.json` dạng `SavedExtraction`, chạy `publishExtracted` như mọi bài khác và chuyển file sang `manual/done/`. Đầu ra gọn, mỗi bài một dòng (`✓ · ⚠ · ẩn` hoặc lỗi), để agent chạy giúp tốn ít token.
+5. Các lớp máy đối chiếu với PDF (S5–S8), huy hiệu ✓ / ⚠ / ◇ / ẩn, khóa trường sửa tay: **giữ nguyên**, vì chúng không phụ thuộc ai trích xuất. Chất lượng thủ công vì vậy được đo bằng cùng thước (`pnpm worker quality`).
 
-**Ba đường cho bước 2** (không cần Claude Code; Claude Code chỉ cần để viết hai lệnh và `AGENTS.md`):
+**Ba đường cho bước 2** (tác tử chỉ cần `export` và `check`; **`import` và publish do Claude Code chạy**):
 
 | Đường | Cách làm | Đọc PDF | Hợp với |
 | :--- | :--- | :--- | :--- |
-| **Codex** (OpenAI, agent trong repo) | Mở repo, gõ "Trích xuất thủ công bài X theo AGENTS.md"; agent tự export → đọc PDF → ghi JSON → import, tự sửa khi import báo lỗi | Thường qua lớp chữ (`pdf-inspect`): câu trích khớp tốt, nhưng không đọc được bảng dạng ảnh | Dự phòng tự động, dùng gói ChatGPT |
-| **Antigravity** (Google, agent trong repo) | Như Codex | Như Codex | Dự phòng tự động |
+| **Codex** (OpenAI, agent trong repo) | Mở **thư mục gói việc** (ngoài repo, không có `.env`), gõ "Làm theo INSTRUCTIONS.md"; agent đọc PDF → ghi JSON → chạy `manual check`, tự sửa khi báo lỗi; sau đó Claude Code `import` | Thường qua lớp chữ (`pdf-inspect`): câu trích khớp tốt, nhưng không đọc được bảng dạng ảnh | Nguồn chính, dùng gói ChatGPT |
+| **Antigravity** (Google, agent trong repo) | Như Codex | Như Codex | Nguồn chính |
 | **ChatGPT web** (chép–dán) | Đính kèm PDF + dán gói prompt, chép JSON vào `inbox/`, chạy `import --all` | "Nhìn" cả trang PDF, đọc được bảng dạng ảnh | Bài nhiều bảng / ma trận dạng ảnh |
 
-* **Một nguồn duy nhất cho prompt / schema** là lệnh `manual export`. Không chép prompt hay schema cố định vào Custom GPT, rule hay skill của công cụ khác (bản chép sẽ cũ khi chỉnh prompt ở 1b.4). File `AGENTS.md` ở gốc repo (Codex đọc tự động; Antigravity đọc qua rule trỏ tới) chỉ mô tả quy trình 4 bước và quy tắc không commit PDF / JSON thô. ChatGPT web có thể dùng một Project với chỉ dẫn ngắn ("làm theo gói prompt tôi dán, chỉ trả JSON, câu trích nguyên văn"), mỗi bài vẫn dán gói mới export.
+* **Một nguồn duy nhất cho prompt / schema** là lệnh `manual export`. Không chép prompt hay schema cố định vào Custom GPT, rule hay skill của công cụ khác (bản chép sẽ cũ khi chỉnh prompt ở 1b.4). File `AGENTS.md` (nằm trong mỗi gói việc; Codex đọc tự động, Antigravity đọc qua rule trỏ tới) chỉ mô tả quy trình 4 bước và quy tắc không commit PDF / JSON thô. ChatGPT web có thể dùng một Project với chỉ dẫn ngắn ("làm theo gói prompt tôi dán, chỉ trả JSON, câu trích nguyên văn"), mỗi bài vẫn dán gói mới export.
 * **Kiểm tra phiên bản:** import **từ chối** file có `prompt_version` / `schema_version` khác bản hiện hành và báo "export lại gói mới".
 
 **Quy ước:**
@@ -133,9 +134,7 @@ Dùng khi Gemini API không dùng được (sự cố, hết hạn mức, hết 
 * `cost_usd` = 0, không ghi vào `api_spend` (không tốn ngân sách Gemini).
 * Bước trích bổ sung mục thiếu (dùng Flash) bị bỏ qua; danh sách mục thiếu được in ra để hỏi tiếp LLM nếu cần.
 * File câu trả lời là phản hồi thô: chỉ để trong `extracted_data/` (đã gitignore), không commit.
+* **Khóa bí mật:** tác tử chạy trong thư mục gói việc ngoài repo, không có `.env`; không bao giờ đưa khóa API (Gemini, Zotero, Supabase, R2) cho Codex / Antigravity / ChatGPT (rủi ro 12).
 * **Quyền riêng tư (4.4):** bản chat miễn phí / gói cá nhân của một số nhà cung cấp có thể dùng dữ liệu để huấn luyện; trước khi tải PDF có bản quyền lên, tắt tùy chọn dùng dữ liệu để huấn luyện hoặc dùng gói có cam kết không huấn luyện.
 
-**Kế hoạch kiểm thử** (chỉ bắt đầu **sau khi luồng Gemini API qua hết Giai đoạn 1b**, tức 1b.1–1b.6; chủ dự án duyệt ngày 19/10/2026):
-1. **Thử khả thi (bước 1b.7, không code vào repo):** script tạm trong thư mục nháp tạo gói prompt cho **một bài đã có bản Gemini** (ưu tiên bài một Study). Giao gói cho Codex và cho Antigravity (mỗi công cụ một lần, cùng bài); kiểm tra JSON trả về bằng schema thật, chạy đối chiếu ngoài database và so với bản Gemini cùng bài theo tiêu chí của `pnpm worker compare` (số Study, mã giả thuyết, tỷ lệ ✓ / ⚠ / ẩn, khóa chung cùng giá trị). Không ghi database, không commit.
-   * **Đạt** khi: JSON qua schema sau tối đa 2 lần sửa; cùng số Study và mã giả thuyết với bản Gemini; tỷ lệ vấn đề (⚠ + ẩn) không cao hơn bản Gemini quá 10 điểm phần trăm. Không đạt thì ghi số liệu và dừng hỏi chủ dự án trước khi làm 1b.8.
-2. **Làm thật (bước 1b.8):** lệnh `manual export` / `manual import` + `AGENTS.md` + kiểm tra phiên bản, có test tự động (file JSON mẫu hợp lệ / sai schema / sai phiên bản / nhiều phần). Chạy thật một bài mới qua **Codex** và một bài mới qua **Antigravity** đến tận database và web; chạy `quality` trên hai bài đó. ChatGPT web thử thêm trên một bài có bảng dạng ảnh nếu chủ dự án muốn.
+**Kế hoạch kiểm thử:** xem [Mục 6.9](quality-assurance.md) (thử khả thi 1b.7 trước, làm thật 1b.8 sau, tiêu chí đạt / không đạt, đo thời gian người làm).

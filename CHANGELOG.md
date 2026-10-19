@@ -2,6 +2,15 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.17 (so với 3.9.16)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **D16 đảo vai: nguồn trích xuất chính là Codex / Antigravity** (ChatGPT web cho bài có bảng dạng ảnh); **Gemini API thành dự phòng** (giữ sẵn, trần D6, không chạy thêm nếu chưa được đồng ý). Phân vai: tác tử chỉ đọc PDF và ghi JSON; **Claude Code nhập (`manual import`), kiểm tra, publish và đưa lên web** | Chủ dự án quyết định 19/10/2026 vì chi phí Gemini API cao |
+| 2 | Mục 4.5 viết lại cho vai trò nguồn chính: gói việc là thư mục `extracted_data/manual/<X>/` (PDF, `AGENTS.md`, `INSTRUCTIONS.md`), thêm lệnh `manual check` (chỉ Zod, không database, không khóa) cho tác tử tự sửa, `import` do Claude Code chạy; tác tử chạy trong thư mục gói việc ngoài repo, **không có `.env`** | An toàn khóa bí mật và chia việc rõ |
+| 3 | **Mục 6.9 mới: kế hoạch kiểm thử** nguồn ngoài: bộ thử là 6 bài của thư mục "1 - Social Media Marketing Ethics" (đã có mốc Gemini Batch; bài 144 trang định tính loại ra); các pha A1–A4 (thử khả thi, không code vào repo), B (làm thật có test tự động), C (đến web), D (quyết định mở rộng); 8 số đo; tiêu chí đạt (cùng số Study và mã giả thuyết, tỷ lệ vấn đề không cao hơn Gemini quá 10 điểm, ≥ 90% khóa chung cùng giá trị, độ lặp lại ≥ 90%, ≤ 20 phút người làm mỗi bài trung vị); cổng quyết định, không đạt thì dừng hỏi | Có thước đo trước khi dựa vào nguồn mới |
+| 4 | Giai đoạn 1b sắp xếp lại: 1b.1–1b.2 xong; **1b.3 (so Flash, đo cache) bỏ**; làm **1b.7 → 1b.8 trước**, rồi 1b.4–1b.6; 1b.6 thành "chốt nguồn chính"; 4 rủi ro mới (23–26: lộ khóa cho tác tử, chất lượng và độ lặp lại, thời gian người làm, bản quyền khi gửi PDF); `CLAUDE.md` cập nhật theo | Phù hợp hướng đi mới |
+
 ### Version 3.9.16 (so với 3.9.15)
 
 | # | Thay đổi | Lý do |

@@ -29,7 +29,8 @@ PDF ─► [A] Trích xuất một lượt (Gemini Pro) ─► [B] Máy đối c
 * Là đầu vào trực tiếp cho prompt; có `codebook_version` và nhật ký thay đổi.
 
 ### 6.2. Lớp A: Trích xuất một lượt
-* Mỗi bài trích **một lần** bằng `GEMINI_MODEL_STRONG` (Pro), gồm Pass 1 (cấu trúc, danh mục Study / giả thuyết / bảng) và Pass 2 (chi tiết từng Study), như Mục 4.2.
+* **Nguồn trích xuất (D16, từ 19/10/2026):** chính là tác tử Codex / Antigravity làm trên gói việc (Mục 4.5, kiểm thử ở 6.9); Gemini API là dự phòng. Mọi lớp B–D bên dưới giống nhau cho cả hai nguồn, vì chúng chỉ nhìn vào dữ liệu và PDF.
+* Với Gemini: mỗi bài trích **một lần** bằng `GEMINI_MODEL_STRONG` (Pro), gồm Pass 1 (cấu trúc, danh mục Study / giả thuyết / bảng) và Pass 2 (chi tiết từng Study), như Mục 4.2.
 * Trường T3 (vai trò lý thuyết, loại đóng góp, loại khoảng trống) trích cùng lượt, gắn nhãn **◇ AI diễn giải**.
 * Mỗi giá trị phải kèm **bằng chứng**: trang, câu trích hoặc vị trí trong bảng (`table_id`, hàng, cột).
 
@@ -89,6 +90,64 @@ Mỗi huy hiệu bấm được để mở bảng **"Vì sao ✓"** (Mục 8.3):
 * Câu học thuật sinh tự động chỉ là **bản nháp**; chỉ sinh từ dữ liệu ✓ hoặc ★; luôn kèm số trang in để người dùng tự tra lại.
 * Câu trích công khai giới hạn ≤ 50 từ.
 * Khi dùng cho bài viết: trích dẫn bài gốc (không trích dẫn hệ thống), mở bằng chứng trong PDF để kiểm tra, khai báo việc dùng công cụ AI nếu tạp chí yêu cầu.
+
+### 6.9. Kế hoạch kiểm thử nguồn trích xuất ngoài (D16: Codex / Antigravity)
+
+**Mục tiêu:** biết liệu Codex và Antigravity có thể là nguồn trích xuất chính (thay Gemini API vì chi phí) với chất lượng đủ dùng và thời gian người làm chấp nhận được, trước khi viết lệnh `manual export / check / import` vào repo. Gemini Batch là **mốc so sánh** (đã chạy, đã có số liệu); Claude Code không tham gia trích xuất, chỉ nhập và publish.
+
+**Bộ thử:** chỉ các bài trong thư mục Zotero "Dissertation / 1 - Social Media Marketing Ethics" (chủ dự án chỉ định; không lấy thêm bài ngoài thư mục). Bản Gemini Batch của 6 bài đã có trong database:
+
+| Mã | Bài | Trang | Vai trò trong thử nghiệm | Mốc Gemini (✓ / ⚠ / ◇ / ẩn) |
+| :--- | :--- | :--- | :--- | :--- |
+| Q1 | Social media marketing: Who is watching the watchers? | 12 | Bài định lượng 1 Study, trường hợp dễ | 167 / 4 / 26 / 10 |
+| Q2 | Modeling the Determinants of Customer Satisfaction… (B2B) | 14 | Trường hợp khó: kết quả đường dẫn nằm trong **hình** (Figure 2) | 130 / 159 / 22 / 47 |
+| Q3 | How social, environmental, and economic CSR affects consumer-perceived… | 15 | Bài định lượng 1 Study, độ khó trung bình | 218 / 18 / 15 / 1 |
+| C1 | Users of the world, unite! | 10 | Bài khái niệm, không có Study | 5 / 0 / 19 / 1 |
+| C2 | Social media? Get serious! | 11 | Bài khái niệm | 2 / 0 / 8 / 0 |
+| C3 | The past, present, and future of social media marketing ethics | 19 | Bài tổng quan hoặc khái niệm dài hơn | 11 / 1 / 21 / 0 |
+
+Bài "Power and Perception" (144 trang, định tính) nằm ngoài phạm vi MVP, không dùng.
+
+**Cách đo (không tốn API, không ghi database):** một script tạm trong thư mục nháp (không vào repo) tạo gói việc từ đúng `FULL_INSTRUCTIONS`, `PASS_PROMPTS` và `EXTRACTION_SCHEMAS`; kiểm tra JSON trả về bằng `parseAnswer` (Zod), ghép Study bằng `assembleStudy`, chạy `analysePaper` trên text layer, rồi so với bản Gemini bằng `compareExtractions` (cùng thước của `pnpm worker compare`).
+
+**Các số đo cho mỗi lần chạy:**
+1. Số lần sửa JSON cho đến khi qua schema (tối đa 2 là đạt).
+2. Cùng số Study và cùng tập mã giả thuyết với bản Gemini.
+3. Tỷ lệ vấn đề = (⚠ + ẩn) / (✓ + ⚠ + ẩn), và riêng tỷ lệ câu trích khớp nguyên văn (`quote_in_pdf` đạt).
+4. Tỷ lệ khóa chung có cùng giá trị với Gemini (trường T1 / T2; T3 xem riêng vì là diễn giải).
+5. Số trường mà tác tử bỏ sót hoặc thêm so với Gemini (có lý do hay không).
+6. **Thời gian người làm** (phút: mở gói, giao việc, chờ, sửa lỗi) và mức tiêu hao hạn mức gói thuê bao của công cụ (ghi chú).
+7. Khả năng lặp lại: cùng bài chạy hai lần trên cùng công cụ, so hai bản với nhau bằng `compareExtractions`.
+8. An toàn: tác tử chạy trong thư mục gói việc, không thấy `.env`; không có PDF hay JSON thô trong git.
+
+**Các pha:**
+
+| Pha | Việc | Bài | Kết quả cần ghi |
+| :--- | :--- | :--- | :--- |
+| **A1 (thử một bài)** | Mỗi công cụ (Codex, Antigravity) làm Q1 một lần | Q1 | Số đo 1–6, ghi chú lỗi; chỉnh gói việc nếu thấy hướng dẫn thiếu (ghi lại để đưa vào `manual export`) |
+| **A2 (mở rộng)** | Mỗi công cụ làm Q3, Q2 và C3 | Q3, Q2, C3 | Số đo 1–6; riêng Q2 xem tác tử xử lý số liệu trong hình thế nào (bỏ, đoán, hay đọc đúng) |
+| **A3 (lặp lại)** | Chạy lại Q1 lần hai trên công cụ nào đạt A1 | Q1 | Số đo 7 |
+| **A4 (bài khái niệm)** | Mỗi công cụ làm C1 và C2 | C1, C2 | Không bịa Study; trường ◇ hợp lý |
+| **B (làm thật, 1b.8)** | Viết `manual export / check / import`, `AGENTS.md`, kiểm tra phiên bản; test tự động (xem dưới) | Bộ giả lập | Test xanh |
+| **C (chạy đến web)** | Nhập kết quả đã đạt ở pha A vào database bằng `import`; chạy `quality` trước và sau; mở web local kiểm tra hiển thị và PDF | Các bài đạt | Bảng `quality`, ảnh chụp trang |
+| **D (quyết định mở rộng)** | Ước tính giờ người làm cho 100 và 300 bài so với chi phí Gemini đã đo (Batch trung bình 0,52 USD mỗi bài, 0,02 USD mỗi trang) | — | Chủ dự án chọn nguồn chính và mức dùng dự phòng |
+
+**Tiêu chí đạt (cho từng công cụ, đo trên Q1–Q3 và C3):**
+* JSON qua schema sau tối đa 2 lần sửa ở mọi bài.
+* Cùng số Study và mã giả thuyết với Gemini ở mọi bài.
+* Tỷ lệ vấn đề không cao hơn Gemini quá **10 điểm phần trăm** ở từng bài, và tỷ lệ câu trích khớp nguyên văn không thấp hơn Gemini quá 10 điểm.
+* Khóa chung cùng giá trị với Gemini ≥ **90%** (trường T1 / T2); độ lặp lại giữa hai lần chạy ≥ 90%.
+* Thời gian người làm trung vị ≤ **20 phút** mỗi bài (300 bài ≈ 100 giờ); trên mức này chủ dự án quyết định có chấp nhận không.
+* Không phát hiện tác tử đọc `.env` hay ghi khóa vào gói việc.
+
+**Cổng quyết định sau pha A:**
+* Cả hai đạt: làm pha B với cả hai (chọn công cụ mặc định theo thời gian và số ⚠ thấp hơn).
+* Chỉ một đạt: làm pha B với công cụ đó.
+* Không công cụ nào đạt: ghi số liệu, **dừng và hỏi chủ dự án** (giữ Gemini làm nguồn chính với ngân sách D6, hoặc chấp nhận chất lượng thấp hơn cho một số loại trường). Không tự đổi quyết định.
+
+**Test tự động cho pha B (trong repo):** gói việc xuất ra giống hệt nhau khi đầu vào giống nhau và không chứa khóa hay phản hồi thô của Gemini; `check` chấp nhận file hợp lệ, từ chối file sai schema (lỗi dễ đọc, nêu đúng đường dẫn trường), file sai `prompt_version` / `schema_version`, file thiếu phần; bài nhiều Study nộp theo từng phần được ghép đúng; `import` trên bộ bài giả lập (dùng đáp án sẵn làm "tác tử giả") cho kết quả publish **y hệt** đường Gemini giả, không ghi `api_spend`, `model_name` = `manual:<công cụ>:<model>`, chạy lại không đè trường đã khóa và không nhập trùng.
+
+**Ghi chép:** mỗi lần chạy ghi công cụ, phiên bản, ngày, bài, số đo (bảng trong CHANGELOG hoặc ghi chú bước); file câu trả lời thô chỉ ở `extracted_data/` (đã gitignore), không commit. Khi công cụ cập nhật phiên bản lớn, chạy lại Q1 để kiểm tra mốc.
 
 ---
 

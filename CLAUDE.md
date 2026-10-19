@@ -16,14 +16,15 @@
 ## Mục đích
 - Công cụ phục vụ nghiên cứu của chính chủ dự án, **không** nhằm viết bài báo về phương pháp. Không thêm cơ chế chỉ để phục vụ công bố (nguyên tắc "đủ dùng, không thừa").
 - Web công khai: ai có URL đều xem được, không cần đăng nhập; chỉ chủ dự án có tài khoản quản trị. Khách chỉ tải được PDF Open Access có giấy phép mở.
-- **Công cụ tham khảo:** người dùng có trách nhiệm tự đối chiếu với bài gốc. Không ai đọc bài, mã hóa hay duyệt. Chất lượng dựa trên một lượt trích xuất Gemini Pro + các lớp máy đối chiếu với PDF + huy hiệu ✓ / ⚠ / ◇ (Mục 6). Ưu tiên hàng đầu là làm việc tự kiểm tra thật nhanh (bấm là mở đúng chỗ trong PDF, bảng "Vì sao ✓").
+- **Công cụ tham khảo:** người dùng có trách nhiệm tự đối chiếu với bài gốc. Không ai đọc bài, mã hóa hay duyệt. Chất lượng dựa trên một lượt trích xuất (nguồn chính: Codex / Antigravity theo gói việc; dự phòng: Gemini Pro, D16) + các lớp máy đối chiếu với PDF + huy hiệu ✓ / ⚠ / ◇ (Mục 6). Ưu tiên hàng đầu là làm việc tự kiểm tra thật nhanh (bấm là mở đúng chỗ trong PDF, bảng "Vì sao ✓").
 - Không thêm lại các cơ chế đắt (trích xuất kép, trọng tài, bộ đối chứng…) trừ khi số liệu cho thấy một loại trường sai nhiều.
 - Sửa tay trên web chỉ là tùy chọn. Trường đã sửa tay được khóa theo khóa tự nhiên ổn định; trích xuất lại không được ghi đè. Ánh xạ khái niệm theo nguyên tắc "không chắc thì tách".
 
 ## Quy ước
 - Trao đổi và tài liệu bằng tiếng Việt; tên biến, trường dữ liệu và code bằng tiếng Anh.
 - Nguồn tài liệu chính là thư viện Zotero cá nhân (collection `Research Data`, gói Zotero Storage trả phí); `raw_papers/` chỉ là dự phòng.
-- Trích xuất dùng Gemini API (gói trả phí) qua `@google/genai`. API key Gemini, Zotero, Supabase, R2 nằm trong `.env`, không bao giờ commit hay in ra.
+- **Nguồn trích xuất chính (D16, từ 19/10/2026): Codex / Antigravity** đọc PDF theo gói việc và trả JSON; Claude Code nhập (`manual import`), kiểm tra và đưa lên web. Chưa mở rộng cả kho trước khi thử khả thi 1b.7 đạt tiêu chí Mục 6.9; bộ thử chỉ gồm các bài trong thư mục Zotero "Dissertation / 1 - Social Media Marketing Ethics".
+- **Gemini API (gói trả phí, `@google/genai`) là dự phòng**, trần D6 25 USD, đã chi 14,86 USD; không chạy thêm Gemini nếu chủ dự án chưa đồng ý. API key Gemini, Zotero, Supabase, R2 nằm trong `.env`, không bao giờ commit, in ra hay đưa cho công cụ ngoài (Codex, Antigravity, ChatGPT); tác tử ngoài chỉ làm việc trong thư mục gói việc, không có `.env`.
 - Metadata thư mục lấy từ Crossref/Zotero, không để LLM sinh. Không quy đổi β thành r.
 - `schema.js` hiện có là bản cũ (v1); sẽ được viết lại thành `packages/schema` (Zod) theo Mục 9.2.
 - Repo GitHub public: không commit PDF, phản hồi thô của Gemini, hay câu trích từ bài có bản quyền.

@@ -36,3 +36,7 @@
 | 21 | Khách thấy dữ liệu AI chưa kiểm chứng (⚠) và hiểu là chắc chắn | Huy hiệu ⚠ rõ ràng; ẩn trường không khớp PDF; công tắc "Chỉ dữ liệu đã kiểm chứng"; trang "Giới thiệu & cách đọc dữ liệu"; nút Báo lỗi |
 | 22 | Trích xuất lại ghi đè chỗ đã sửa tay | Trường đã sửa được khóa (`human_reviewed`); lịch sử `review_changes`; test end-to-end kiểm tra điều này |
 | 20 | Hợp đồng thuê bao hạn chế tải PDF lên AI | Ưu tiên bản OA; trường `license_source`; hỏi thư viện trường về điều khoản AI / TDM khi tiện |
+| 23 | Tác tử ngoài (Codex / Antigravity) đọc nhầm `.env` hoặc khóa khi chạy trong repo | Chạy tác tử trong thư mục gói việc ngoài repo, không có `.env`; không đưa khóa cho công cụ ngoài; `import` và mọi thao tác dùng khóa chỉ do Claude Code chạy |
+| 24 | Chất lượng và độ lặp lại của tác tử ngoài thấp hơn Gemini, kết quả đổi theo phiên bản công cụ | Cùng máy đối chiếu và huy hiệu cho mọi nguồn; thử khả thi có tiêu chí đạt (Mục 6.9); ghi công cụ và phiên bản vào `model_name`; chạy lại bài mốc khi công cụ cập nhật; còn Gemini làm dự phòng |
+| 25 | Thời gian người làm tăng (mỗi bài phải giao việc thủ công) và lệ thuộc hạn mức gói thuê bao | Đo phút mỗi bài ở 1b.7; trần 20 phút trung vị; gói việc tự chứa và lệnh `check` giảm vòng sửa; nếu quá tải thì dùng Gemini Batch cho một phần |
+| 26 | Gửi PDF có bản quyền cho nhà cung cấp khác và điều khoản huấn luyện dữ liệu | Tắt tùy chọn dùng dữ liệu để huấn luyện hoặc dùng gói có cam kết không huấn luyện (4.4, 4.5); ưu tiên bản OA khi được; PDF và JSON thô không vào repo (rủi ro 12b) |

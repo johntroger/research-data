@@ -34,7 +34,7 @@ Kế hoạch được chia thành nhiều file (bước 0.9). Số mục giữ n
 ### 1.1. Tuyên ngôn Sứ mệnh (Mission Statement)
 Xây dựng một hệ thống cơ sở dữ liệu học thuật tự động hóa chuyên sâu cho các ngành **Khoa học Hành vi, Quản trị kinh doanh, Marketing và Kinh tế**, có khả năng:
 * Nạp tài liệu trực tiếp từ **thư viện Zotero cá nhân** của chủ dự án.
-* Phân tách sâu toàn văn bài báo (Native PDF extraction) bằng **Gemini API (gói trả phí)**, mọi trường dữ liệu truy vết được về trang và đoạn văn gốc.
+* Phân tách sâu toàn văn bài báo từ PDF, mọi trường dữ liệu truy vết được về trang và đoạn văn gốc. **Nguồn trích xuất chính (D16, từ 19/10/2026): các tác tử Codex / Antigravity** làm trên gói việc do hệ thống xuất; **Gemini API (gói trả phí) là phương án dự phòng**, đã dựng và đo xong ở Giai đoạn 1.
 * Trích xuất **ma trận tương quan và thống kê mô tả**, tạo nền dữ liệu cho meta-analysis và MASEM.
 * Cung cấp giao diện Web trên **Vercel** để tra cứu, lọc đa chiều, xem ma trận tổng hợp, bản đồ bằng chứng (Evidence Map) và trích dẫn có kiểm chứng.
 * Là **công cụ tham khảo đủ chính xác**, không cần người duyệt: một lượt trích xuất AI cùng các lớp máy đối chiếu với PDF; mọi con số bấm được để tự kiểm tra trong bài gốc (Mục 6), đủ để chủ dự án **yên tâm dùng dữ liệu cho nghiên cứu của mình** và luôn kiểm tra lại được nhanh với bản gốc.
@@ -88,7 +88,7 @@ Các chỉ số khác:
 * **Hiệu năng Web:** trang tải < 0,8 giây; truy vấn lọc đa tiêu chí < 200 ms (p95) ở quy mô 5.000 bài.
 * **Chi phí:**
   * Hạ tầng cố định: **0 VNĐ/tháng** (Vercel Hobby, R2 Free 10GB, Supabase Free); Zotero là gói trả phí sẵn có của chủ dự án.
-  * Gemini: **một lượt trích xuất Pro mỗi bài** cộng vài lời gọi nhỏ để trích bổ sung mục thiếu; đơn giá thật đo trên 5 bài đầu; có trần ngân sách.
+  * Nguồn chính (Codex / Antigravity): một lượt trích xuất mỗi bài, không tính phí theo lời gọi; mọi lớp đối chiếu và huy hiệu giữ nguyên. Dự phòng Gemini: **một lượt trích xuất Pro mỗi bài** cộng vài lời gọi nhỏ để trích bổ sung mục thiếu; đơn giá đo thật (Batch, bài một Study 0,25–0,6 USD); có trần ngân sách D6.
 
 ### 1.5. Nguyên tắc Thiết kế
 1. **Evidence-first:** không có trường dữ liệu nào hiển thị mà không kèm nguồn gốc và trạng thái kiểm chứng.
@@ -180,26 +180,27 @@ Bước 0.4–0.8 tạo thành **bộ khung chạy được** (Giai đoạn 0, m
 | **1.9** | Chạy thật `pnpm worker extract` trên 5 bài đầu, đo đơn giá mỗi bài | Báo cáo chi phí so với trần ngân sách (D6) | Xem báo cáo chi phí |
 * **Bàn giao:** `pnpm worker extract` chạy trên collection mẫu, sinh dữ liệu có điểm tin cậy + báo cáo chi phí. **Đơn giá thật mỗi bài đo trên 5 bài đầu** (trong trần ngân sách D6; đo được trung bình 0,88 USD/bài đồng bộ, xem CHANGELOG v3.9.9).
 
-### 📍 Giai đoạn 1b: Chạy thử & Chốt chi phí
-1. Chạy trên 20–30 bài thật trong kho và trên bộ bài giả lập; xem tỷ lệ ✓ / ⚠ / ẩn theo loại thiết kế.
-2. So vài cách phân vai model (Pro hay Flash cho lượt chính) và ba phương án gọi API (đồng bộ / cache / batch) → chốt đơn giá mỗi bài và đề xuất trần ngân sách hằng tháng (D6).
-3. Chỉnh prompt / codebook / quy tắc kiểm tra cho các loại trường hay mang ⚠ nhất (Claude Code làm, chạy lại bộ bài giả lập để kiểm tra không làm hỏng chỗ khác).
+### 📍 Giai đoạn 1b: Chạy thử, chọn nguồn trích xuất & Chốt chất lượng
+**Đổi hướng ngày 19/10/2026 (D16):** vì chi phí Gemini API cao, **nguồn trích xuất chính chuyển sang Codex / Antigravity** (chủ dự án chạy tác tử trên gói việc), Claude Code nhập dữ liệu và đưa lên web; Gemini API thành dự phòng. Bộ thử là **các bài trong thư mục Zotero "Dissertation / 1 - Social Media Marketing Ethics"** (chủ dự án chỉ định, không lấy thêm bài ngoài thư mục này); 6 bài trong đó đã có bản Gemini Batch để so sánh.
+1. Đã xong với Gemini (1b.1–1b.2): lệnh `quality`, đơn giá Batch thật, tỷ lệ ✓ / ⚠ / ẩn theo loại thiết kế.
+2. **Thử khả thi nguồn chính (1b.7)** rồi **làm thật (1b.8)**, theo kế hoạch kiểm thử ở Mục 6.9.
+3. Chỉnh prompt / codebook / quy tắc kiểm tra cho các loại trường hay mang ⚠ nhất, trên **gói prompt dùng chung** (Claude Code làm, chạy lại bộ bài giả lập để kiểm tra không làm hỏng chỗ khác).
 4. Trang `/admin/quality` và danh sách "Cần chú ý" bản đơn giản.
-* **Việc của chủ dự án:** xem bảng tỷ lệ ✓ / ⚠ và đồng ý trần ngân sách. Không mã hóa, không duyệt.
-* **Bàn giao:** đơn giá mỗi bài, trần ngân sách đề xuất, prompt đã chỉnh.
+* **Việc của chủ dự án:** chạy gói việc trên Codex / Antigravity; xem bảng tỷ lệ ✓ / ⚠ và kết quả so sánh. Không mã hóa, không duyệt từng trường.
+* **Bàn giao:** nguồn trích xuất chính đã chọn kèm số liệu so sánh, prompt đã chỉnh, thời gian người làm mỗi bài; Gemini là dự phòng với đơn giá đã đo.
 
-**Danh sách bước của Giai đoạn 1b** (chủ dự án duyệt ngày 19/10/2026; quy trình theo Mục 10.0; mục tiêu **20 bài**, trần pilot 25 USD):
+**Danh sách bước của Giai đoạn 1b** (duyệt ngày 19/10/2026, **sửa theo đổi hướng D16 cùng ngày**; quy trình theo Mục 10.0). Thứ tự làm: 1b.1 ✅, 1b.2 ✅, **1b.7 → 1b.8**, rồi 1b.4, 1b.5, 1b.6. Mục tiêu bộ thử: các bài trong thư mục "1 - Social Media Marketing Ethics"; Gemini chỉ giữ ngân sách đã chi (14,86/25 USD) và không chạy thêm trừ khi dùng dự phòng:
 
 | Bước | Nội dung | Tốn API | Cần chủ dự án |
 | :--- | :--- | :--- | :--- |
 | **1b.1** | Lệnh `pnpm worker quality`: bảng tỷ lệ ✓ / ⚠ / ◇ / ẩn theo loại thiết kế, nhóm trường và lý do hỏng nhiều nhất; chạy trên các bài đã có | Không | Xem bảng |
-| **1b.2** | Thêm khoảng 11 bài thực nghiệm định lượng vào Zotero Inbox; chạy Batch từng đợt 3–4 bài, báo chi phí thật mỗi bài | ~5–6 USD | Thêm bài, duyệt từng đợt |
-| **1b.3** | So Pro với Flash trên 3 bài đã có (chế độ `--compare` thêm tham số model); kiểm tra Context Cache có dùng cùng Batch không, nếu không thì bỏ đo cache | ~1 USD | Duyệt kết luận |
-| **1b.4** | Chỉnh prompt / codebook / quy tắc cho loại trường hay ⚠ nhất; mỗi sửa có test và chạy lại bộ bài giả lập | Không | Duyệt danh sách sửa |
+| **1b.2** ✅ | Nạp 7 bài của thư mục "1 - Social Media Marketing Ethics" và chạy Batch 6 bài (bỏ bài 144 trang định tính); báo chi phí thật mỗi bài (tổng 0,92 USD) | 0,92 USD | Đã xong |
+| **1b.3** ⛔ | ~~So Pro với Flash, đo Context Cache~~ — **bỏ** (D16): Gemini chuyển sang dự phòng, không đầu tư tối ưu thêm | — | — |
+| **1b.4** | Chỉnh prompt / codebook / quy tắc cho loại trường hay ⚠ nhất (làm sau 1b.8, trên gói prompt dùng chung cho cả hai nguồn); mỗi sửa có test và chạy lại bộ bài giả lập | Không | Duyệt danh sách sửa |
 | **1b.5** | Trang `/admin/quality` và danh sách "Cần chú ý" bản đơn giản (web local, chỉ quản trị) | Không | Xem trang |
-| **1b.6** | Chốt đơn giá mỗi bài (Pro, Flash), đề xuất trần hằng tháng (D6) | Không | Đồng ý trần |
-| **1b.7** | Dự phòng D16, **thử khả thi** (Mục 4.5, kế hoạch kiểm thử): chỉ bắt đầu khi 1b.1–1b.6 với Gemini API đã xong. Script tạm (không vào repo) tạo gói prompt cho một bài đã có bản Gemini; giao cho **Codex** và **Antigravity**; kiểm tra JSON bằng schema thật và so với bản Gemini theo tiêu chí `compare`. Không ghi database | Không | Chạy gói trên Codex và Antigravity; duyệt kết quả so sánh |
-| **1b.8** | Dự phòng D16, **làm thật** (chỉ khi 1b.7 đạt): lệnh `manual export` / `manual import --all` (Zod, kiểm tra phiên bản, publish như luồng chính), `AGENTS.md` ở gốc repo; có test tự động. Chạy thật một bài qua Codex và một bài qua Antigravity đến database và web | Không | Chạy hai bài thật; xem `quality` |
+| **1b.6** | Chốt nguồn chính (so Codex, Antigravity, Gemini theo Mục 6.9), thời gian người làm mỗi bài; trần Gemini D6 chỉ còn cho dự phòng | Không | Đồng ý lựa chọn |
+| **1b.7** ▶ | **Nguồn chính D16, thử khả thi** (Mục 4.5, kế hoạch kiểm thử Mục 6.9): script tạm (không vào repo) tạo gói việc cho các bài thư mục "1 - Social Media Marketing Ethics" đã có bản Gemini; giao cho **Codex** và **Antigravity**; kiểm tra JSON bằng schema thật và so với bản Gemini theo tiêu chí `compare`. Không ghi database | Không | Chạy gói trên Codex và Antigravity; duyệt kết quả so sánh |
+| **1b.8** | **Nguồn chính D16, làm thật** (chỉ khi 1b.7 đạt): lệnh `manual export` (gói việc), `manual check` (chỉ kiểm tra Zod, không database, để tác tử tự sửa lỗi), `manual import --all` (Zod, kiểm tra phiên bản, publish như luồng chính; **Claude Code chạy**), `AGENTS.md` cho gói việc; có test tự động. Chạy thật các bài đến database và web | Không | Chạy gói trên hai công cụ; xem `quality` |
 
 ### 📍 Giai đoạn 3a: Web dùng thật trên máy (local, nhóm *Must*)
 Chủ dự án là người dùng chính, nên **web chạy local với Supabase local đã đủ để dùng hằng ngày**. Cloud và Vercel chỉ cần khi chia sẻ công khai.
@@ -304,4 +305,4 @@ Chưa bắt đầu các bước kỹ thuật (Giai đoạn 0 trở đi, tạo re
 | D13 | Cài Docker Desktop (WSL2) để chạy Supabase local làm môi trường `dev` | Giai đoạn 0–1, Mục 2 | **Cài Docker Desktop** (máy 16 GB RAM, đã có WSL2); chỉ bật khi phát triển. Cài ở bước đầu Giai đoạn 0 | ✅ Đã chốt |
 | D14 | Chính sách tải PDF trên web công khai | Mục 7, 7.1 | Khách: chỉ tải bài OA có giấy phép mở; bài Bronze / không rõ giấy phép: chỉ link OA gốc + DOI; bài không OA: chỉ link DOI. Chủ dự án: tải mọi bài | ✅ Đã chốt |
 | D15 | Model làm trọng tài | — | Không còn trọng tài trong v3.8 (chỉ một lượt trích xuất). Nếu sau này bật lại thì dùng Gemini | ⛔ Không áp dụng (v3.8) |
-| D16 | Dự phòng khi Gemini API không dùng được | Mục 4.5, bước 1b.7–1b.8 | **Trích xuất thủ công**: xuất gói prompt + schema, LLM khác (Codex, Antigravity tự làm trong repo; ChatGPT web chép–dán) đọc PDF và trả JSON, nhập file JSON trả về; đi qua cùng các lớp đối chiếu và huy hiệu; `model_name` = `manual:<model>`, không tính vào ngân sách D6. Chỉ để dự phòng, không trích hàng loạt | ✅ Đã chốt (19/10/2026) |
+| D16 | Nguồn trích xuất chính | Mục 4.5, 6.9, bước 1b.7–1b.8 | **Chủ dự án đổi hướng 19/10/2026 (chi phí Gemini API cao): nguồn chính là Codex / Antigravity** (ChatGPT web cho bài có bảng dạng ảnh) đọc PDF theo gói việc do hệ thống xuất và trả JSON; **Claude Code nhập (`manual import`), kiểm tra, publish lên web**; đi qua cùng các lớp đối chiếu và huy hiệu; `model_name` = `manual:<công cụ>:<model>`, không tính vào ngân sách D6. **Gemini API là dự phòng** (đã dựng sẵn, trần D6). Điều kiện: thử khả thi 1b.7 đạt tiêu chí Mục 6.9, chưa đạt thì dừng hỏi chủ dự án | ✅ Đã chốt hướng (19/10/2026); chờ 1b.7 xác nhận |
