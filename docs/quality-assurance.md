@@ -48,7 +48,7 @@ PDF ─► [A] Trích xuất một lượt (Gemini Pro) ─► [B] Máy đối c
 * **Tính lại thống kê (kiểu statcheck, Nuijten et al., 2016):** p từ t / F / z / χ² và df; t từ β và SE; SE từ CI; t / F từ M, SD, n. Lệch lớn, nhất là khi kết luận ý nghĩa bị đảo, thì gắn ⚠. Nếu giá trị khớp PDF mà vẫn lệch khi tính lại, ghi **"có thể là lỗi của bài gốc"**.
 * **Metadata** lấy từ Crossref / Zotero, không để AI sinh.
 * **Xác định `printed_page`** (lưu kèm `printed_page_method`), theo thứ tự: (1) PDF `/PageLabels`; (2) dãy số trang nhất quán tìm thấy ở header/footer (bằng code, bỏ qua năm / số tập); (3) trang đầu theo Crossref cộng độ lệch; (4) Gemini đọc số trang ở header/footer (chỉ khi 3 cách trên không có kết quả); (5) cuối cùng là số thứ tự trang PDF. Annotation Zotero (`annotationPageLabel`) dùng để đối chiếu khi có.
-* **Đọc text layer:** tách bố cục hai cột (đọc hết cột trái rồi mới sang cột phải; nhận ra khe giữa cả khi hẹp dưới 12 pt, và đặt tiêu đề chạy trước hai cột); đưa chữ xoay dọc ở lề (watermark "Downloaded from…" của nhà xuất bản) ra khỏi nội dung.
+* **Đọc text layer:** tách bố cục hai cột (đọc hết cột trái rồi mới sang cột phải; nhận ra khe giữa cả khi hẹp dưới 12 pt, và đặt tiêu đề chạy trước hai cột); đưa vài đoạn chữ xoay dọc ở lề (watermark "Downloaded from…" của nhà xuất bản) ra khỏi nội dung; còn **bảng in ngang** (từ 20 mảnh chữ xoay 90° và 150 ký tự trở lên) được xoay lại toạ độ để đọc như trang thường, theo cả hai chiều xoay.
 
 ### 6.4. Lớp C: Kiểm tra chéo trong cùng bài (không dùng AI)
 * n ở phần phương pháp = n trong bảng (khi áp dụng được).

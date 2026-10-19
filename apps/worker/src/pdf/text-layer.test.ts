@@ -199,3 +199,60 @@ describe("readTextLayer", () => {
     expect(sha256(pdf)).toBe(before);
   });
 });
+
+describe("tables printed sideways (step 1.9d)", () => {
+  const header = ["Path", "beta", "t", "p", "Result"];
+  const widths = [200, 70, 70, 70, 90];
+  const rows = [
+    ["Credibility -> Trust", "0.42", "8.40", "< .001", "Supported"],
+    ["Trust -> Intention", "0.35", "6.10", "< .001", "Supported"],
+    ["Credibility -> Intention", "0.08", "1.21", ".23", "Not supported"],
+    ["Value -> Intention", "0.27", "4.02", "< .001", "Supported"],
+    ["Value -> Trust", "0.19", "3.11", ".002", "Supported"],
+    ["Price -> Intention", "0.03", "0.55", ".58", "Not supported"],
+  ];
+  const sideways = (extra: { watermark?: string; down?: boolean } = {}) =>
+    renderPdf({
+      title: "t",
+      pages: [{ header: "Journal of Tests 12 (2026)", sideways: extra.down ? "down" : true, ...(extra.watermark ? { watermark: extra.watermark } : {}), blocks: [{ kind: "table", title: "Table 3 Results of the structural model", header, widths, rows }] }],
+    });
+
+  it("reads a landscape table printed sideways row by row, in its own reading direction", async () => {
+    const { pages } = await readTextLayer(await sideways());
+    const page = pages[0]!;
+    expect(page.hasTextLayer).toBe(true);
+    const rowLines = page.rowText.split("\n");
+    for (const row of rows) expect(rowLines).toContain(row.join(" "));
+    // Rows come out in the order they are printed, top row first.
+    expect(rowLines.indexOf(rows[0]!.join(" "))).toBeLessThan(rowLines.indexOf(rows[5]!.join(" ")));
+    expect(rowLines).toContain(header.join(" "));
+    expect(page.text).toContain("Table 3 Results of the structural model");
+    expect(page.marginNotes).toEqual([]);
+  });
+
+  it("reads a table turned the other way (text running downwards) the same way", async () => {
+    const page = (await readTextLayer(await sideways({ down: true }))).pages[0]!;
+    const rowLines = page.rowText.split("\n");
+    for (const row of rows) expect(rowLines).toContain(row.join(" "));
+    expect(rowLines.indexOf(rows[0]!.join(" "))).toBeLessThan(rowLines.indexOf(rows[5]!.join(" ")));
+  });
+
+  it("keeps the upright running head out of the table and in the header lines", async () => {
+    const page = (await readTextLayer(await sideways())).pages[0]!;
+    expect(page.headerLines).toEqual(["Journal of Tests 12 (2026)"]);
+  });
+
+  it("keeps the table rows whole when a download watermark runs in the same direction", async () => {
+    // The watermark turns the same way as the table, so it is read with it (as a line of its own, not glued to a row).
+    const page = (await readTextLayer(await sideways({ watermark: "Downloaded by someone on 1 January 2026" }))).pages[0]!;
+    const rowLines = page.rowText.split("\n");
+    for (const row of rows) expect(rowLines).toContain(row.join(" "));
+  });
+
+  it("does not turn a lone watermark on an ordinary page into text", async () => {
+    const pdf = await renderPdf({ title: "t", pages: [{ watermark: "Downloaded by someone on 1 January 2026", blocks: [{ kind: "text", lines: ["An ordinary paragraph of the paper."] }] }] });
+    const page = (await readTextLayer(pdf)).pages[0]!;
+    expect(page.marginNotes).toEqual(["Downloaded by someone on 1 January 2026"]);
+    expect(page.text).toBe("An ordinary paragraph of the paper.");
+  });
+});

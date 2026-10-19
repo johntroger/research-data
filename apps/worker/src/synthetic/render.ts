@@ -30,6 +30,11 @@ export interface PageSpec {
   footer?: string;
   /** Page number printed in the outer side margin (Emerald style). */
   side?: { text: string; at: "left" | "right" };
+  /**
+   * The blocks are drawn on a landscape page that is printed sideways on this portrait page (a wide table
+   * turned a quarter circle, reading bottom to top), like journals do for big tables. Not for images.
+   */
+  sideways?: boolean | "down";
   /** Rotated download watermark along the left edge. */
   watermark?: string;
   blocks: Block[];
@@ -49,7 +54,23 @@ interface Fonts {
   mono: PDFFont;
 }
 
-function drawBlock(page: PDFPage, block: Block, y: number, fonts: Fonts): number {
+/** What the blocks draw with: a real page, or a landscape frame turned onto a portrait page. */
+type Canvas = Pick<PDFPage, "drawText" | "drawLine" | "drawRectangle">;
+
+/** Landscape frame (842 wide, 595 high) turned onto the portrait page: text then reads upwards. */
+function sidewaysCanvas(page: PDFPage, down: boolean): Canvas {
+  // Turned the other way (text reads downwards), the frame is mirrored: glyph tops point right.
+  const at = down ? (x: number, y: number) => ({ x: y, y: PAGE_HEIGHT - x }) : (x: number, y: number) => ({ x: PAGE_WIDTH - y, y: x });
+  return {
+    drawText: (text, options) => page.drawText(text, { ...options, ...at(options?.x ?? 0, options?.y ?? 0), rotate: degrees(down ? -90 : 90) }),
+    drawLine: (options) => page.drawLine({ ...options, start: at(options.start.x, options.start.y), end: at(options.end.x, options.end.y) }),
+    drawRectangle: () => {
+      throw new Error("sideways pages cannot hold image blocks");
+    },
+  };
+}
+
+function drawBlock(page: Canvas, block: Block, y: number, fonts: Fonts): number {
   switch (block.kind) {
     case "text": {
       const size = block.size ?? 10;
@@ -146,8 +167,10 @@ export async function renderPdf(spec: RenderSpec): Promise<Uint8Array> {
     if (pageSpec.watermark) {
       page.drawText(pageSpec.watermark, { x: 15, y: 120, size: 6, font: fonts.regular, rotate: degrees(90) });
     }
-    let y = PAGE_HEIGHT - 70;
-    for (const block of pageSpec.blocks) y = drawBlock(page, block, y, fonts);
+    // A sideways page has the landscape frame's height (the portrait page's width) to draw in.
+    let y = (pageSpec.sideways ? PAGE_WIDTH : PAGE_HEIGHT) - 70;
+    const canvas = pageSpec.sideways ? sidewaysCanvas(page, pageSpec.sideways === "down") : page;
+    for (const block of pageSpec.blocks) y = drawBlock(canvas, block, y, fonts);
   }
 
   if (spec.pageLabelStart !== undefined) {

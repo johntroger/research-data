@@ -2,6 +2,14 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.13 (so với 3.9.12)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 1.9d:** lớp đọc PDF nhận ra **bảng in ngang** (chữ xoay 90° theo cả hai chiều, từ 20 mảnh và 150 ký tự trở lên) và xoay toạ độ để đọc như trang thường, sau phần chữ thẳng; vài đoạn chữ xoay (watermark) vẫn ra khỏi nội dung (Mục 6.3) | Trước đây mọi chữ xoay bị coi là chú thích lề nên các trang bảng ngang mất khỏi văn bản đối chiếu: bài Authentic Brand Ethicality mất 6/34 trang |
+| 2 | Đo trên 12 bài thật (280 trang), chạy lại `publish:full --force`: bài Authentic Brand Ethicality ✓ 357→629, ⚠ 645→426, ẩn 322→269, hết "incomplete"; bài Holbrook ✓ 439→442, ⚠ 127→124; 10 bài còn lại không đổi (0 trường xấu đi) | Chỉ trang bảng ngang đổi; không gọi API |
+| 3 | Còn lại ở Authentic Brand Ethicality: ma trận tương quan trang 20 (Study 5) là **ảnh** nên không có chữ để đối chiếu (132 giá trị r ⚠/ẩn); cần OCR mới đọc được | Giới hạn của lớp chữ, ngoài phạm vi bước |
+
 ### Version 3.9.12 (so với 3.9.11)
 
 | # | Thay đổi | Lý do |

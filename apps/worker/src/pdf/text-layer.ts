@@ -10,6 +10,13 @@ const SIDE_MARGIN_RATIO = 0.12;
 /** A page with fewer extracted characters than this is considered to have no usable text. */
 const MIN_CHARS_PER_PAGE = 30;
 
+/**
+ * Rotated text is table content (a landscape table printed sideways on a portrait page) when it is this
+ * big; a few rotated runs are margin furniture such as download watermarks (step 1.9d).
+ */
+const ROTATED_MIN_ITEMS = 20;
+const ROTATED_MIN_CHARS = 150;
+
 /** Horizontal gap (in PDF points) that separates two segments on the same line, e.g. two columns. */
 const SEGMENT_GAP = 12;
 
@@ -298,16 +305,30 @@ export async function readTextLayer(bytes: Uint8Array): Promise<PdfTextLayer> {
 
     const items: PositionedText[] = [];
     const rotated: string[] = [];
+    // Text turned a quarter circle: read upwards (b > 0) or downwards (b < 0), each in its own frame.
+    type Turned = { str: string; e: number; f: number; width: number; size: number };
+    const turned: { up: Turned[]; down: Turned[] } = { up: [], down: [] };
     for (const item of content.items) {
       if (!("str" in item) || !item.str.trim()) continue;
       const [a = 1, b = 0, c = 0, d = 0, e = 0, f = 0] = item.transform;
-      // Rotated text (b or c non-zero, or a mirrored a) is margin furniture such as download watermarks.
       if (Math.abs(b) > 1e-3 || Math.abs(c) > 1e-3 || a < 0) {
-        rotated.push(item.str);
+        if (Math.abs(a) < 1e-3 && Math.abs(d) < 1e-3 && b * -c > 0) turned[b > 0 ? "up" : "down"].push({ str: item.str, e, f, width: item.width, size: Math.abs(c) || item.height || 0 });
+        else rotated.push(item.str);
         continue;
       }
       items.push({ str: item.str, x0: e, x1: e + item.width, y: f, size: Math.abs(d) || item.height || 0 });
     }
+    // The bigger group is read as a page of its own (a landscape table); a few runs stay margin furniture.
+    const dominant = turned.up.length >= turned.down.length ? "up" : "down";
+    const sideways = turned[dominant].length >= ROTATED_MIN_ITEMS && turned[dominant].reduce((n, i) => n + i.str.length, 0) >= ROTATED_MIN_CHARS;
+    for (const group of ["up", "down"] as const) if (!sideways || group !== dominant) rotated.push(...turned[group].map((i) => i.str));
+    const turnedItems: PositionedText[] = sideways
+      ? turned[dominant].map((i) =>
+          dominant === "up"
+            ? { str: i.str, x0: i.f, x1: i.f + i.width, y: width - i.e, size: i.size }
+            : { str: i.str, x0: height - i.f, x1: height - i.f + i.width, y: i.e, size: i.size },
+        )
+      : [];
 
     const gutter = findGutter(items, width);
     const segments = buildSegments(items, gutter);
@@ -318,8 +339,15 @@ export async function readTextLayer(bytes: Uint8Array): Promise<PdfTextLayer> {
     const topDown = (a: Segment, b: Segment) => b.y - a.y || a.x0 - b.x0;
 
     const { lines, columns } = orderForReading(segments, width, (s) => inHeader(s) && s.text.length <= 80);
-    const text = lines.map((l) => l.text).join("\n");
-    const rowText = visualRows(segments).join("\n");
+    let text = lines.map((l) => l.text).join("\n");
+    let rowText = visualRows(segments).join("\n");
+    if (turnedItems.length) {
+      // The sideways table is read in its own frame (width and height swapped), after the upright text.
+      const turnedSegments = buildSegments(turnedItems, findGutter(turnedItems, height));
+      const turnedText = orderForReading(turnedSegments, height, () => false).lines.map((l) => l.text).join("\n");
+      text = [text, turnedText].filter(Boolean).join("\n");
+      rowText = [rowText, visualRows(turnedSegments).join("\n")].filter(Boolean).join("\n");
+    }
 
     pages.push({
       pdfPageIndex: i,
