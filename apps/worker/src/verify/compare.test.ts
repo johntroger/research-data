@@ -61,6 +61,7 @@ describe("sameValue", () => {
   it("ignores object key order, curly quotes, case and spacing, but not real differences", () => {
     expect(sameValue({ a: 1, b: ["x"] }, { b: ["x"], a: 1 })).toBe(true);
     expect(sameValue("A consumer’s  view", "a consumer's view")).toBe(true);
+    expect(sameValue("Alvarado‐Herrera (2017)", "Alvarado-Herrera (2017)")).toBe(true); // typographic hyphen
     expect(sameValue(["a", "b"], ["b", "a"])).toBe(false);
     expect(sameValue("a view", "another view")).toBe(false);
     expect(sameValue(null, undefined)).toBe(true);

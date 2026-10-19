@@ -45,7 +45,7 @@ export function badgeCounts(analysis: PaperAnalysis): BadgeCounts {
 
 /** Same value regardless of object key order, curly vs straight quotes, case and spacing. */
 const canonical = (v: unknown): unknown => {
-  if (typeof v === "string") return v.replace(/[‘’]/g, "'").replace(/[“”]/g, '"').trim().replace(/\s+/g, " ").toLowerCase();
+  if (typeof v === "string") return v.replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[‐‑‒­]/g, "-").trim().replace(/\s+/g, " ").toLowerCase();
   if (Array.isArray(v)) return v.map(canonical);
   if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).sort(([x], [y]) => x.localeCompare(y)).map(([k, x]) => [k, canonical(x)]));
   return v ?? null;
