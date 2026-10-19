@@ -8,6 +8,7 @@
  *   pnpm worker report                cost per paper, unit price and projection
  *   pnpm worker batch submit [--limit N] [--paper X] [--compare] [--yes] | poll [--wait [minutes]] | status   (step 1.7)
  *   pnpm worker manual export --paper X [--code NAME] [--force]   work packet for an external extractor such as Codex (step 1b.8a)
+ *   pnpm worker manual check <packet> [--no-feedback]   validate the answers in a packet's out/ (no database, no keys; step 1b.8b)
  *   pnpm worker quality [--top N]     ✓ / ⚠ / ◇ / ẩn by study design, field and failed check (step 1b.1)
  *   pnpm worker compare --paper X     Batch result vs synchronous result, field by field (step 1.9c)
  * Uses a READ-ONLY Zotero key (Mục 3.3) and the local Supabase database.
@@ -16,7 +17,8 @@ import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { geminiConfig, loadEnv, packetsDir, REPO_ROOT, zoteroConfig } from "../config.js";
-import { exportPacket } from "../manual/export.js";
+import { checkPacket, formatCheck } from "../manual/check.js";
+import { checkCode, exportPacket } from "../manual/export.js";
 import { connect } from "../db/client.js";
 import { geminiBatchClient } from "../extract/batch-client.js";
 import { type BatchDeps, listBatches, pollOnce, submitPaper } from "../extract/batch.js";
@@ -422,8 +424,20 @@ async function quality(args: string[]): Promise<number> {
 /** pnpm worker manual export --paper X [--code NAME] [--force]: the work packet of one paper for an external extractor (D16). */
 async function manual(args: string[]): Promise<number> {
   const [sub, ...rest] = args;
+  if (sub === "check") {
+    // No database, no keys: an agent working inside a packet can run this.
+    const target = rest.find((a) => !a.startsWith("--"));
+    if (!target) {
+      console.error("Usage: pnpm worker manual check <packet name or folder> [--no-feedback]");
+      return 1;
+    }
+    const dir = /[\\/:]/.test(target) ? path.resolve(target) : path.join(packetsDir(), checkCode(target));
+    const result = await checkPacket(dir, { writeFeedback: !rest.includes("--no-feedback") });
+    console.log(formatCheck(result));
+    return result.ok ? 0 : 2;
+  }
   if (sub !== "export") {
-    console.error("Usage: pnpm worker manual export --paper X [--code NAME] [--force]");
+    console.error("Usage: pnpm worker manual export --paper X [--code NAME] [--force] | manual check <packet>");
     return 1;
   }
   const paper = option(rest, "--paper");

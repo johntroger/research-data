@@ -2,6 +2,15 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.24 (so với 3.9.23)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 1b.8b:** lệnh `pnpm worker manual check <gói> [--no-feedback]` (`manual/check.ts`): kiểm tra phiên bản, mã băm PDF, từng file qua Zod, đủ bốn file mỗi Study theo `paper_structure.json` và đúng tên đầy đủ; ghi `FEEDBACK.md` cho tác tử, xóa khi hợp lệ; không database, không khóa; mã thoát 0 / 2 | Tác tử tự kiểm tra và sửa trước khi Claude Code nhập |
+| 2 | Chạy thử trên kết quả Codex thật: gói Q1-codex-2 hợp lệ (6 file, 1 Study); gói Q1-codex (tên file rút gọn từ A1) bị từ chối kèm gợi ý đúng tên; gói cũ phiên bản prompt 1.4.0 bị từ chối "export lại" | Kiểm tra trên dữ liệu thật |
+| 3 | Bỏ cảnh báo "bằng chứng thiếu câu trích" đã định: schema đã bắt buộc câu trích và trang không rỗng; phần "khái niệm không có bằng chứng" do máy đối chiếu bắt (ẩn) và do quy tắc 13 của prompt | Tránh mã thừa |
+| 4 | 14 test mới (tổng 341 unit); tổng test DB 74 | Kiểm thử 1b.8b |
+
 ### Version 3.9.23 (so với 3.9.22)
 
 | # | Thay đổi | Lý do |
