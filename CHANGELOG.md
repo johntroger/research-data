@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.10 (so với 3.9.9)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **D6: trần ngân sách pilot nâng từ 10 lên 20 USD** (`GEMINI_BUDGET_LIMIT`, mặc định trong mã và `.env.example`); chủ dự án quyết định ngày 19/10/2026 | Đo thật 5 bài đồng bộ: trung bình 0,88 USD/bài, bài nhiều Study gấp 2–2,6 lần ước tính một Study; khoảng 5,5 USD trong 10 USD đầu bị lãng phí do sự cố nên không đủ cho 20–30 bài |
+| 2 | `GEMINI_SPENT_OFFSET_USD=2.3` đặt trong `.env` (số đã dùng trước khi có sổ, ước tính; cần đối chiếu với Google AI Studio > Billing) | Để trần tính đúng tổng tiền thật, không chỉ phần ghi trong sổ |
+
 ### Version 3.9.9 (so với 3.9.8)
 
 | # | Thay đổi | Lý do |

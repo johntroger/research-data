@@ -15,8 +15,8 @@ let pdf: Uint8Array;
 beforeAll(async () => (pdf = await renderPdf(paper.render)));
 
 describe("budgetConfigFromEnv", () => {
-  it("defaults to the 10 USD pilot cap (D6) and reads the settings", () => {
-    expect(budgetConfigFromEnv({})).toEqual({ limitUsd: 10, offsetUsd: 0, runLimitUsd: undefined });
+  it("defaults to the 20 USD pilot cap (D6) and reads the settings", () => {
+    expect(budgetConfigFromEnv({})).toEqual({ limitUsd: 20, offsetUsd: 0, runLimitUsd: undefined });
     expect(budgetConfigFromEnv({ GEMINI_BUDGET_LIMIT: "25", GEMINI_SPENT_OFFSET_USD: "2.5", GEMINI_RUN_LIMIT: "1" })).toEqual({
       limitUsd: 25,
       offsetUsd: 2.5,

@@ -109,7 +109,7 @@ export class PgLedger implements SpendLedger {
   }
 }
 
-/** Budget settings from the environment (D6: 10 USD for the pilot). */
+/** Budget settings from the environment (D6: 20 USD for the pilot, raised from 10 on 2026-10-19). */
 export function budgetConfigFromEnv(env: NodeJS.ProcessEnv = process.env): BudgetConfig {
   const number = (name: string): number | undefined => {
     const raw = env[name]?.trim();
@@ -118,5 +118,5 @@ export function budgetConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Budge
     if (!Number.isFinite(value) || value < 0) throw new Error(`${name} must be a non-negative number of USD, got "${raw}"`);
     return value;
   };
-  return { limitUsd: number("GEMINI_BUDGET_LIMIT") ?? 10, offsetUsd: number("GEMINI_SPENT_OFFSET_USD") ?? 0, runLimitUsd: number("GEMINI_RUN_LIMIT") };
+  return { limitUsd: number("GEMINI_BUDGET_LIMIT") ?? 20, offsetUsd: number("GEMINI_SPENT_OFFSET_USD") ?? 0, runLimitUsd: number("GEMINI_RUN_LIMIT") };
 }

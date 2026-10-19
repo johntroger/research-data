@@ -177,8 +177,8 @@ Bước 0.4–0.8 tạo thành **bộ khung chạy được** (Giai đoạn 0, m
 | **1.6** | Ánh xạ khái niệm "không chắc thì tách": khớp tên + bí danh (embedding / item để sau khi có đủ bài) | Nhãn gần giống nhưng khác nghĩa được tách riêng | — |
 | **1.7** | Rate limiter, backoff, `estimate`, trần ngân sách; luồng Batch bất đồng bộ | API giả: vượt trần thì dừng trước khi gọi | — |
 | **1.8** | Lưu phiên bản model / prompt / schema / codebook, phản hồi thô (chỉ local) và tín hiệu từng lớp; publish đủ dữ liệu, không ghi đè trường đã khóa | Trích lại không đè trường đã sửa tay (rủi ro 22) | — |
-| **1.9** | Chạy thật `pnpm worker extract` trên 5 bài đầu, đo đơn giá mỗi bài | Báo cáo chi phí so với trần 10 USD (D6) | Xem báo cáo chi phí |
-* **Bàn giao:** `pnpm worker extract` chạy trên collection mẫu, sinh dữ liệu có điểm tin cậy + báo cáo chi phí. **Đơn giá thật mỗi bài đo trên 5 bài đầu** (trong trần 10 USD của D6).
+| **1.9** | Chạy thật `pnpm worker extract` trên 5 bài đầu, đo đơn giá mỗi bài | Báo cáo chi phí so với trần ngân sách (D6) | Xem báo cáo chi phí |
+* **Bàn giao:** `pnpm worker extract` chạy trên collection mẫu, sinh dữ liệu có điểm tin cậy + báo cáo chi phí. **Đơn giá thật mỗi bài đo trên 5 bài đầu** (trong trần ngân sách D6; đo được trung bình 0,88 USD/bài đồng bộ, xem CHANGELOG v3.9.9).
 
 ### 📍 Giai đoạn 1b: Chạy thử & Chốt chi phí
 1. Chạy trên 20–30 bài thật trong kho và trên bộ bài giả lập; xem tỷ lệ ✓ / ⚠ / ẩn theo loại thiết kế.
@@ -281,7 +281,7 @@ Chưa bắt đầu các bước kỹ thuật (Giai đoạn 0 trở đi, tạo re
 | D3 | Người mã hóa thứ hai | — | Không cần | ⛔ Không áp dụng (v3.5) |
 | D4 | Thư viện Zotero dùng cho dự án | Cấu hình API, chia sẻ PDF (3) | **Thư viện cá nhân**, bài dự án trong collection `Research Data`; worker chỉ đọc/ghi trong collection này (xem 3.3) | ✅ Đã chốt |
 | D5 | Repository GitHub: tên, private / public | Giai đoạn 4 | `research-data`, **public**; chỉ chứa mã nguồn, không có dữ liệu có bản quyền (rủi ro 12, 12b) | ✅ Đã chốt |
-| D6 | Ngân sách Gemini | `GEMINI_BUDGET_LIMIT` (4.3) | **10 USD cho pilot**, dùng để đo đơn giá thật trên 5 bài đầu và chạy thử 20–30 bài; trần hằng tháng chốt sau Giai đoạn 1b | ✅ Đã chốt (pilot) |
+| D6 | Ngân sách Gemini | `GEMINI_BUDGET_LIMIT` (4.3) | **20 USD cho pilot** (nâng từ 10 USD ngày 19/10/2026), dùng để đo đơn giá thật và chạy thử 20–30 bài; trần hằng tháng chốt sau Giai đoạn 1b. Lý do nâng: đo thật trên 5 bài (đồng bộ) cho trung bình 0,88 USD/bài (0,29–2,16; bài nhiều Study đắt gấp đôi ước tính), và khoảng 5,5 USD trong 10 USD đầu bị lãng phí do sự cố (Docker sập, chạy trùng) nên 10 USD không đủ cho 20–30 bài | ✅ Đã chốt (pilot, đã nâng) |
 | D7 | Thời gian dành cho dự án mỗi tuần | Mốc thời gian của lộ trình (10) | 5–10 giờ/tuần; xem lịch dự kiến ở Mục 10.1 | ✅ Đã chốt |
 | D9 | Cách bảo đảm chất lượng | Mục 6 | **Công cụ tham khảo**: một lượt trích xuất + máy đối chiếu với PDF + huy hiệu; người dùng tự đối chiếu với bài gốc; không có bộ bài chuẩn hay bộ đối chứng | ✅ Đã chốt (sửa ở v3.8) |
 | D8 | Tên dự án / tên miền web | Giao diện, Vercel, R2 custom domain | Tên tạm "Research Data" + địa chỉ `*.vercel.app`; đặt tên chính thức và mua tên miền trước khi mở công khai | ✅ Đã chốt (tạm) |
