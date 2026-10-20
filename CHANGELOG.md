@@ -2,6 +2,14 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.44 (so với 3.9.43)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Sửa câu trích bằng chứng cho ô bảng (Mục 6.10):** `verify/row-quote.ts` (chọn dòng chứa ô), nối vào `verify-full` cho ô r ma trận, bảng mô tả, r2_dv, f2; kiểm tra mới `quote_has_value` (không tìm được dòng thì ⚠). Tách `containsNumber` khỏi `number.ts` (không đổi hành vi) | Kiểm mẫu: 30% câu trích không chứa giá trị |
+| 2 | Lệnh `pnpm worker republish [--paper X] [--yes]`: đăng lại các bản trích xuất đã lưu với kiểm tra hiện tại (không tốn API, sao lưu DB trước, bài Codex dùng khóa `-manual`). Đã chạy cho 18 bài | Đưa cải tiến lên web |
+| 3 | Kết quả đo cả kho: câu trích không chứa giá trị ở trường số ✓ giảm từ 35,9% xuống 10,2% (ô r ma trận 69% → 0%); huy hiệu ✓ 2875 → 2904, ⚠ 860 → 834. Test: 439 đơn vị, 84 DB. Giới hạn còn lại ghi ở Mục 6.10 | Kiểm thử bước |
+
 ### Version 3.9.43 (so với 3.9.42)
 
 | # | Thay đổi | Lý do |

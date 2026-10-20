@@ -10,6 +10,7 @@
  *   pnpm worker manual export --paper X [--code NAME] [--force]   work packet for an external extractor such as Codex (step 1b.8a)
  *   pnpm worker manual check <packet> [--no-feedback]   validate the answers in a packet's out/ (no database, no keys; step 1b.8b)
  *   pnpm worker manual import <packet>|--all --tool codex --model <name> [--yes] [--no-backup]   publish a packet's answers, replacing the paper's data (step 1b.8c; preview without --yes)
+ *   pnpm worker republish [--paper X] [--yes]   publish the saved extractions again with the current checks (no API call)
  *   pnpm worker quality [--top N] [--source TEXT]     ✓ / ⚠ / ◇ / ẩn by study design, field and failed check (step 1b.1)
  *   pnpm worker compare --paper X     Batch result vs synchronous result, field by field (step 1.9c)
  * Uses a READ-ONLY Zotero key (Mục 3.3) and the local Supabase database.
@@ -20,7 +21,7 @@ import path from "node:path";
 import { geminiConfig, loadEnv, packetsDir, REPO_ROOT, zoteroConfig } from "../config.js";
 import { checkPacket, formatCheck } from "../manual/check.js";
 import { checkCode, exportPacket } from "../manual/export.js";
-import { backupFile, importPacket, once, pgDumpViaDocker } from "../manual/import.js";
+import { backupFile, importPacket, manualVersions, once, pgDumpViaDocker } from "../manual/import.js";
 import { connect } from "../db/client.js";
 import { refreshHighlights } from "../db/highlights.js";
 import { geminiBatchClient } from "../extract/batch-client.js";
@@ -35,7 +36,7 @@ import { ingestInbox, type PaperOutcome } from "../pipeline/ingest.js";
 import { batchResultFile, loadExtracted, loadQueue, resultFile } from "../pipeline/queue.js";
 import { type PaperReport, runPaper, summariseCost } from "../pipeline/run.js";
 import { readTextLayer } from "../pdf/text-layer.js";
-import type { SavedExtraction } from "../pipeline/extracted.js";
+import { publishExtracted, type SavedExtraction } from "../pipeline/extracted.js";
 import { analysePaper } from "../verify/analyse.js";
 import { type BadgeCounts, compareExtractions } from "../verify/compare.js";
 import { formatQuality, loadQualityFields, summariseQuality } from "../report/quality.js";
@@ -460,6 +461,51 @@ async function highlights(args: string[]): Promise<number> {
   }
 }
 
+/**
+ * pnpm worker republish [--paper X] [--yes]: publishes the saved extractions again with the current checks, so an improved
+ * check reaches the web (no API call). Papers imported from Codex are published under their own processing key (the
+ * "-manual" prompt version), the others under the current one. Preview unless --yes; the database is backed up first.
+ */
+async function republish(args: string[]): Promise<number> {
+  const only = option(args, "--paper");
+  const yes = args.includes("--yes");
+  const db = await connect();
+  try {
+    const { rows } = await db.query<{ id: string; title: string | null; pdf_path: string; file_hash: string }>(
+      "select id, title, pdf_path, file_hash from papers where pdf_path is not null and ($1::text is null or id::text like $1 || '%' or file_hash like $1 || '%' or title ilike '%' || $1 || '%') order by title",
+      [only ?? null],
+    );
+    const todo: { paper: (typeof rows)[number]; saved: SavedExtraction; pdf: Uint8Array }[] = [];
+    for (const paper of rows) {
+      try {
+        const saved = JSON.parse(await readFile(resultFile(EXTRACTED_DIR, paper.file_hash), "utf8")) as SavedExtraction;
+        todo.push({ paper, saved, pdf: new Uint8Array(await readFile(path.resolve(REPO_ROOT, paper.pdf_path))) });
+      } catch {
+        console.log(`skip: ${(paper.title ?? paper.pdf_path).slice(0, 60)} (no saved extraction or no PDF file)`);
+      }
+    }
+    for (const t of todo) console.log(`${yes ? "republish" : "would republish"}: ${(t.paper.title ?? t.paper.pdf_path).slice(0, 60).padEnd(60)} ${t.saved.model}`);
+    if (!yes) {
+      console.log("\nNothing written. Add --yes to republish (the database is backed up first).");
+      return 0;
+    }
+    const container = process.env.SUPABASE_DB_CONTAINER?.trim() || "supabase_db_research-data";
+    const file = backupFile(EXTRACTED_DIR);
+    console.log(`Backing up the database to ${file} …`);
+    await pgDumpViaDocker(container, file);
+    for (const t of todo) {
+      const versions = String(t.saved.model).startsWith("manual:") ? manualVersions() : undefined;
+      const result = await publishExtracted(db, { pdf: t.pdf, pdfPath: t.paper.pdf_path, saved: t.saved, force: true, ...(versions ? { versions } : {}) });
+      const a = result.analysis;
+      const n = (badge: string) => a.fields.filter((f) => f.badge === badge).length;
+      console.log(`  done: ${(t.paper.title ?? t.paper.pdf_path).slice(0, 50).padEnd(50)} ✓ ${n("auto_verified")} ⚠ ${n("needs_attention")} ◇ ${n("ai_interpreted")} ẩn ${n("hidden")}`);
+    }
+    return 0;
+  } finally {
+    await db.end();
+  }
+}
+
 /** pnpm worker manual import <packet>|--all --tool T --model M [--yes] [--no-backup] (step 1b.8c). Preview unless --yes. */
 async function manualImport(args: string[]): Promise<number> {
   const tool = option(args, "--tool");
@@ -575,7 +621,8 @@ async function main(): Promise<number> {
   if (command === "quality") return quality(args);
   if (command === "manual") return manual(args);
   if (command === "highlights") return highlights(args);
-  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | manual export --paper X");
+  if (command === "republish") return republish(args);
+  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | republish [--paper X] [--yes] | manual export --paper X");
   return 1;
 }
 

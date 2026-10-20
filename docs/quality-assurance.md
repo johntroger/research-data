@@ -206,6 +206,18 @@ Bài "Power and Perception" (144 trang, định tính) nằm ngoài phạm vi MV
 
 **Phát hiện chính: lỗi nằm ở bằng chứng, không ở giá trị.** 7 trong 9 ca là ô ma trận / bảng tâm lượng (tương quan, CR, AVE, ước lượng) mà câu trích là **dòng đầu hoặc dòng cuối của bảng** (ví dụ dòng "11. Intentions…" cho mọi ô của ma trận), không phải dòng chứa ô đó; 2 ca còn lại là kích thước ô mẫu lấy từ câu khác và nhãn khái niệm chỉ có câu mô tả thang đo. Hệ quả: khung tô sáng và bảng "Vì sao ✓" trỏ **sai dòng** dù số đúng, làm hỏng đúng mục tiêu "bấm là thấy bằng chứng". Hướng cải tiến (cần chủ dự án duyệt): chọn câu trích theo dòng chứa chính ô đó (hàng của ma trận, hàng của bảng), và khi câu trích không chứa giá trị thì hạ huy hiệu từ ✓ xuống ⚠ hoặc ghi chú "bằng chứng gián tiếp".
 
+**Đã sửa (20/10/2026, bước 1–5):** `verify/row-quote.ts` chọn, trên trang dẫn (rồi ±1), **dòng hiển thị chứa chính ô** (khớp giá trị, nhãn hàng hoặc số thứ tự hàng, chấp nhận tên viết tắt, ".00", phần trăm) thay cho câu trích chung của cả bảng; `verify-full` dùng nó cho ô r của ma trận, bảng mô tả ma trận (mean, sd, alpha, cr, ave), r2_dv và f2, và thêm kiểm tra `quote_has_value` (không tìm được dòng thì ⚠, giữ câu trích của AI). Cố ý **không** áp cho n_items, n của ô điều kiện, nhãn và định nghĩa (bằng chứng nằm ở câu văn khác). Lệnh `pnpm worker republish [--paper X] [--yes]` đưa thay đổi lên 18 bài (sao lưu DB trước; bài Codex dùng đúng khóa xử lý `-manual`).
+
+| Đo trên cả kho (trường số ✓) | Trước | Sau |
+| :--- | :--- | :--- |
+| Câu trích không chứa giá trị | 459 / 1280 (35,9%) | **132 / 1300 (10,2%)** |
+| trong đó ô r ma trận | 201 / 293 (69%) | **0 / 307** |
+| trong đó bảng mô tả ma trận | 116 / 159 (73%) | **0** |
+| 123 ca còn lại | | n_items (74) và n của ô điều kiện (45), nằm ngoài phạm vi theo thiết kế |
+| Tổng huy hiệu cả kho | ✓ 2875 · ⚠ 860 · ◇ 395 · ẩn 467 | ✓ 2904 · ⚠ 834 · ◇ 397 · ẩn 462 |
+
+Kiểm lại: cả 7 ca sai dòng trong phạm vi của mẫu 30 nay trỏ đúng dòng. Một mẫu mới 12 trường ✓ trong phạm vi: 10 đúng dòng; 1 đúng giá trị nhưng lấy dòng của **bảng A** cho trường của **bảng B** (hai bảng con cùng trang in cùng nhãn và cùng số, máy lấy dòng đầu); 1 nghi ngờ (r = +0,38 nhưng dòng trích in "− 0,380" của một bảng hồi quy; kiểm tra số của máy không phân biệt dấu từ trước đến nay). **Giới hạn còn lại:** bảng con trùng nhãn trên cùng trang; dấu của số chưa được so với câu trích; hai bài chưa có bản đã lưu (Montecchi, Philipp-Müller) và một bài định tính chưa được đăng lại.
+
 ## 12. TÀI LIỆU THAM KHẢO PHƯƠNG PHÁP LUẬN (dùng cho Codebook)
 
 * Alvesson, M., & Sandberg, J. (2011). Generating research questions through problematization. *Academy of Management Review, 36*(2), 247–271.
