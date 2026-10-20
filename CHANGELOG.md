@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.29 (so với 3.9.28)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **1b.4, việc 1:** kiểm tra "đủ" coi mã họ (H1) là có kết quả khi có đường dẫn mang mã con (H1a, H1b…); H10 không phải con của H1. 5 test mới (kiểm tra đột biến: bỏ bản sửa thì 2 test thất bại). Đo trên 18 bài đã lưu: chỉ bài `csr` đổi, mục thiếu 4 → 1, các bài khác y nguyên | Bài `csr` bị báo thiếu H1, H2, H3 oan dù đã có H1a–H3c (cả Gemini lẫn Codex) |
+| 2 | Kế hoạch 1b.4 gồm 3 việc làm lần lượt: (1) mã họ ✅, (2) Table 2 của `csr` là Φ-matrix (đường chéo AVE, dưới đường chéo bình phương tương quan, trên khoảng tin cậy) nên không có r để trích, báo "thiếu ma trận" là oan; (3) số liệu chỉ có trong hình (`satisfaction`: 15/51 đường dẫn từ Figure 2, lớp chữ của hình hỏng) cần quyết định chính sách | Phát hiện khi khảo sát 1b.4 |
+
 ### Version 3.9.28 (so với 3.9.27)
 
 | # | Thay đổi | Lý do |

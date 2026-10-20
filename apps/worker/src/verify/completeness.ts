@@ -92,8 +92,13 @@ export function findMissing(layer: PdfTextLayer, data: FullData): MissingItem[] 
       out.push({ kind: "hypothesis_not_listed", item: code, studyLabel: null, note: `Bài có ${code} nhưng danh sách giả thuyết của AI không có` });
     }
   }
+  // A family code ("H1") has its result when a path carries the code of one of its parts ("H1a", "H1b"); "H10" is not a part of "H1".
+  const hasResult = (code: string) => {
+    const key = hypothesisKey(code);
+    return pathCodes.has(key) || [...pathCodes].some((p) => p.startsWith(key) && /^[a-z]+$/.test(p.slice(key.length)));
+  };
   for (const code of s.hypothesis_codes) {
-    if (!pathCodes.has(hypothesisKey(code))) {
+    if (!hasResult(code)) {
       out.push({ kind: "hypothesis_without_path", item: code, studyLabel: null, note: `Bài có ${code} nhưng chưa trích được kết quả kiểm định` });
     }
   }
