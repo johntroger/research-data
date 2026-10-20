@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.33 (so với 3.9.32)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 1b.6, đóng Giai đoạn 1b:** chủ dự án chốt **Codex là nguồn trích xuất chính** (D16 chốt hẳn), Gemini là dự phòng (D6: trần pilot 25 USD giữ nguyên, không đặt trần hằng tháng vì không dùng thường xuyên, chạy thêm chỉ khi chủ dự án đồng ý), Antigravity thử lại khi có token. Số liệu chốt: tỷ lệ vấn đề Codex 17% (6 bài) so với 35% (14 bài Gemini còn lại); cùng bài, Codex thấp hơn ở watchers (2% so với 7,7%), satisfaction (37% so với 61%), csr (0,4% so với 8%), users-world (0% so với 16,7%), bằng ở get-serious, cao hơn nhẹ ở past-present (9,1% so với 8,3%); thời gian người làm 2–10 phút mỗi bài, trung vị 6 phút | Hoàn tất Giai đoạn 1b |
+| 2 | `CLAUDE.md` cập nhật: nguồn chính đã chốt, thêm bài ngoài thư mục "1 - Social Media Marketing Ethics" chỉ khi chủ dự án đồng ý | Khớp quyết định |
+
 ### Version 3.9.32 (so với 3.9.31)
 
 | # | Thay đổi | Lý do |
