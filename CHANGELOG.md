@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.43 (so với 3.9.42)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Kiểm mẫu độ đúng ✓ (Mục 6.10):** 30 trường ✓ ngẫu nhiên có phân tầng, Claude đọc PDF độc lập chấm từng trường. 30/30 giá trị đúng và gắn đúng (cận trên lỗi ≤ 11,6%); 9/30 (30%) có câu trích bằng chứng không chứa giá trị (chủ yếu ô ma trận / bảng tâm lượng trỏ sai dòng). Mẫu và nhận xét chi tiết ngoài git | Chủ dự án muốn AI tự kiểm thay vì kiểm tay; đo độ đúng thật của ✓ lần đầu |
+
 ### Version 3.9.42 (so với 3.9.41)
 
 | # | Thay đổi | Lý do |

@@ -186,6 +186,26 @@ Bài "Power and Perception" (144 trang, định tính) nằm ngoài phạm vi MV
 
 ---
 
+### 6.10. Kiểm mẫu độ đúng của huy hiệu ✓ (20/10/2026)
+
+**Mục đích:** huy hiệu ✓ chỉ cho biết máy tìm thấy giá trị trong PDF, chưa từng được đo xem giá trị có gắn đúng biến, đúng Study, đúng ô bảng hay không. Lần kiểm này đo điều đó trên một mẫu.
+
+**Cách làm:** 30 trường ✓ chọn ngẫu nhiên có phân tầng (hạt giống 20261020): Codex trường số 10, Codex trường chữ 5, Gemini trường số 10, Gemini trường chữ 5; lấy từ 14 bài. **Người kiểm là Claude (một AI) đọc trang PDF** (lớp chữ theo dòng hiển thị; khi nghi ngờ cột thì đối chiếu tọa độ chữ), độc lập với hai AI trích xuất, **không phải người đọc bài**. Mỗi trường chấm: đúng giá trị và đúng gắn kết / sai giá trị / gắn nhầm / không chắc; ghi riêng chất lượng câu trích bằng chứng. Danh sách mẫu và nhận xét từng trường nằm ngoài git (`extracted_data/audit/`) vì chứa câu trích từ bài có bản quyền.
+
+| Kết quả | Số trường |
+| :--- | :--- |
+| Giá trị đúng và gắn đúng biến / Study / ô | **30 / 30** (Codex 15/15, Gemini 15/15) |
+| Sai giá trị hoặc gắn nhầm | 0 |
+| Giá trị đúng nhưng **câu trích bằng chứng không chứa giá trị** (sai dòng hoặc chỉ là tiêu đề) | **9 / 30 (30%)** |
+
+**Cách đọc con số (nói thẳng giới hạn):**
+* 0 lỗi trên 30 chỉ cho phép kết luận tỷ lệ sai giá trị **không quá khoảng 11,6%** (cận trên khoảng tin cậy 95%); mỗi nguồn 15 trường thì cận trên khoảng 22%. Mẫu bắt được lỗi lớn, chưa chứng minh độ chính xác cao.
+* Người kiểm là AI, không phải người; lỗi đọc chữ chung của lớp văn bản có thể không bị phát hiện (đã đối chiếu tọa độ ở ca nghi ngờ về cột).
+* Chỉ lấy trong các trường ✓; không đánh giá ⚠ / ẩn / ◇ và không đánh giá sót (giá trị có trong bài nhưng không được trích).
+* Trường số chủ yếu là ô ma trận tương quan và bảng hệ số, nơi dễ gắn nhầm nhất; không phát hiện lỗi nào.
+
+**Phát hiện chính: lỗi nằm ở bằng chứng, không ở giá trị.** 7 trong 9 ca là ô ma trận / bảng tâm lượng (tương quan, CR, AVE, ước lượng) mà câu trích là **dòng đầu hoặc dòng cuối của bảng** (ví dụ dòng "11. Intentions…" cho mọi ô của ma trận), không phải dòng chứa ô đó; 2 ca còn lại là kích thước ô mẫu lấy từ câu khác và nhãn khái niệm chỉ có câu mô tả thang đo. Hệ quả: khung tô sáng và bảng "Vì sao ✓" trỏ **sai dòng** dù số đúng, làm hỏng đúng mục tiêu "bấm là thấy bằng chứng". Hướng cải tiến (cần chủ dự án duyệt): chọn câu trích theo dòng chứa chính ô đó (hàng của ma trận, hàng của bảng), và khi câu trích không chứa giá trị thì hạ huy hiệu từ ✓ xuống ⚠ hoặc ghi chú "bằng chứng gián tiếp".
+
 ## 12. TÀI LIỆU THAM KHẢO PHƯƠNG PHÁP LUẬN (dùng cho Codebook)
 
 * Alvesson, M., & Sandberg, J. (2011). Generating research questions through problematization. *Academy of Management Review, 36*(2), 247–271.
