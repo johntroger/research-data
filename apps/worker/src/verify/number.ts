@@ -56,19 +56,23 @@ export function pValueForms(reported: string): string[] {
   return numberForms(number).map((form) => `${operator}${form}`);
 }
 
-function findOnPage(layer: PdfTextLayer, pdfPage: number, forms: string[]): string | null {
-  const page = layer.pages[pdfPage - 1];
-  if (!page) return null;
-  // Also search with symbol-font signs restored ("2 0.288" printed as "−0.288", see repairSymbolFont).
-  const texts = [page.text, repairSymbolFont(page.text)].filter((t): t is string => t !== null).map(numberSearchText);
+/** The first of `forms` that `text` contains as a whole number (also with symbol-font signs restored), or null. */
+export function containsNumber(text: string, forms: string[]): string | null {
+  const texts = [text, repairSymbolFont(text)].filter((t): t is string => t !== null).map(numberSearchText);
   for (const form of forms) {
     // The number must not be part of a longer number (412 must not match 4120 or 1.412),
     // but decimals may carry extra trailing zeros in print (0.7 matches "0.70").
     const trailingZeros = /[.,]\d/.test(form) ? "0*" : "";
     const pattern = new RegExp(`(?<![\\d.,])${escapeRegExp(form)}${trailingZeros}(?![\\d]|[.,]\\d)`);
-    if (texts.some((text) => pattern.test(text))) return form;
+    if (texts.some((t) => pattern.test(t))) return form;
   }
   return null;
+}
+
+function findOnPage(layer: PdfTextLayer, pdfPage: number, forms: string[]): string | null {
+  const page = layer.pages[pdfPage - 1];
+  // Also search with symbol-font signs restored ("2 0.288" printed as "−0.288", see repairSymbolFont).
+  return page ? containsNumber(page.text, forms) : null;
 }
 
 function search(layer: PdfTextLayer, pdfPage: number, forms: string[]): NumberCheck {
