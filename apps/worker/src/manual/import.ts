@@ -75,7 +75,7 @@ interface Loaded {
 }
 
 /** Reads the (already validated) answer files into a saved extraction, with zero cost. */
-async function loadAnswers(dir: string, meta: PacketMeta, who: Provenance, pdfPath: string): Promise<Loaded> {
+export async function loadAnswers(dir: string, meta: PacketMeta, who: Provenance, pdfPath: string): Promise<Loaded> {
   const hash = createHash("sha256");
   const calls: CallRecord[] = [];
   const read = async <S extends ExtractionSchemaName>(file: string, pass: S, studyLabel: string | null) => {
