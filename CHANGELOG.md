@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.40 (so với 3.9.39)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 3a.6 (bắt đầu):** thêm `docs/usage.md` (quy trình thêm bài mới Zotero → Codex → import → khung tô sáng; cách dùng web; tiêu chí "đã dùng đủ") và `docs/usage-log.md` (sổ góp ý và số liệu mỗi bài). Phát hiện: thư mục Zotero hiện tại chỉ có 7 bài, 6 đã nhập bản Codex, bài thứ 7 (định tính) bị loại, nên **không còn bài mới trong thư mục**; cần chủ dự án chọn nguồn bài cho 3a.6 | Chủ dự án duyệt đề xuất 3a.6 |
+
 ### Version 3.9.39 (so với 3.9.38)
 
 | # | Thay đổi | Lý do |
