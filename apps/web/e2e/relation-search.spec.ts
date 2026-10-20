@@ -45,6 +45,7 @@ test.beforeAll(async () => {
   firstTest = await path(p1, s1, "study_1:h1:zebra->quokka:direct", { h: "H1", est: -0.31, p: "< 0.001", status: "supported", sign: "negative", sig: true });
   await path(p1, s2, "study_2:h1:zebra->quokka:direct", { h: "H1", est: -0.05, p: "= 0.42", status: "not_supported", sign: "negative", sig: false });
   await path(p1, s1, "study_1:h2:zebra->quokka:indirect", { h: "H2", est: -0.1, p: "< 0.05", status: "supported", sign: "negative", sig: true, effect: "indirect", mediators: ["Mongoose Calm"] });
+  await path(p2, s3, "study_1:h3:mongoose->quokka:direct", { h: "H3", iv: "Mongoose Calm", dv: "Quokka Loyalty", est: 0.2, p: "< 0.05", status: "supported", sign: "positive", sig: true, badge: "needs_attention" });
   await path(p2, s3, "study_1:h1:zebra->quokka:direct", { h: "H1", est: -0.2, p: "< 0.01", status: "supported", sign: "negative", sig: true, badge: "needs_attention" });
   await db.query(
     `insert into extracted_fields (paper_id, natural_key, field_name, tier, value, evidence_quote, pdf_page_index, badge, check_results)
@@ -73,7 +74,7 @@ test("counts what is in the repository: only ✓ tests, and says how many were l
   await expect(page.getByTestId("summary-counts")).toHaveText("1 bài trong kho · 2 study · 2 kiểm định");
   await expect(page.getByTestId("summary-outcome")).toContainText("✓ Ủng hộ 1 · ✗ Không ủng hộ 1");
   await expect(page.getByTestId("summary-direction")).toContainText("－ Âm 1 · ∅ Không có ý nghĩa 1");
-  await expect(page.getByTestId("summary-not-counted")).toContainText("1 kiểm định chưa kiểm chứng");
+  await expect(page.getByTestId("summary-not-counted")).toContainText("1 kiểm định ⚠ hoặc ◇ chưa kiểm chứng");
   await expect(page.getByTestId("summary-not-counted")).toContainText("1 thuộc thực nghiệm online");
   // Every matching test is listed, counted or not; the two studies of paper one disagree.
   await expect(page.getByTestId(`paper-${p1}`)).toContainText("Zhao & Okafor (2023)");
@@ -82,10 +83,22 @@ test("counts what is in the repository: only ✓ tests, and says how many were l
   await expect(page.getByTestId(`test-${firstTest}`)).toContainText("p < .001");
   await expect(page.getByTestId(`paper-${p2}`)).toContainText("⚠ nên xem kỹ");
   // "Count the ⚠ tests too" includes the second paper.
-  await page.getByRole("link", { name: "Tính cả ⚠" }).click();
+  await page.getByRole("link", { name: "Tính cả ⚠ để xem số liệu sơ bộ" }).click();
   await expect(page).toHaveURL(/warn=1/);
   await expect(page.getByTestId("summary-counts")).toHaveText("2 bài trong kho · 3 study · 3 kiểm định");
   await expect(page.getByTestId("summary-not-counted")).toHaveCount(0);
+});
+
+test("when no test is ✓ yet, it says so instead of '0 bài' and a row of zeros", async ({ page }) => {
+  await page.goto("/?a=mongoose&b=quokka");
+  await expect(page.getByTestId("summary-counts")).toHaveText("Chưa có kiểm định nào đã kiểm chứng (✓)");
+  await expect(page.getByTestId("summary-outcome")).toHaveCount(0);
+  await expect(page.getByTestId("summary-direction")).toHaveCount(0);
+  await expect(page.getByTestId("summary-not-counted")).toContainText("1 kiểm định ⚠ hoặc ◇ chưa kiểm chứng, chưa được tính");
+  // The test is still listed, and counting ⚠ brings the usual summary back.
+  await expect(page.getByTestId("results")).toContainText("Mongoose Calm → Quokka Loyalty");
+  await page.getByRole("link", { name: "Tính cả ⚠ để xem số liệu sơ bộ" }).click();
+  await expect(page.getByTestId("summary-counts")).toHaveText("1 bài trong kho · 1 study · 1 kiểm định");
 });
 
 test("the direction matters; an empty answer says it may be a research gap and offers the way back", async ({ page }) => {

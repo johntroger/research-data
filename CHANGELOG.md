@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.42 (so với 3.9.41)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Sửa thanh tổng hợp của Relationship Search (việc B sau 3a):** khi có kiểm định nhưng không cái nào ✓ / ★, khung xanh ghi "Chưa có kiểm định nào đã kiểm chứng (✓)" và ẩn hai dòng toàn số 0 (kết quả giả thuyết, chiều tác động); dòng bên dưới đọc "N kiểm định ⚠ hoặc ◇ chưa kiểm chứng, chưa được tính" kèm liên kết "Tính cả ⚠ để xem số liệu sơ bộ". Các trường hợp khác giữ nguyên | Góp ý khi dùng thật: "0 bài · 0 kiểm định" dễ hiểu nhầm là kho không có dữ liệu. Cách hiển thị do chủ dự án chọn |
+| 2 | Test: thêm 1 test e2e (chỉ có kiểm định ⚠: câu mới, hai dòng số 0 biến mất, bấm "Tính cả ⚠" quay lại tổng hợp thường) và sửa 2 test cũ theo lời mới. Tổng: 427 test đơn vị, 31 e2e xanh | Kiểm thử |
+
 ### Version 3.9.41 (so với 3.9.40)
 
 | # | Thay đổi | Lý do |

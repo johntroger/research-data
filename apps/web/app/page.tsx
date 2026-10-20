@@ -171,27 +171,36 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {result && s && (
         <>
           <section className="summary" data-testid="summary">
-            <p data-testid="summary-counts">
-              <strong>
-                {s.papers} bài trong kho · {s.studies} study · {s.tests} kiểm định
-              </strong>
-            </p>
-            <p data-testid="summary-outcome">
-              Kết quả giả thuyết: {OUTCOME.map((o) => `${o.label} ${s.outcome[o.key]}`).join(" · ")}
-            </p>
-            <p data-testid="summary-direction">
-              Chiều tác động: ＋ Dương {s.direction.positive} · － Âm {s.direction.negative} · ∅ Không có ý nghĩa {s.direction.none}
-              {s.direction.unknown ? ` · ? Không rõ ${s.direction.unknown}` : ""}
-            </p>
+            {s.tests === 0 && s.notCounted > 0 ? (
+              // Tests exist but none is ✓ / ★: say so, instead of "0 bài" and a row of zeros.
+              <p data-testid="summary-counts">
+                <strong>Chưa có kiểm định nào đã kiểm chứng (✓)</strong>
+              </p>
+            ) : (
+              <>
+                <p data-testid="summary-counts">
+                  <strong>
+                    {s.papers} bài trong kho · {s.studies} study · {s.tests} kiểm định
+                  </strong>
+                </p>
+                <p data-testid="summary-outcome">
+                  Kết quả giả thuyết: {OUTCOME.map((o) => `${o.label} ${s.outcome[o.key]}`).join(" · ")}
+                </p>
+                <p data-testid="summary-direction">
+                  Chiều tác động: ＋ Dương {s.direction.positive} · － Âm {s.direction.negative} · ∅ Không có ý nghĩa {s.direction.none}
+                  {s.direction.unknown ? ` · ? Không rõ ${s.direction.unknown}` : ""}
+                </p>
+              </>
+            )}
             {s.notCounted > 0 && (
               <p data-testid="summary-not-counted">
-                {s.notCounted} kiểm định chưa kiểm chứng (⚠ hoặc ◇), không tính
+                {s.notCounted} kiểm định ⚠ hoặc ◇ chưa kiểm chứng, chưa được tính
                 {Object.keys(s.notCountedByDesign).length > 0
                   ? ` (${Object.entries(s.notCountedByDesign)
                       .map(([d, n]) => `${n} thuộc ${DESIGN[d] ?? d}`)
                       .join(", ")})`
                   : ""}
-                . <Link href={link({ ...query, includeWarn: true })}>Tính cả ⚠</Link>
+                . <Link href={link({ ...query, includeWarn: true })}>Tính cả ⚠ để xem số liệu sơ bộ</Link>
                 {s.shareNotCounted > 0.2 ? " · Kết quả có thể thiên về các nghiên cứu đơn giản." : ""}
               </p>
             )}
