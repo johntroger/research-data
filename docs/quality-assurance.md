@@ -218,6 +218,8 @@ Bài "Power and Perception" (144 trang, định tính) nằm ngoài phạm vi MV
 
 Kiểm lại: cả 7 ca sai dòng trong phạm vi của mẫu 30 nay trỏ đúng dòng. Một mẫu mới 12 trường ✓ trong phạm vi: 10 đúng dòng; 1 đúng giá trị nhưng lấy dòng của **bảng A** cho trường của **bảng B** (hai bảng con cùng trang in cùng nhãn và cùng số, máy lấy dòng đầu); 1 nghi ngờ (r = +0,38 nhưng dòng trích in "− 0,380" của một bảng hồi quy; kiểm tra số của máy không phân biệt dấu từ trước đến nay). **Giới hạn còn lại:** bảng con trùng nhãn trên cùng trang; dấu của số chưa được so với câu trích; hai bài chưa có bản đã lưu (Montecchi, Philipp-Müller) và một bài định tính chưa được đăng lại.
 
+**Kiểm tra dấu (20/10/2026):** `signChecks` (trong `field()`) thêm kiểm tra `sign_in_quote`: ⚠ khi câu trích chỉ in số với dấu ngược dấu của giá trị; không kết luận khi câu trích in cả hai dấu hoặc không in dấu cho giá trị dương; dấu gạch trong khoảng ("0,29–0,41") không tính là dấu trừ; dấu trừ in bằng phông ký hiệu ("2 0,47") được khôi phục trước khi đọc. `findRowQuote` loại dòng chỉ in số với dấu ngược (R² và f² không bao giờ âm). Đo trên 1414 trường số: dấu ngược **6 → 0**; huy hiệu cả kho không đổi (✓ 2904 · ⚠ 834 · ◇ 397 · ẩn 462; hai ô r của bài ABE chuyển ⚠, hai trường khác chuyển ✓). **Còn lại:** 30 trường in cả hai dấu (không kết luận được); 5 trường r2_dv của bài Patterson (1% số trường ✓ trong phạm vi) lấy một **câu văn** nhắc tương quan ".27" làm dòng bằng chứng vì tên biến trùng với câu; hướng sửa đề xuất: chỉ nhận dòng giống dòng bảng (ít chữ).
+
 ## 12. TÀI LIỆU THAM KHẢO PHƯƠNG PHÁP LUẬN (dùng cho Codebook)
 
 * Alvesson, M., & Sandberg, J. (2011). Generating research questions through problematization. *Academy of Management Review, 36*(2), 247–271.

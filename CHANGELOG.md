@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.45 (so với 3.9.44)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Kiểm tra dấu của số so với câu trích (Mục 6.10):** `signCounts` (number.ts), `signChecks` và kiểm tra `sign_in_quote` (checks.ts, ⚠ khi dấu ngược rõ ràng); `findRowQuote` loại dòng chỉ in số với dấu ngược. Đã đăng lại 18 bài (sao lưu DB trước) | Đo kho: 6/1414 trường số có dấu ngược mà vẫn ✓ (4 r2_dv, 2 ô r) |
+| 2 | Kết quả: dấu ngược 6 → 0; huy hiệu cả kho không đổi (✓ 2904, ⚠ 834). Test: 446 đơn vị, 84 DB. Còn một điểm yếu đã biết: 5 trường r2_dv của bài Patterson trích nhầm một câu văn (chưa sửa, chờ chủ dự án duyệt) | Kiểm thử bước |
+
 ### Version 3.9.44 (so với 3.9.43)
 
 | # | Thay đổi | Lý do |
