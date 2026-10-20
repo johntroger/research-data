@@ -242,3 +242,84 @@ h1 {
   padding: 6px 0;
   border-bottom: 1px solid var(--border);
 }
+
+/* Relationship Search (step 3a.1) */
+.site-nav {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+}
+
+.relation-form {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.relation-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.relation-inputs label {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.relation-inputs input {
+  min-width: 240px;
+  font-size: 16px;
+  padding: 6px 8px;
+}
+
+.relation-form fieldset {
+  border: none;
+  padding: 4px 0;
+  margin: 0;
+  font-size: 14px;
+}
+
+.relation-form fieldset label {
+  margin-right: 12px;
+}
+
+.summary {
+  background: var(--selected);
+  border-radius: 8px;
+  padding: 8px 16px;
+  margin-bottom: 16px;
+}
+
+.summary p {
+  margin: 6px 0;
+}
+
+.relation-paper h3 {
+  margin: 16px 0 4px;
+  font-size: 16px;
+}
+
+.relation-paper ul {
+  list-style: none;
+  padding-left: 12px;
+}
+
+.relation-row {
+  padding: 4px 0;
+}
+
+.relation-row .stats {
+  font-variant-numeric: tabular-nums;
+  font-style: italic;
+}
+
+.sample-list li {
+  margin: 6px 0;
+}

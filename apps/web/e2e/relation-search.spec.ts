@@ -1,0 +1,138 @@
+/**
+ * End-to-end test for Relationship Search, the home page (step 3a.1).
+ * Seeds two papers with made-up variable names (Zebra Anxiety, Quokka Loyalty, Mongoose Calm) so that real data cannot
+ * interfere, then checks the search, the summary, the role and direction, the links and the shareable URL.
+ * Needs Supabase local (pnpm db:start). Run: pnpm --filter @research-data/web test:e2e
+ */
+import { expect, test } from "@playwright/test";
+import pg from "pg";
+
+const DB_URL = process.env.SUPABASE_DB_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
+const HASHES = ["e2e-rel-1", "e2e-rel-2"];
+const db = new pg.Client({ connectionString: DB_URL });
+let p1 = "";
+let p2 = "";
+let firstTest = "";
+
+test.beforeAll(async () => {
+  await db.connect();
+  await db.query("delete from papers where file_hash = any($1)", [HASHES]);
+  const paper = async (hash: string, title: string, year: number) =>
+    (
+      await db.query<{ id: string }>(
+        "insert into papers (title, file_hash, year, journal, authors, page_count) values ($1, $2, $3, 'E2E Journal', $4, 4) returning id",
+        [title, hash, year, JSON.stringify([{ family: "Zhao" }, { family: "Okafor" }])],
+      )
+    ).rows[0]!.id;
+  p1 = await paper(HASHES[0]!, "E2E relation paper one", 2023);
+  p2 = await paper(HASHES[1]!, "E2E relation paper two", 2021);
+  const study = async (paperId: string, key: string, label: string, design: string) =>
+    (await db.query<{ id: string }>("insert into studies (paper_id, natural_key, study_label, research_design) values ($1, $2, $3, $4) returning id", [paperId, key, label, design])).rows[0]!.id;
+  const s1 = await study(p1, "study_1", "Study 1", "survey");
+  const s2 = await study(p1, "study_2", "Study 2", "survey");
+  const s3 = await study(p2, "study_1", "Study 1", "online_experiment");
+
+  const path = async (paperId: string, studyId: string, key: string, o: Record<string, unknown>) =>
+    (
+      await db.query<{ id: string }>(
+        `insert into path_results (paper_id, study_id, natural_key, hypothesis_code, iv_label_original, dv_label_original, effect_type, estimate_type,
+                                   estimate, p_reported_as, status, observed_sign, significant, mediator_labels, badge)
+         values ($1, $2, $3, $4, $5, $6, $7, 'std_beta', $8, $9, $10, $11, $12, $13, $14) returning id`,
+        [paperId, studyId, key, o.h, o.iv ?? "Zebra Anxiety", o.dv ?? "Quokka Loyalty", o.effect ?? "direct", o.est, o.p, o.status, o.sign, o.sig, o.mediators ?? [], o.badge ?? "auto_verified"],
+      )
+    ).rows[0]!.id;
+  firstTest = await path(p1, s1, "study_1:h1:zebra->quokka:direct", { h: "H1", est: -0.31, p: "< 0.001", status: "supported", sign: "negative", sig: true });
+  await path(p1, s2, "study_2:h1:zebra->quokka:direct", { h: "H1", est: -0.05, p: "= 0.42", status: "not_supported", sign: "negative", sig: false });
+  await path(p1, s1, "study_1:h2:zebra->quokka:indirect", { h: "H2", est: -0.1, p: "< 0.05", status: "supported", sign: "negative", sig: true, effect: "indirect", mediators: ["Mongoose Calm"] });
+  await path(p2, s3, "study_1:h1:zebra->quokka:direct", { h: "H1", est: -0.2, p: "< 0.01", status: "supported", sign: "negative", sig: true, badge: "needs_attention" });
+  await db.query(
+    `insert into extracted_fields (paper_id, natural_key, field_name, tier, value, evidence_quote, pdf_page_index, badge, check_results)
+     values ($1, 'study_1:h1:zebra->quokka:direct:estimate', 'estimate', 'T1', '-0.31', 'quote', 0, 'auto_verified', '{"checks":[]}'),
+            ($1, 'paper_type', 'paper_type', 'T2', '"survey"', 'other quote', 1, 'auto_verified', '{"checks":[]}')`,
+    [p1],
+  );
+});
+
+test.afterAll(async () => {
+  await db.query("delete from papers where file_hash = any($1)", [HASHES]);
+  await db.end();
+});
+
+test("without a question the home page offers sample questions that lead to results", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /Mối quan hệ giữa hai biến/ })).toBeVisible();
+  await expect(page.getByTestId("samples")).toBeVisible();
+  await page.getByTestId("samples").getByRole("link").first().click();
+  await expect(page).toHaveURL(/a=ethicality&b=trust/);
+  await expect(page.getByTestId("summary-counts")).toBeVisible();
+});
+
+test("counts what is in the repository: only ✓ tests, and says how many were left out and why", async ({ page }) => {
+  await page.goto("/?a=zebra&b=quokka");
+  await expect(page.getByTestId("summary-counts")).toHaveText("1 bài trong kho · 2 study · 2 kiểm định");
+  await expect(page.getByTestId("summary-outcome")).toContainText("✓ Ủng hộ 1 · ✗ Không ủng hộ 1");
+  await expect(page.getByTestId("summary-direction")).toContainText("－ Âm 1 · ∅ Không có ý nghĩa 1");
+  await expect(page.getByTestId("summary-not-counted")).toContainText("1 kiểm định chưa kiểm chứng");
+  await expect(page.getByTestId("summary-not-counted")).toContainText("1 thuộc thực nghiệm online");
+  // Every matching test is listed, counted or not; the two studies of paper one disagree.
+  await expect(page.getByTestId(`paper-${p1}`)).toContainText("Zhao & Okafor (2023)");
+  await expect(page.getByTestId(`paper-${p1}`)).toContainText("Kết quả khác nhau giữa các study");
+  await expect(page.getByTestId(`test-${firstTest}`)).toContainText("β = −.31");
+  await expect(page.getByTestId(`test-${firstTest}`)).toContainText("p < .001");
+  await expect(page.getByTestId(`paper-${p2}`)).toContainText("⚠ nên xem kỹ");
+  // "Count the ⚠ tests too" includes the second paper.
+  await page.getByRole("link", { name: "Tính cả ⚠" }).click();
+  await expect(page).toHaveURL(/warn=1/);
+  await expect(page.getByTestId("summary-counts")).toHaveText("2 bài trong kho · 3 study · 3 kiểm định");
+  await expect(page.getByTestId("summary-not-counted")).toHaveCount(0);
+});
+
+test("the direction matters; an empty answer says it may be a research gap and offers the way back", async ({ page }) => {
+  await page.goto("/?a=quokka&b=zebra");
+  await expect(page.getByTestId("empty")).toContainText("có thể là khoảng trống nghiên cứu");
+  await page.getByRole("link", { name: "Thử cả hai chiều" }).click();
+  await expect(page).toHaveURL(/dir=both/);
+  await expect(page.getByTestId("summary-counts")).toHaveText("1 bài trong kho · 2 study · 2 kiểm định");
+});
+
+test("the role picks direct, mediated or moderated tests and names the mediator", async ({ page }) => {
+  await page.goto("/?a=zebra&b=quokka&role=mediated");
+  await expect(page.getByTestId("summary-counts")).toHaveText("1 bài trong kho · 1 study · 1 kiểm định");
+  await expect(page.getByTestId("results")).toContainText("qua trung gian: Mongoose Calm");
+  await page.goto("/?a=zebra&b=quokka&role=moderated");
+  await expect(page.getByTestId("empty")).toBeVisible();
+});
+
+test("filters by the result of the hypothesis and by the direction of the effect", async ({ page }) => {
+  await page.goto("/?a=zebra&b=quokka&status=not_supported");
+  await expect(page.getByTestId("summary-counts")).toHaveText("1 bài trong kho · 1 study · 1 kiểm định");
+  await page.goto("/?a=zebra&b=quokka&sign=negative");
+  await expect(page.getByTestId("summary-counts")).toHaveText("1 bài trong kho · 1 study · 1 kiểm định");
+});
+
+test("the form puts the question in the URL, so it can be shared", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('input[name="a"]').fill("Zebra");
+  await page.locator('input[name="b"]').fill("Quokka");
+  await page.getByRole("radio", { name: "Tất cả" }).check();
+  await page.getByRole("button", { name: "Tìm kiếm" }).click();
+  await expect(page).toHaveURL(/a=Zebra/);
+  await expect(page).toHaveURL(/b=Quokka/);
+  await expect(page).toHaveURL(/role=all/);
+  await expect(page.getByTestId("summary-counts")).toContainText("kiểm định");
+});
+
+test("a test links to its paper with the estimate of that test selected", async ({ page }) => {
+  await page.goto("/?a=zebra&b=quokka");
+  await page.getByTestId(`test-${firstTest}`).getByRole("link").click();
+  await expect(page).toHaveURL(new RegExp(`/papers/${p1}\\?focus=`));
+  await expect(page.getByTestId("field-study_1:h1:zebra->quokka:direct:estimate")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("pdf-page")).toContainText("trang 1 của file PDF");
+});
+
+test("the library lists the papers, reachable from the header", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Thư viện" }).click();
+  await expect(page).toHaveURL(/\/library/);
+  await expect(page.getByRole("link", { name: "E2E relation paper one" })).toBeVisible();
+});

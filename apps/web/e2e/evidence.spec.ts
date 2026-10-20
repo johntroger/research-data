@@ -65,8 +65,8 @@ test.afterAll(async () => {
   await rm(PDF_FILE, { force: true });
 });
 
-test("lists the paper on the home page and opens its workspace", async ({ page }) => {
-  await page.goto("/");
+test("lists the paper in the library and opens its workspace", async ({ page }) => {
+  await page.goto("/library");
   await page.getByRole("link", { name: "E2E synthetic paper" }).click();
   await expect(page.getByRole("heading", { name: "E2E synthetic paper" })).toBeVisible();
   await expect(page.locator(".site-footer")).toContainText("chỉ để tham khảo");

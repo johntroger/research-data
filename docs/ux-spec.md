@@ -67,6 +67,8 @@ Phong cách **Tối giản học thuật (Clean Academic Deep-Work Workspace)**;
 ### 8.2b. Tìm theo mối quan hệ giữa hai biến (Relationship Search) (MỚI)
 Trả lời trực tiếp câu hỏi cốt lõi số 1: *"Mối quan hệ giữa biến A và biến B đã được nghiên cứu thế nào?"*
 
+> **Tình trạng (bước 3a.1, 20/10/2026):** đã làm bản đầu ở trang chủ `/` (thư viện chuyển sang `/library`): ô Biến A / Biến B với gợi ý tự động, chiều, vai trò (trực tiếp / qua trung gian / có điều tiết / tất cả), tên gọi tương đương, lọc theo kết quả giả thuyết và chiều tác động, tính cả ⚠, thanh tổng hợp "trong kho", dòng "không được tính" kèm thiết kế và nhắc thiên lệch khi quá 20%, danh sách nhóm theo bài (nhãn "Kết quả khác nhau giữa các study"), bấm vào kiểm định để mở bài đúng trường, URL chia sẻ được, trạng thái trống, số liệu viết theo APA 7. **Tìm theo tên biến tác giả dùng** (mọi từ gõ phải có trong tên), thêm khái niệm chuẩn và tên khác khi bật tên gọi tương đương, vì mới 4/410 đường dẫn ánh xạ về khái niệm chuẩn. **Chưa làm:** "chỉ ánh xạ độ tin cậy cao", "bao gồm các thành phần", các facet của Thư viện, loại hiệu ứng và thước đo, sắp xếp, xuất bảng (3a.4), copy câu tổng hợp, ghi lại truy vấn tự do không có kết quả, bài bị rút / lỗi thống kê / tạp chí bị gắn cờ.
+
 **Đây là trang chủ của web.** Ô "Biến A ↔ Biến B" nằm ở trung tâm trang đầu tiên, kèm 3 truy vấn mẫu của miền khởi đầu (VD: *Influencer Credibility → Purchase Intention*, *Brand Authenticity → Brand Loyalty*, *Sponsorship Disclosure → Consumer Skepticism*). Thư viện lọc đa chiều (8.2) là tab thứ hai.
 
 **a. Ô nhập truy vấn**

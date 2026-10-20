@@ -3,6 +3,7 @@
  * so the web sees exactly what visitors are allowed to see (RLS: no hidden fields, no runs).
  */
 import type { Badge } from "@research-data/schema";
+import type { Concept, PathRow } from "./relations";
 
 export interface Paper {
   id: string;
@@ -72,4 +73,41 @@ export function listFields(paperId: string): Promise<ExtractedField[]> {
 /** Short display name for a paper until real metadata (Crossref) arrives in Giai đoạn 1. */
 export function paperLabel(paper: Paper): string {
   return paper.title ?? paper.pdf_path?.split("/").pop()?.replace(/\.pdf$/i, "") ?? paper.id;
+}
+
+// --- Relationship Search (step 3a.1) ---------------------------------------------------------------
+
+/** All rows of a query, page by page: the REST API returns at most 1000 rows per request. */
+async function restAll<T>(pathAndQuery: string): Promise<T[]> {
+  const { url, key } = config();
+  const all: T[] = [];
+  const size = 1000;
+  for (let from = 0; ; from += size) {
+    const res = await fetch(`${url}/rest/v1/${pathAndQuery}`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "Range-Unit": "items", Range: `${from}-${from + size - 1}` },
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`Supabase ${res.status}: ${await res.text()}`);
+    const rows = (await res.json()) as T[];
+    all.push(...rows);
+    if (rows.length < size) return all;
+  }
+}
+
+const PATH_COLUMNS =
+  "id,paper_id,study_id,natural_key,hypothesis_code,iv_label_original,dv_label_original,iv_construct_id,dv_construct_id," +
+  "mediator_labels,moderator_labels,effect_type,estimate_type,estimate,p_value,p_reported_as,status,observed_sign,significant,badge," +
+  "studies(study_label,research_design),papers(title,authors,year,journal,citekey,apa_citation),evidence(printed_page,pdf_page_index)";
+
+/** Every test (path) visitors may see, with its study, paper and evidence page. */
+export function listPathRows(): Promise<PathRow[]> {
+  return restAll<PathRow>(`path_results?select=${PATH_COLUMNS}&order=paper_id,natural_key`);
+}
+
+/** The canonical concepts with their other names. */
+export async function listConcepts(): Promise<Concept[]> {
+  const rows = await restAll<{ id: string; canonical_name: string; construct_aliases: { alias: string }[] }>(
+    "constructs?select=id,canonical_name,construct_aliases(alias)&order=id",
+  );
+  return rows.map((r) => ({ id: r.id, canonical_name: r.canonical_name, aliases: r.construct_aliases.map((a) => a.alias) }));
 }

@@ -25,8 +25,17 @@ function formatValue(value: unknown): string {
   return JSON.stringify(value);
 }
 
-export function EvidenceWorkspace({ paperId, fields }: { paperId: string; fields: ExtractedField[] }) {
-  const firstWithPage = fields.find((f) => f.pdf_page_index !== null);
+/** The field a link from the search results points at: the estimate of the test with that natural key, else any of its fields. */
+export function focusedField(fields: ExtractedField[], focusKey: string | undefined): ExtractedField | undefined {
+  if (!focusKey) return undefined;
+  return (
+    fields.find((f) => f.natural_key === `${focusKey}:estimate`) ??
+    fields.find((f) => f.natural_key === focusKey || f.natural_key.startsWith(`${focusKey}:`))
+  );
+}
+
+export function EvidenceWorkspace({ paperId, fields, focusKey }: { paperId: string; fields: ExtractedField[]; focusKey?: string }) {
+  const firstWithPage = focusedField(fields, focusKey) ?? fields.find((f) => f.pdf_page_index !== null);
   const [selectedId, setSelectedId] = useState<string | null>(firstWithPage?.id ?? null);
   const selected = fields.find((f) => f.id === selectedId) ?? null;
   const page = selected?.pdf_page_index != null ? selected.pdf_page_index + 1 : 1;

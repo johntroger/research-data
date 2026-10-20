@@ -2,6 +2,15 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.35 (so với 3.9.34)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 3a.1:** Relationship Search làm trang chủ (`apps/web/app/page.tsx`), danh sách bài chuyển sang `/library`; logic thuần ở `lib/relations.ts` (đọc truy vấn từ URL, ghép tên biến, vai trò, chiều, bộ lọc, tổng hợp, nhóm theo bài, định dạng APA 7); đọc qua quyền của khách (`path_results`, `papers`, `studies`, `evidence`, `constructs` qua REST với khóa công khai, không thấy trường ẩn); bấm một kiểm định mở trang bài với trường ước lượng của kiểm định đó được chọn (`?focus=`); đầu trang có liên kết "Tìm theo quan hệ" và "Thư viện" | Câu hỏi cốt lõi số 1 (Mục 8.2b) |
+| 2 | Tìm theo tên biến tác giả dùng, thêm khái niệm chuẩn và tên khác khi bật "tên gọi tương đương"; trên kho thật `ethicality → trust` (tất cả vai trò) cho 1 bài, 1 study, 1 kiểm định đã kiểm chứng và 7 kiểm định ⚠ không tính | Chỉ 4/410 đường dẫn ánh xạ về khái niệm chuẩn |
+| 3 | Số liệu viết theo APA 7: bỏ số 0 đứng đầu, dấu trừ thật; p in như tác giả báo ("< 0.01" → "p < .01"); một lỗi test bắt được: `apaNumber(0)` trả chuỗi rỗng | Mục 8.1 |
+| 4 | Test: 19 test đơn vị mới cho `relations.ts` (vitest nay quét cả `apps/web/lib`), 8 test e2e mới (tổng 17 xanh); `next build` thành công; tổng 397 unit, 84 DB | Kiểm thử 3a.1 |
+
 ### Version 3.9.34 (so với 3.9.33)
 
 | # | Thay đổi | Lý do |

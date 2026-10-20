@@ -219,7 +219,7 @@ Chủ dự án là người dùng chính, nên **web chạy local với Supabase
 
 | Bước | Nội dung | Cần chủ dự án |
 | :--- | :--- | :--- |
-| **3a.1** | **Relationship Search làm trang chủ** (Mục 8.2b): Biến A ↔ Biến B, chiều, vai trò trực tiếp / trung gian / điều tiết; thanh tổng hợp "trong kho" (số bài, Study, kiểm định; kết quả giả thuyết; chiều tác động; số kiểm định ⚠ không được tính); danh sách nhóm theo bài; bộ lọc; URL chia sẻ được; trạng thái trống; danh sách bài chuyển sang `/library`. **Tìm theo tên biến tác giả dùng** (khái niệm chuẩn dùng thêm khi đã ánh xạ). Đọc qua quyền của khách (không thấy trường ẩn) | Dùng thử |
+| **3a.1** ✅ | **Relationship Search làm trang chủ** (Mục 8.2b): Biến A ↔ Biến B, chiều, vai trò trực tiếp / trung gian / điều tiết; thanh tổng hợp "trong kho" (số bài, Study, kiểm định; kết quả giả thuyết; chiều tác động; số kiểm định ⚠ không được tính); danh sách nhóm theo bài; bộ lọc; URL chia sẻ được; trạng thái trống; danh sách bài chuyển sang `/library`. **Tìm theo tên biến tác giả dùng** (khái niệm chuẩn dùng thêm khi đã ánh xạ). Đọc qua quyền của khách (không thấy trường ẩn) | Dùng thử |
 | **3a.2** | Split-Screen: tab (Tổng quan, Lý thuyết, Study & Mẫu, Đo lường, Kết quả, Tương quan, Đóng góp), bảng "Vì sao ✓", huy hiệu theo phần, thanh chia kéo được | Dùng thử |
 | **3a.3** | Tô sáng câu / ô bảng trong PDF khi bấm một giá trị (pdf.js) | Dùng thử |
 | **3a.4** | Xuất Excel cho đúng tập kết quả đã lọc (cột huy hiệu, số trang in, tuyên bố trách nhiệm); Word APA 7 để 3b | Mở file thử |
