@@ -2,6 +2,14 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.28 (so với 3.9.27)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 1b.8f (chạy thật):** 6 bài của thư mục "1 - Social Media Marketing Ethics" qua Codex (GPT 6.1 Sol medium, gói prompt full-1.5.0), mỗi bài 2–6 phút, **0 vòng sửa, qua `manual check` ngay lần đầu**, rồi `manual import --yes` thay bản Gemini (mỗi lần sao lưu `pg_dump` trước). Kết quả (✓ / ⚠ / ◇ / ẩn): watchers 159 / 2 / 25 / 1; satisfaction 213 / 89 / 18 / 38 (Gemini 130 / 159 / 22 / 47); csr 272 / 0 / 23 / 1 (Gemini 218 / 18 / 15 / 1, đúng 1 Study, quy tắc Study mới có tác dụng); users-world 7 / 0 / 17 / 0; get-serious 2 / 0 / 12 / 0; past-present 10 / 0 / 32 / 1 (hướng nghiên cứu 8 mục, trần 8 có tác dụng; lần chạy trước 37 mục) | Hoàn thành 1b.8 |
+| 2 | Bảng `quality` theo nguồn: nhóm Codex (6 bài) tỷ lệ vấn đề 17%, nhóm Gemini còn lại (14 bài) 35%; web local liệt kê 21 bài và trang chi tiết hiển thị dữ liệu Codex kèm huy hiệu ◇ / ✓ và trang PDF | Đánh giá nguồn chính |
+| 3 | Ghi nhận: `manual import --all` chạy lại an toàn (6 bài "đã nhập, bỏ qua"; các gói cũ sai phiên bản bị từ chối). Còn lại: kiểm tra "đủ" báo thiếu H1, H2, H3 khi bài dùng H1a/b/c; bảng tương quan chưa trích (csr); số liệu trong hình (satisfaction) ⚠ / ẩn nhiều; Antigravity chưa thử với model mạnh | Việc cho 1b.4 |
+
 ### Version 3.9.27 (so với 3.9.26)
 
 | # | Thay đổi | Lý do |
