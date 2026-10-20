@@ -75,7 +75,15 @@ test("lists the paper in the library and opens its workspace", async ({ page }) 
 test("clicking a value opens the PDF on that value's evidence page", async ({ page }) => {
   await page.goto(`/papers/${paperId}`);
 
-  // The first listed field (the hypothesis, evidence on PDF page 3) is selected by default.
+  // The workspace opens on the first part that has fields (Study & Sample); its first field is selected.
+  await expect(page.getByTestId("tab-study")).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByTestId("field-study_1:sample_size")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("pdf-page")).toContainText("trang 1 của file PDF (trang in 501)");
+  await expect(page.getByTestId("pdf-frame")).toHaveAttribute("src", `/api/papers/${paperId}/pdf#page=1`);
+  await expect(page.getByTestId("why-study_1:sample_size")).toContainText("Câu trích khớp nguyên văn");
+
+  // The hypothesis is in the Results tab: opening it jumps to its evidence on PDF page 3.
+  await page.getByTestId("tab-results").click();
   await expect(page.getByTestId("field-study_1:h2:risk->intention")).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("pdf-page")).toContainText("trang 3 của file PDF (trang in 503)");
   await expect(page.getByTestId("pdf-frame")).toHaveAttribute("src", `/api/papers/${paperId}/pdf#page=3`);
@@ -83,20 +91,16 @@ test("clicking a value opens the PDF on that value's evidence page", async ({ pa
     "Perceived risk → Purchase intention (β = -0.31, p < .001)",
   );
 
-  // Clicking the sample size jumps to its evidence on PDF page 1 and shows why it is ✓.
+  // And back to the sample size, page 1.
+  await page.getByTestId("tab-study").click();
   await page.getByTestId("field-study_1:sample_size").click();
-  await expect(page.getByTestId("pdf-page")).toContainText("trang 1 của file PDF (trang in 501)");
   await expect(page.getByTestId("pdf-frame")).toHaveAttribute("src", `/api/papers/${paperId}/pdf#page=1`);
-  await expect(page.getByTestId("field-study_1:sample_size")).toContainText("Câu trích khớp nguyên văn");
-
-  // And back to page 3.
-  await page.getByTestId("field-study_1:h2:risk->intention").click();
-  await expect(page.getByTestId("pdf-frame")).toHaveAttribute("src", `/api/papers/${paperId}/pdf#page=3`);
 });
 
 test("hidden fields are not shown to visitors", async ({ page }) => {
   await page.goto(`/papers/${paperId}`);
   await expect(page.getByTestId("field-study_1:sample_size")).toBeVisible();
+  await page.getByTestId("tab-overview").click();
   await expect(page.getByTestId("field-paper_type")).toHaveCount(0);
 });
 

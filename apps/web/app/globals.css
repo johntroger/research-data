@@ -86,14 +86,108 @@ h1 {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(320px, 45fr) 55fr;
-  gap: 16px;
+  /* --left is the share of the fields pane in %, set by the draggable divider (step 3a.2) */
+  grid-template-columns: minmax(280px, var(--left, 45%)) 10px minmax(0, 1fr);
+  gap: 0;
   height: calc(100vh - 150px);
 }
 
+.fields-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding-right: 8px;
+}
+
 .fields {
+  flex: 1;
   overflow-y: auto;
   padding-right: 4px;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  font: inherit;
+  font-size: 13px;
+  color: var(--muted);
+  background: none;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.tab[aria-selected="true"] {
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--border);
+  font-weight: 600;
+}
+
+.tab-count {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.section-badge {
+  font-size: 13px;
+  margin: 8px 0;
+}
+
+.field-key {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.splitter {
+  cursor: col-resize;
+  background: var(--border);
+  border-radius: 3px;
+  margin: 0 3px;
+  touch-action: none;
+}
+
+.splitter:hover,
+.splitter:focus-visible,
+.dragging .splitter {
+  background: var(--accent);
+}
+
+/* While dragging, the PDF frame would swallow the pointer events. */
+.dragging .pdf-frame {
+  pointer-events: none;
+}
+
+.why {
+  margin: -4px 0 8px;
+  padding: 8px 12px;
+  border: 1px dashed var(--accent);
+  border-radius: 6px;
+  background: var(--surface);
+  font-size: 13px;
+}
+
+.why h4 {
+  margin: 0 0 4px;
+  font-size: 13px;
+}
+
+.why .checks {
+  margin: 4px 0 8px;
+  color: var(--text);
+}
+
+.check-fail {
+  color: var(--warn);
+  font-weight: 600;
 }
 
 .field {
@@ -127,6 +221,7 @@ h1 {
 }
 
 .field-value {
+  overflow-wrap: anywhere;
   font-size: 15px;
   font-weight: 600;
   margin: 4px 0;
@@ -192,6 +287,10 @@ h1 {
   .workspace {
     grid-template-columns: 1fr;
     height: auto;
+  }
+
+  .splitter {
+    display: none;
   }
 
   .pdf-frame {

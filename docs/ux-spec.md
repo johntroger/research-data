@@ -136,6 +136,7 @@ Chiều tác động:      ＋ Dương 4    － Âm 27    ∅ Không có ý ngh�
 * Chỉ những cảnh báo **làm thay đổi kết luận** mới hiện trực tiếp trên dòng kết quả. Bài bị rút (retracted), lỗi thống kê làm đảo kết luận, hoặc tạp chí bị gắn cờ chất lượng: hiển thị nhãn cảnh báo trên dòng kết quả và **mặc định loại khỏi thanh tổng hợp** (có công tắc để hiển thị lại).
 
 ### 8.3. Split-Screen Evidence Workspace
+> **Tình trạng (bước 3a.2, 20/10/2026):** đã làm thanh chia kéo được (chuột hoặc phím mũi tên trái / phải, Home / End; 25–75%, mặc định 45%, ghi nhớ trong trình duyệt), bảy tab (Tổng quan, Lý thuyết, Study & Mẫu, Đo lường, Kết quả, Tương quan, Đóng góp & Khoảng trống) kèm số trường, **huy hiệu theo phần** ("Kết quả: 18/20 đã kiểm chứng", hoặc "◇ n mục AI diễn giải" cho phần toàn diễn giải), bảng **"Vì sao ✓ / ⚠ / ◇"** (kiểm tra chưa qua đứng đầu; trường diễn giải nói rõ máy không kiểm được) kèm nút "Mở trong PDF", dòng ngữ cảnh khóa tự nhiên dưới tên trường, và liên kết từ Relationship Search mở đúng tab và đúng kiểm định. PDF vẫn mở bằng trình xem của trình duyệt (đúng trang). **Chưa làm (3a.3 trở đi):** tô sáng đúng câu / ô bảng, đồng bộ hai chiều khi bôi đen trong PDF, nút Báo lỗi, pdf.js.
 * Thanh chia kéo được (mặc định 45/55, ghi nhớ lựa chọn).
 * Bên trái: pdf.js qua Signed URL; không có quyền thì hiển thị abstract + link DOI.
 * Bên phải theo tab: Tổng quan | Lý thuyết | Study & Mẫu | Đo lường | Kết quả | Tương quan | Đóng góp & Khoảng trống.

@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.36 (so với 3.9.35)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 3a.2:** khung Split-Screen có **7 tab** (`lib/workspace.ts`: `tabOf` xếp từng trường vào tab theo khóa tự nhiên), **huy hiệu theo phần**, bảng **"Vì sao"** tách khỏi nút chọn trường (kiểm tra chưa qua đứng đầu; trường ◇ nói máy không kiểm được; nút "Mở trong PDF"), dòng ngữ cảnh khóa dưới tên trường, **thanh chia kéo được** (chuột, phím mũi tên, Home / End, 25–75%, ghi nhớ trong `localStorage`, trang vẫn dựng giống nhau ở máy chủ và trình duyệt), liên kết `?focus=` từ tìm kiếm mở đúng tab; trường kiểu bảng hiện gọn ("Table 1 · descriptives · Study 1") và giá trị dài tự xuống dòng | Mục 8.3 |
+| 2 | Test: 9 test đơn vị mới cho `workspace.ts` (xếp tab, tổng hợp phần, thanh chia); 8 test e2e mới (tổng 25 xanh: tab và số trường, huy hiệu từng phần, đổi tab nhảy trang PDF, bảng Vì sao, trường diễn giải, liên kết từ tìm kiếm, thanh chia bằng phím và chuột, ghi nhớ sau khi tải lại); bài e2e cũ sửa theo bố cục tab; `next build` thành công; tổng 406 unit, 84 DB | Kiểm thử 3a.2 |
+
 ### Version 3.9.35 (so với 3.9.34)
 
 | # | Thay đổi | Lý do |
