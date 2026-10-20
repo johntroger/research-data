@@ -5,6 +5,7 @@
 | Ngày | Màn hình | Vấn đề / góp ý | Mức độ | Xử lý |
 | :--- | :--- | :--- | :--- | :--- |
 | 2026-10-20 | Trình xem PDF | Dòng bảng rộng (nhiều cột, có ngoặc đơn cắt dở) thường không có khung tô sáng: 61% ở bài Serial Mediation | khó chịu | chưa xử lý |
+| 2026-10-20 | Relationship Search | Tìm satisfaction → loyalty hiện "0 bài · 0 study · 0 kiểm định" dù danh sách bên dưới có 2 kiểm định (cả hai đang ⚠, không được tính); dòng đầu dễ gây hiểu nhầm là kho không có gì | khó chịu | chưa xử lý |
 
 ## Số liệu mỗi bài mới (Codex)
 
