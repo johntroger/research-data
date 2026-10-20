@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.34 (so với 3.9.33)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Danh sách bước Giai đoạn 3a** (3a.1–3a.6) ghi vào `PROJECT_PLAN.md`, kèm 5 quyết định của chủ dự án: tìm theo tên biến tác giả dùng; Relationship Search làm trang chủ; tô sáng PDF ở 3a.3 sau tab; đăng nhập quản trị và giới hạn IP để đến Giai đoạn 2 / 3b; dùng kho hiện có (21 bài), thêm bài khi dùng thật | Chủ dự án duyệt ngày 20/10/2026 |
+| 2 | Số liệu khảo sát: 410 đường dẫn, 387 hiển thị được, chỉ 4 có cả hai biến ánh xạ về khái niệm chuẩn (31 khái niệm chuẩn) | Căn cứ chọn tìm theo tên tác giả |
+
 ### Version 3.9.33 (so với 3.9.32)
 
 | # | Thay đổi | Lý do |
