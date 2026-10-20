@@ -198,3 +198,47 @@ h1 {
     height: 70vh;
   }
 }
+
+/* Admin quality page (step 1b.5) */
+.admin-link {
+  margin-left: auto;
+  font-size: 13px;
+}
+
+.quality-filter {
+  margin: 12px 0;
+}
+
+.quality-filter input {
+  min-width: 220px;
+}
+
+.quality-table {
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.quality-table th,
+.quality-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 4px 12px;
+  text-align: right;
+}
+
+.quality-table th:first-child,
+.quality-table td:first-child {
+  text-align: left;
+  overflow-wrap: anywhere;
+  max-width: 520px;
+}
+
+.attention-list {
+  list-style: none;
+  padding: 0;
+}
+
+.attention-list li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}

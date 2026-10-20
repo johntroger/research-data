@@ -2,6 +2,14 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.32 (so với 3.9.31)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 1b.5:** trang web `/admin/quality` (`apps/web/app/admin/quality`): tổng số ✓ / ⚠ / ◇ / ẩn và tỷ lệ vấn đề, danh sách "Cần chú ý" (bài có ⚠ hoặc ẩn, kèm liên kết tới bài), bảng theo nguồn (model), loại thiết kế, trường và kiểm tra hay hỏng; ô lọc theo model (không phân biệt hoa thường); liên kết "Chất lượng (quản trị)" ở đầu trang khi chạy local. Số liệu trùng lệnh `pnpm worker quality` (20 bài, 4634 trường: ✓ 2891 ⚠ 880 ◇ 391 ẩn 472; riêng nguồn manual: 6 bài ✓ 663 ⚠ 91 ◇ 127 ẩn 41) | Xem nhanh chất lượng trên web (kế hoạch 1b.5) |
+| 2 | **Chỉ chạy local:** trang đọc thẳng Postgres (cần thấy trường ẩn và các lượt trích xuất mà khách không được thấy) nên chỉ phục vụ khi `NODE_ENV=development` hoặc đặt `SUPABASE_DB_URL`; nơi khác trả 404 cho đến khi có đăng nhập quản trị (Giai đoạn 3). `pg` chuyển từ devDependencies sang dependencies của `apps/web` | Không để lộ dữ liệu quản trị trên bản triển khai |
+| 3 | Test: 5 test e2e mới (Playwright, tổng 9 xanh: số liệu một nguồn, danh sách chú ý và liên kết, lọc, liên kết ở đầu trang, quy tắc truy cập); `next build` thành công; tổng 378 unit, 84 DB | Kiểm thử 1b.5 |
+
 ### Version 3.9.31 (so với 3.9.30)
 
 | # | Thay đổi | Lý do |

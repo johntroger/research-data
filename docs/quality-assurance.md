@@ -74,7 +74,7 @@ Mỗi huy hiệu bấm được để mở bảng **"Vì sao ✓"** (Mục 8.3):
 
 ### 6.6. Kiểm thử kỹ thuật & theo dõi
 * **Bộ bài giả lập có đáp án sẵn:** Claude Code tạo PDF giả với số liệu biết trước, nhiều kiểu trình bày (một cột, hai cột, bảng xoay, chú thích dấu sao), phủ cả β, p, r, trung gian, điều tiết, ô điều kiện thực nghiệm. Dùng để kiểm thử pipeline mỗi khi đổi prompt / schema / model. Dữ liệu tự tạo nên commit được vào repo public.
-* **Theo dõi đơn giản** ở `/admin/quality`: tỷ lệ ✓ / ⚠ / ẩn theo thời gian và **theo loại thiết kế** (survey, thực nghiệm, nhiều Study), số báo lỗi từ người dùng, chi phí mỗi bài.
+* **Theo dõi đơn giản** ở `/admin/quality` (đã làm ở 1b.5, bản đầu: số liệu ✓ / ⚠ / ◇ / ẩn **theo nguồn trích xuất, theo loại thiết kế, theo trường, theo kiểm tra hay hỏng**, lọc theo model, và danh sách "Cần chú ý" gồm các bài có trường ⚠ hoặc ẩn kèm liên kết tới bài; trang đọc thẳng database nên **chỉ tồn tại khi chạy local** (development hoặc đặt `SUPABASE_DB_URL`), nơi khác trả 404 cho đến khi có đăng nhập quản trị ở Giai đoạn 3; chưa có theo thời gian, số báo lỗi, chi phí): tỷ lệ ✓ / ⚠ / ẩn theo thời gian và **theo loại thiết kế** (survey, thực nghiệm, nhiều Study), số báo lỗi từ người dùng, chi phí mỗi bài.
 * **Khi Google ngừng model:** chạy bộ bài giả lập với model mới và so tỷ lệ ✓ / ⚠ trên 20 bài thật trong kho; không xấu đi rõ rệt thì chuyển. Mỗi lượt chạy ghi phiên bản model cụ thể.
 * **Nâng cấp có chọn lọc:** nếu thấy một loại trường sai nhiều (VD: ma trận tương quan), có thể bật lại riêng cho loại đó các cơ chế đã thiết kế ở v3.7 (trích xuất kép, đọc bảng hai kênh, trọng tài; xem `PROJECT_PLAN_v3.7_backup.md`, Mục 6). Kiến trúc để sẵn chỗ cho việc này.
 

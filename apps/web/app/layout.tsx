@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { adminDbUrl } from "@/lib/admin-db";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,6 +17,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             Research Data
           </a>
           <span className="tagline">bộ khung thử nghiệm (bước 0.8)</span>
+          {adminDbUrl() ? (
+            <a href="/admin/quality" className="admin-link">
+              Chất lượng (quản trị)
+            </a>
+          ) : null}
         </header>
         <main>{children}</main>
         <footer className="site-footer">
