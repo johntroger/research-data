@@ -196,7 +196,7 @@ Bước 0.4–0.8 tạo thành **bộ khung chạy được** (Giai đoạn 0, m
 | **1b.1** | Lệnh `pnpm worker quality`: bảng tỷ lệ ✓ / ⚠ / ◇ / ẩn theo loại thiết kế, nhóm trường và lý do hỏng nhiều nhất; chạy trên các bài đã có | Không | Xem bảng |
 | **1b.2** ✅ | Nạp 7 bài của thư mục "1 - Social Media Marketing Ethics" và chạy Batch 6 bài (bỏ bài 144 trang định tính); báo chi phí thật mỗi bài (tổng 0,92 USD) | 0,92 USD | Đã xong |
 | **1b.3** ⛔ | ~~So Pro với Flash, đo Context Cache~~ — **bỏ** (D16): Gemini chuyển sang dự phòng, không đầu tư tối ưu thêm | — | — |
-| **1b.4** (làm từng việc: 1 ✅ mã họ H1; 2 ✅ ma trận Φ; 3 số liệu trong hình) | Chỉnh prompt / codebook / quy tắc cho loại trường hay ⚠ nhất (làm sau 1b.8, trên gói prompt dùng chung cho cả hai nguồn); mỗi sửa có test và chạy lại bộ bài giả lập | Không | Duyệt danh sách sửa |
+| **1b.4** (làm từng việc: 1 ✅ mã họ H1; 2 ✅ ma trận Φ; 3 ✅ số liệu trong hình: giữ nguyên, ghi vào mục hoãn) | Chỉnh prompt / codebook / quy tắc cho loại trường hay ⚠ nhất (làm sau 1b.8, trên gói prompt dùng chung cho cả hai nguồn); mỗi sửa có test và chạy lại bộ bài giả lập | Không | Duyệt danh sách sửa |
 | **1b.5** | Trang `/admin/quality` và danh sách "Cần chú ý" bản đơn giản (web local, chỉ quản trị) | Không | Xem trang |
 | **1b.6** | Chốt nguồn chính (so Codex, Antigravity, Gemini theo Mục 6.9), thời gian người làm mỗi bài; trần Gemini D6 chỉ còn cho dự phòng | Không | Đồng ý lựa chọn |
 | **1b.7** ✅ Codex | **Nguồn chính D16, thử khả thi** (Mục 4.5, kế hoạch kiểm thử Mục 6.9): script tạm (không vào repo) tạo gói việc cho các bài thư mục "1 - Social Media Marketing Ethics" đã có bản Gemini; giao cho **Codex** và **Antigravity**; kiểm tra JSON bằng schema thật và so với bản Gemini theo tiêu chí `compare`. Không ghi database | Không | Chạy gói trên Codex và Antigravity; duyệt kết quả so sánh |
@@ -262,6 +262,7 @@ Nhóm *Must* đã làm ở Giai đoạn 3a; giai đoạn này làm nhóm *Should
 5. Mở rộng sang miền nghiên cứu thứ hai; bài tiếng Việt; nhánh trích xuất cho bài định tính / khái niệm; giao diện tiếng Anh.
 
 ### Ngoài phạm vi MVP / hoãn lại
+* **Số liệu chỉ có trong hình** (sơ đồ SEM, biểu đồ): lớp chữ của PDF không có số nên máy không đối chiếu được; các trường đó **vẫn ẩn hoặc ⚠** (chủ dự án chốt 20/10/2026, giữ nguyên quy tắc huy hiệu). Hai hướng đã cân nhắc và hoãn: nhãn "đọc từ hình, cần đối chiếu" thay vì ẩn (đổi quy tắc huy hiệu), và đọc ảnh bằng AI để kiểm chứng. Xét lại khi có số liệu về mức phổ biến của bài dựa vào hình (bài `satisfaction`: 15/51 đường dẫn từ Figure 2).
 * Trích xuất sâu bài định tính, bài khái niệm, bài tổng quan; bài tiếng Việt.
 * Tìm kiếm ngữ nghĩa trước khi có vài trăm bài.
 * Evidence Map trước khi lớp khái niệm chuẩn ổn định và có đủ ma trận tương quan.

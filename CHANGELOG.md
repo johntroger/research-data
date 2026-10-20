@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.31 (so với 3.9.30)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **1b.4, việc 3 (chính sách):** số liệu chỉ có trong hình **giữ nguyên là ẩn hoặc ⚠**, ghi vào mục "Ngoài phạm vi MVP / hoãn lại"; không đổi quy tắc huy hiệu. Hai hướng đã cân nhắc và hoãn: nhãn "đọc từ hình, cần đối chiếu" và đọc ảnh bằng AI | Chủ dự án chọn hướng A ngày 20/10/2026; mới có một bài làm bằng chứng (`satisfaction`: 15/51 đường dẫn từ Figure 2) và hiển thị số chưa kiểm chứng tăng rủi ro hiểu nhầm (rủi ro 21) |
+| 2 | **1b.4 hoàn tất** (việc 1: mã họ H1; việc 2: ma trận Φ; việc 3: giữ nguyên). Còn 1b.5 (trang `/admin/quality`) và 1b.6 (chốt nguồn chính, thời gian người làm, trần D6) | Tiến độ Giai đoạn 1b |
+
 ### Version 3.9.30 (so với 3.9.29)
 
 | # | Thay đổi | Lý do |
