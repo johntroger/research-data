@@ -30,6 +30,8 @@ export interface ExtractedField {
   printed_page: string | null;
   badge: Badge;
   check_results: { checks?: CheckResult[] };
+  /** Where the quote sits on its PDF page, in PDF points (step 3a.3); null when it could not be placed. */
+  highlight: { page: number; rects: [number, number, number, number][] } | null;
 }
 
 function config() {
@@ -65,7 +67,7 @@ export async function getPaper(id: string): Promise<Paper | null> {
 
 export function listFields(paperId: string): Promise<ExtractedField[]> {
   return rest<ExtractedField[]>(
-    `extracted_fields?select=id,natural_key,field_name,tier,value,evidence_quote,pdf_page_index,printed_page,badge,check_results` +
+    `extracted_fields?select=id,natural_key,field_name,tier,value,evidence_quote,pdf_page_index,printed_page,badge,check_results,highlight` +
       `&paper_id=eq.${paperId}&order=natural_key`,
   );
 }

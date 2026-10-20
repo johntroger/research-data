@@ -2,6 +2,7 @@
 
 import { type KeyboardEvent, type PointerEvent, useEffect, useRef, useState } from "react";
 import type { ExtractedField } from "@/lib/data";
+import { PdfViewer } from "./pdf-viewer";
 import {
   clampSplit,
   firstTabWithFields,
@@ -91,6 +92,8 @@ export function EvidenceWorkspace({ paperId, fields, focusKey }: { paperId: stri
   const summary = summariseSections(fields);
   const start = focusedField(fields, focusKey) ?? fields.find((f) => f.pdf_page_index !== null && tabOf(f) === firstTabWithFields(summary)) ?? fields.find((f) => f.pdf_page_index !== null);
   const [selectedId, setSelectedId] = useState<string | null>(start?.id ?? null);
+  // Counts clicks on values, so clicking the selected one again brings the PDF back to its page.
+  const [visit, setVisit] = useState(0);
   const [tab, setTab] = useState<TabId>(start ? tabOf(start) : firstTabWithFields(summary));
   const [split, setSplit] = useState(SPLIT_DEFAULT);
   const [dragging, setDragging] = useState(false);
@@ -116,10 +119,6 @@ export function EvidenceWorkspace({ paperId, fields, focusKey }: { paperId: stri
   const selected = fields.find((f) => f.id === selectedId) ?? null;
   const page = selected?.pdf_page_index != null ? selected.pdf_page_index + 1 : 1;
   const inTab = fields.filter((f) => tabOf(f) === tab);
-
-  // The browser's PDF viewer opens the page given in the URL fragment (#page=N).
-  // A new `key` per page forces the iframe to reload when only the fragment changes.
-  const pdfUrl = `/api/papers/${paperId}/pdf#page=${page}`;
 
   const openTab = (id: TabId) => {
     setTab(id);
@@ -180,7 +179,10 @@ export function EvidenceWorkspace({ paperId, fields, focusKey }: { paperId: stri
                 className="field"
                 aria-pressed={field.id === selectedId}
                 data-testid={`field-${field.natural_key}`}
-                onClick={() => setSelectedId(field.id)}
+                onClick={() => {
+                  setSelectedId(field.id);
+                  setVisit((v) => v + 1);
+                }}
               >
                 <div className="field-head">
                   <span>{field.field_name}</span>
@@ -219,11 +221,14 @@ export function EvidenceWorkspace({ paperId, fields, focusKey }: { paperId: stri
       />
 
       <section className="pdf-pane" aria-label="PDF gốc">
-        <div className="pdf-toolbar" data-testid="pdf-page">
-          Đang mở trang {page} của file PDF
-          {selected?.printed_page ? ` (trang in ${selected.printed_page})` : ""}
-        </div>
-        <iframe key={page} className="pdf-frame" src={pdfUrl} title="PDF gốc" data-testid="pdf-frame" />
+        <PdfViewer
+          paperId={paperId}
+          page={page}
+          printedPage={selected?.printed_page ?? null}
+          highlight={selected?.highlight ?? null}
+          hasQuote={Boolean(selected?.evidence_quote) && selected?.pdf_page_index != null}
+          fieldKey={selected ? `${selected.id}:${visit}` : null}
+        />
       </section>
     </div>
   );

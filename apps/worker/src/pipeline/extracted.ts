@@ -11,9 +11,11 @@ import { withTransaction } from "../db/client.js";
 import { publishFull, type PublishFullSummary, type RunInput } from "../db/publish-full.js";
 import type { CallRecord } from "../extract/extract-full.js";
 import { mapExtraction, type ExtractionMapping } from "../mapping/extraction.js";
+import { type Highlight, locateQuote, readPageItems } from "../pdf/locate.js";
 import { resolvePrintedPages } from "../pdf/printed-page.js";
 import { readTextLayer } from "../pdf/text-layer.js";
 import { analysePaper, type PaperAnalysis } from "../verify/analyse.js";
+import type { FieldVerification } from "../verify/verify-skeleton.js";
 import type { FullData } from "../verify/verify-full.js";
 import { attachPaper, processingKey, runStep, type StepOutcome, type Versions } from "./runs.js";
 
@@ -46,6 +48,17 @@ export function runInputs(saved: SavedExtraction): RunInput[] {
   return [...saved.calls, ...(saved.top_ups ?? []).flatMap((t) => t.calls)].map(toRun);
 }
 
+/** Where each visible field's quote sits on its PDF page, by natural key (null: not placed). */
+export async function locateHighlights(pdf: Uint8Array, fields: FieldVerification[]): Promise<Map<string, Highlight | null>> {
+  const pages = await readPageItems(pdf);
+  const out = new Map<string, Highlight | null>();
+  for (const f of fields) {
+    if (f.badge === "hidden" || !f.evidence.quote || f.evidence.pdfPage <= 0) continue;
+    out.set(f.naturalKey, locateQuote(pages, f.evidence.quote, f.evidence.pdfPage));
+  }
+  return out;
+}
+
 export async function publishExtracted(
   db: pg.Client,
   input: { pdf: Uint8Array; pdfPath: string; saved: SavedExtraction; force?: boolean; /** Other versions than the current ones, e.g. a prompt suffix for a source (manual import). */ versions?: Versions },
@@ -62,6 +75,7 @@ export async function publishExtracted(
 
   const analysis = analysePaper(layer, saved);
   const mapping = mapExtraction(saved);
+  const highlights = await locateHighlights(input.pdf, analysis.fields);
   const count = (badge: string) => analysis.fields.filter((f) => f.badge === badge).length;
 
   const s4 = await runStep(db, "S4", ctx, async () => ({
@@ -103,6 +117,7 @@ export async function publishExtracted(
         model: saved.model,
         promptVersion: saved.prompt_version,
         runs: runInputs(saved),
+        highlights,
       }),
     );
     return { paper_id: published.paperId, runs_stored: published.runs.stored, runs_reused: published.runs.reused, evidence: published.evidence, fields: published.fields.inserted + published.fields.updated };

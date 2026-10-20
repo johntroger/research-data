@@ -22,6 +22,7 @@ import { checkPacket, formatCheck } from "../manual/check.js";
 import { checkCode, exportPacket } from "../manual/export.js";
 import { backupFile, importPacket, once, pgDumpViaDocker } from "../manual/import.js";
 import { connect } from "../db/client.js";
+import { refreshHighlights } from "../db/highlights.js";
 import { geminiBatchClient } from "../extract/batch-client.js";
 import { type BatchDeps, listBatches, pollOnce, submitPaper } from "../extract/batch.js";
 import { Budget, BudgetExceeded, budgetConfigFromEnv, PgLedger } from "../extract/budget.js";
@@ -426,6 +427,39 @@ async function quality(args: string[]): Promise<number> {
   }
 }
 
+/** pnpm worker highlights [--paper X]: recompute where each quote sits on its PDF page (step 3a.3). No API call. */
+async function highlights(args: string[]): Promise<number> {
+  const only = option(args, "--paper");
+  const db = await connect();
+  try {
+    const { rows } = await db.query<{ id: string; title: string | null; pdf_path: string }>(
+      "select id, title, pdf_path from papers where pdf_path is not null and ($1::text is null or id::text like $1 || '%' or file_hash like $1 || '%') order by title",
+      [only ?? null],
+    );
+    let withQuote = 0;
+    let located = 0;
+    for (const paper of rows) {
+      const file = path.resolve(REPO_ROOT, paper.pdf_path);
+      let pdf: Uint8Array;
+      try {
+        pdf = new Uint8Array(await readFile(file));
+      } catch {
+        console.log(`${(paper.title ?? paper.id).slice(0, 60).padEnd(60)} bỏ qua: không thấy file ${paper.pdf_path}`);
+        continue;
+      }
+      const s = await refreshHighlights(db, paper.id, pdf);
+      withQuote += s.withQuote;
+      located += s.located;
+      console.log(`${(paper.title ?? paper.id).slice(0, 60).padEnd(60)} ${String(s.located).padStart(4)}/${String(s.withQuote).padEnd(4)} (trang bên cạnh ${s.onNeighbour})`);
+      for (const m of s.notLocated.slice(0, 3)) console.log(`    không định vị: ${m.naturalKey} · trang ${m.page} · “${m.quote.slice(0, 70)}”`);
+    }
+    console.log(`\nTổng: ${located}/${withQuote} câu trích được định vị (${withQuote ? Math.round((located / withQuote) * 1000) / 10 : 0}%).`);
+    return 0;
+  } finally {
+    await db.end();
+  }
+}
+
 /** pnpm worker manual import <packet>|--all --tool T --model M [--yes] [--no-backup] (step 1b.8c). Preview unless --yes. */
 async function manualImport(args: string[]): Promise<number> {
   const tool = option(args, "--tool");
@@ -540,7 +574,8 @@ async function main(): Promise<number> {
   if (command === "compare") return compare(args);
   if (command === "quality") return quality(args);
   if (command === "manual") return manual(args);
-  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | manual export --paper X");
+  if (command === "highlights") return highlights(args);
+  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | manual export --paper X");
   return 1;
 }
 

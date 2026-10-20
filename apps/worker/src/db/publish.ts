@@ -4,6 +4,7 @@
  */
 import type pg from "pg";
 import type { SkeletonResult } from "../extract/extract-skeleton.js";
+import type { Highlight } from "../pdf/locate.js";
 import type { PdfTextLayer } from "../pdf/text-layer.js";
 import type { FieldVerification } from "../verify/verify-skeleton.js";
 
@@ -53,6 +54,8 @@ export async function upsertFields(
   fields: FieldVerification[],
   printedPages: string[],
   runIdFor: (field: FieldVerification) => string | null,
+  /** Where each field's quote sits on its PDF page (step 3a.3); a field without an entry gets null. */
+  highlights?: Map<string, Highlight | null>,
 ): Promise<FieldUpsertSummary> {
   const input = { printedPages, fields };
   const extractionRunIdOf = runIdFor;
@@ -76,14 +79,15 @@ export async function upsertFields(
       printedPage,
       field.badge,
       JSON.stringify({ checks: field.checks }),
+      highlights?.get(field.naturalKey) ? JSON.stringify(highlights.get(field.naturalKey)) : null,
     ];
 
     // Insert, or update only when the existing row was not edited by hand (locked = false).
     const result = await client.query<{ inserted: boolean }>(
       `insert into extracted_fields
          (paper_id, extraction_run_id, natural_key, field_name, tier, value,
-          evidence_quote, pdf_page_index, printed_page, badge, check_results)
-       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          evidence_quote, pdf_page_index, printed_page, badge, check_results, highlight)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        on conflict (paper_id, natural_key) do update set
          extraction_run_id = excluded.extraction_run_id,
          field_name        = excluded.field_name,
@@ -94,6 +98,7 @@ export async function upsertFields(
          printed_page      = excluded.printed_page,
          badge             = excluded.badge,
          check_results     = excluded.check_results,
+         highlight         = excluded.highlight,
          updated_at        = now()
        where extracted_fields.locked = false
        returning (xmax = 0) as inserted`,

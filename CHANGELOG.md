@@ -2,6 +2,15 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.37 (so với 3.9.36)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 3a.3:** tô sáng đúng câu / dòng bảng trong PDF. Worker (`pdf/locate.ts`) đọc từng chữ kèm vị trí qua unpdf, so khớp câu trích theo từ (không phân biệt hoa thường, dấu câu, gạch nối cuối dòng, chữ nhỏ trên cao dính liền; thử ba thứ tự đọc: thứ tự trong file, theo dòng, theo cột; rồi khớp bỏ khoảng trắng; rồi khớp gần ≥ 90%), tìm ở trang dẫn rồi trang kề, và lưu `{page, rects}` vào cột mới `extracted_fields.highlight` (migration `20261020100000`). Trình duyệt chỉ vẽ | Quyết định 1 của bước: tính ở worker lúc đăng, không tính ở trình duyệt |
+| 2 | Trình xem PDF mới (`pdf-viewer.tsx`, pdf.js đóng gói sẵn trong unpdf, thêm unpdf vào web): trang trước / sau, ô nhập trang, thu phóng, công tắc "Tô sáng", liên kết mở bằng trình xem của trình duyệt. Không định vị được thì mở đúng trang, không khung, hiện dòng giải thích | Quyết định 2 và 3 của bước |
+| 3 | Lệnh `pnpm worker highlights [--paper X]` tính lại vị trí cho các bài đã đăng, không gọi API, không đăng lại bài. Kết quả trên 21 bài: 3545/4162 trường có câu trích (85,2%) có khung; phần còn lại phần lớn là dòng bảng AI ghép từ nhiều ô, hình vẽ và câu trích có chữ không có trong bài | Đo thật trên kho hiện có |
+| 4 | Test: 9 test `locate.ts` (một dòng, hai dòng, gạch nối cuối dòng, dòng bảng, hai cột, bảng xoay ngang, khớp gần, trang kề, không tìm thấy), 4 test hình học trình xem, 1 kiểm tra tích hợp (khung lưu đúng trang và nằm trong trang), 2 test e2e mới + 3 test e2e sửa (iframe → trình xem). Tổng: 419 test đơn vị, 84 test DB, 27 e2e xanh | Kiểm thử bước |
+
 ### Version 3.9.36 (so với 3.9.35)
 
 | # | Thay đổi | Lý do |

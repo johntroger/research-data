@@ -325,6 +325,19 @@ describe("pipeline steps S4–S10", () => {
     expect(steps[0]!.details).toMatchObject({ model: MODEL, prompt_version: FULL_PROMPT_VERSION, calls: 6 });
     expect(steps[1]!.details).toMatchObject({ hidden: 0 });
 
+    // Step 3a.3: the place of each quote on its page is stored, as page + rectangles inside the page.
+    const framed = await q<{ highlight: { page: number; rects: number[][] } | null; evidence_quote: string }>(
+      "select highlight, evidence_quote from extracted_fields where paper_id = $1 and badge <> 'hidden' and evidence_quote is not null",
+      [first.published!.paperId],
+    );
+    const located = framed.filter((f) => f.highlight !== null);
+    expect(located.length).toBeGreaterThan(framed.length / 2);
+    for (const { highlight } of located) {
+      expect(highlight!.page).toBeGreaterThan(0);
+      expect(highlight!.rects.length).toBeGreaterThan(0);
+      for (const [x0, y0, x1, y1] of highlight!.rects) expect(x1! > x0! && y1! > y0! && x0! >= 0 && y0! >= 0).toBe(true);
+    }
+
     const second = await run();
     expect(second.steps).toEqual({ S4: "skipped", S5: "skipped", S6: "skipped", S7: "skipped", S8: "skipped", S10: "skipped" });
     expect(second.published).toBeNull();

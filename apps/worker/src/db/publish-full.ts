@@ -23,6 +23,7 @@ import type { FieldVerification } from "../verify/checks.js";
 import { verifyQuote } from "../verify/quote.js";
 import type { FullData } from "../verify/verify-full.js";
 import { buildPlan, type EvidenceLike, type PlannedRow, type RowTable } from "./plan-full.js";
+import type { Highlight } from "../pdf/locate.js";
 import { upsertFields } from "./publish.js";
 import type { ExtractionMapping } from "../mapping/extraction.js";
 
@@ -48,6 +49,8 @@ export interface PublishFullInput {
   model: string;
   promptVersion: string;
   runs: RunInput[];
+  /** Where each field's quote sits on its page (step 3a.3), by natural key. */
+  highlights?: Map<string, Highlight | null>;
 }
 
 export interface TableCounts {
@@ -274,7 +277,7 @@ export async function publishFull(db: pg.Client, input: PublishFullInput): Promi
     const discussion = /^(theoretical_contribution|practical_implication|limitation|future_direction|contribution_type|gap_type)/.test(field.naturalKey);
     return runIdOf({ pass: discussion ? "paper_discussion" : "paper_structure", studyLabel: null });
   };
-  const fieldCounts = { ...empty(), ...(await upsertFields(db, paperId, input.analysis.fields, input.printedPages, runForField)) };
+  const fieldCounts = { ...empty(), ...(await upsertFields(db, paperId, input.analysis.fields, input.printedPages, runForField, input.highlights)) };
 
   // ── Remove what an earlier extraction left behind, unless locked ───────────
   for (const table of CLEANUP_ORDER) {

@@ -41,14 +41,15 @@ test.beforeAll(async () => {
   );
   paperId = paper.rows[0]!.id;
   await db.query(
-    `insert into extracted_fields (paper_id, natural_key, field_name, tier, value, evidence_quote, pdf_page_index, printed_page, badge, check_results)
+    `insert into extracted_fields (paper_id, natural_key, field_name, tier, value, evidence_quote, pdf_page_index, printed_page, badge, check_results, highlight)
      values
        ($1, 'study_1:sample_size', 'sample_size', 'T1', '412', 'The final sample comprised 412 respondents.', 0, '501', 'auto_verified',
-        '{"checks":[{"name":"quote_in_pdf","passed":true,"detail":"Câu trích khớp nguyên văn trên trang PDF 1"}]}'),
+        '{"checks":[{"name":"quote_in_pdf","passed":true,"detail":"Câu trích khớp nguyên văn trên trang PDF 1"}]}',
+        '{"page":1,"rects":[[60,416,230,434]]}'),
        ($1, 'study_1:h2:risk->intention', 'hypothesis_result', 'T1',
         '{"iv":"Perceived risk","dv":"Purchase intention","estimate":-0.31,"p_reported":"< .001","status":"supported"}',
-        'Perceived risk had a significant negative effect.', 2, '503', 'auto_verified', '{"checks":[]}'),
-       ($1, 'paper_type', 'paper_type', 'T2', '"survey"', 'Hidden quote', 3, '504', 'hidden', '{"checks":[]}')`,
+        'Perceived risk had a significant negative effect.', 2, '503', 'auto_verified', '{"checks":[]}', null),
+       ($1, 'paper_type', 'paper_type', 'T2', '"survey"', 'Hidden quote', 3, '504', 'hidden', '{"checks":[]}', null)`,
     [paperId],
   );
 
@@ -79,14 +80,14 @@ test("clicking a value opens the PDF on that value's evidence page", async ({ pa
   await expect(page.getByTestId("tab-study")).toHaveAttribute("aria-selected", "true");
   await expect(page.getByTestId("field-study_1:sample_size")).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("pdf-page")).toContainText("trang 1 của file PDF (trang in 501)");
-  await expect(page.getByTestId("pdf-frame")).toHaveAttribute("src", `/api/papers/${paperId}/pdf#page=1`);
+  await expect(page.getByTestId("pdf-viewer")).toHaveAttribute("data-page", "1");
   await expect(page.getByTestId("why-study_1:sample_size")).toContainText("Câu trích khớp nguyên văn");
 
   // The hypothesis is in the Results tab: opening it jumps to its evidence on PDF page 3.
   await page.getByTestId("tab-results").click();
   await expect(page.getByTestId("field-study_1:h2:risk->intention")).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("pdf-page")).toContainText("trang 3 của file PDF (trang in 503)");
-  await expect(page.getByTestId("pdf-frame")).toHaveAttribute("src", `/api/papers/${paperId}/pdf#page=3`);
+  await expect(page.getByTestId("pdf-viewer")).toHaveAttribute("data-page", "3");
   await expect(page.getByTestId("field-study_1:h2:risk->intention")).toContainText(
     "Perceived risk → Purchase intention (β = -0.31, p < .001)",
   );
@@ -94,7 +95,58 @@ test("clicking a value opens the PDF on that value's evidence page", async ({ pa
   // And back to the sample size, page 1.
   await page.getByTestId("tab-study").click();
   await page.getByTestId("field-study_1:sample_size").click();
-  await expect(page.getByTestId("pdf-frame")).toHaveAttribute("src", `/api/papers/${paperId}/pdf#page=1`);
+  await expect(page.getByTestId("pdf-viewer")).toHaveAttribute("data-page", "1");
+});
+
+test("a value whose quote was located is framed on the page; one that was not says so", async ({ page }) => {
+  await page.goto(`/papers/${paperId}`);
+  await expect(page.getByTestId("pdf-canvas")).toBeVisible();
+  await expect(page.getByTestId("pdf-highlight")).toHaveCount(1);
+  await expect(page.getByTestId("pdf-locate-note")).toHaveCount(0);
+  // The frame sits where the text is: the canvas draws the page at the width of the pane, so compare with the page's own size.
+  const canvas = (await page.getByTestId("pdf-canvas").boundingBox())!;
+  const frame = (await page.getByTestId("pdf-highlight").boundingBox())!;
+  expect(frame.x - canvas.x).toBeCloseTo((58 / 595) * canvas.width, -1);
+  expect(frame.y - canvas.y).toBeCloseTo(((842 - 436) / 842) * canvas.height, -1);
+
+  await page.getByTestId("tab-results").click();
+  await expect(page.getByTestId("pdf-highlight")).toHaveCount(0);
+  await expect(page.getByTestId("pdf-locate-note")).toContainText("Không xác định được vị trí câu trích");
+  await expect(page.getByTestId("pdf-locate-note")).toContainText("tự tìm câu trích");
+});
+
+test("the viewer has page, zoom and highlight controls and a link to the browser's own viewer", async ({ page }) => {
+  await page.goto(`/papers/${paperId}`);
+  await expect(page.getByTestId("pdf-canvas")).toBeVisible();
+  await expect(page.getByTestId("pdf-viewer")).toContainText("/ 4"); // the file is loaded
+  await expect(page.getByTestId("pdf-page-input")).toHaveValue("1");
+  await expect(page.getByTestId("pdf-prev")).toBeDisabled();
+  await page.getByTestId("pdf-next").click();
+  await expect(page.getByTestId("pdf-viewer")).toHaveAttribute("data-page", "2");
+  await expect(page.getByTestId("pdf-highlight")).toHaveCount(0); // the frame is on page 1
+  await page.getByTestId("pdf-page-input").fill("4");
+  await page.getByTestId("pdf-page-input").press("Enter");
+  await expect(page.getByTestId("pdf-viewer")).toHaveAttribute("data-page", "4");
+  await expect(page.getByTestId("pdf-next")).toBeDisabled();
+  await expect(page.getByRole("link", { name: "Mở bằng trình xem của trình duyệt" })).toHaveAttribute("href", `/api/papers/${paperId}/pdf#page=4`);
+
+  // Selecting a value goes back to its page.
+  await page.getByTestId("field-study_1:sample_size").click();
+  await expect(page.getByTestId("pdf-viewer")).toHaveAttribute("data-page", "1");
+  await expect(page.getByTestId("pdf-highlight")).toHaveCount(1);
+
+  await expect(page.getByTestId("pdf-zoom")).toHaveText("100%");
+  await page.getByTestId("pdf-zoom-in").click();
+  await expect(page.getByTestId("pdf-zoom")).toHaveText("125%");
+  await expect(page.getByTestId("pdf-highlight")).toHaveCount(1);
+  await page.getByTestId("pdf-zoom-out").click();
+  await page.getByTestId("pdf-zoom-out").click();
+  await expect(page.getByTestId("pdf-zoom")).toHaveText("75%");
+
+  await page.getByTestId("pdf-frame-toggle").uncheck();
+  await expect(page.getByTestId("pdf-highlight")).toHaveCount(0);
+  await page.getByTestId("pdf-frame-toggle").check();
+  await expect(page.getByTestId("pdf-highlight")).toHaveCount(1);
 });
 
 test("hidden fields are not shown to visitors", async ({ page }) => {

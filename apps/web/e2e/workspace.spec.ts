@@ -80,7 +80,7 @@ test("switching tab shows that part's fields and jumps the PDF to the first of t
   await page.getByTestId("tab-results").click();
   await expect(page.getByTestId("tab-results")).toHaveAttribute("aria-selected", "true");
   await expect(page.getByTestId("field-study_1:h1:a->b:direct:estimate")).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByTestId("pdf-frame")).toHaveAttribute("src", `/api/papers/${paperId}/pdf#page=5`);
+  await expect(page.getByTestId("pdf-viewer")).toHaveAttribute("data-page", "5");
   await expect(page.getByTestId("field-paper_type")).toHaveCount(0);
 });
 

@@ -161,11 +161,6 @@ h1 {
   background: var(--accent);
 }
 
-/* While dragging, the PDF frame would swallow the pointer events. */
-.dragging .pdf-frame {
-  pointer-events: none;
-}
-
 .why {
   margin: -4px 0 8px;
   padding: 8px 12px;
@@ -277,10 +272,93 @@ h1 {
   color: var(--muted);
 }
 
-.pdf-frame {
+.pdf-viewer {
+  display: flex;
+  flex-direction: column;
   flex: 1;
-  width: 100%;
-  border: 0;
+  min-height: 0;
+}
+
+.pdf-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.pdf-controls button {
+  font: inherit;
+  min-width: 28px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.pdf-page-input input {
+  width: 56px;
+  font: inherit;
+  padding: 2px 4px;
+}
+
+.pdf-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+.pdf-native {
+  margin-left: auto;
+}
+
+.pdf-note {
+  margin: 0;
+  padding: 6px 10px;
+  font-size: 13px;
+  background: #fff8e1;
+  color: var(--warn);
+  border-bottom: 1px solid var(--border);
+}
+
+.pdf-scroller {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: #eceef1;
+  padding: 12px;
+}
+
+.pdf-page {
+  position: relative;
+  width: fit-content;
+  margin: 0 auto;
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 20%);
+}
+
+.pdf-page canvas {
+  display: block;
+}
+
+/* The frame over the quote: yellow, and the text under it stays readable. */
+.pdf-highlight {
+  position: absolute;
+  background: rgb(255 214 0 / 40%);
+  border: 1px solid rgb(214 150 0 / 80%);
+  border-radius: 2px;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 @media (max-width: 900px) {
@@ -293,8 +371,8 @@ h1 {
     display: none;
   }
 
-  .pdf-frame {
-    height: 70vh;
+  .pdf-pane {
+    height: 80vh;
   }
 }
 
