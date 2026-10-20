@@ -81,6 +81,32 @@ export function tableCaptionsInText(layer: PdfTextLayer): { label: string; key: 
   return [...found].map(([key, label]) => ({ key, label }));
 }
 
+/**
+ * A table the AI called a correlation table that holds squared correlations (a Φ-matrix with shared variances below the
+ * diagonal, AVE on it and intervals above): there is no r in it to extract, and r is never derived from anything else,
+ * so a missing matrix is not an omission. Recognised by the words of the table's own caption and note.
+ */
+export function holdsSquaredCorrelations(layer: PdfTextLayer, tableLabel: string, pdfPage: number): boolean {
+  const key = tableKey(tableLabel);
+  if (!key) return false;
+  const id = key.slice("table ".length).replace(/[^a-z0-9]/gi, "");
+  const caption = new RegExp(`^\\s*(?:table|tab\\.)\\s*${id}\\b`, "im");
+  const nextCaption = /^\s*(?:table|tab\.)\s*[a-z]?\d+\b/im;
+  for (const p of [pdfPage, pdfPage - 1, pdfPage + 1]) {
+    const page = layer.pages[p - 1];
+    if (!page) continue;
+    for (const reading of [page.rowText ?? "", page.text]) {
+      const at = reading.search(caption);
+      if (at < 0) continue;
+      const after = reading.slice(at + 1);
+      const end = after.slice(1).search(nextCaption);
+      const block = after.slice(0, Math.min(end >= 0 ? end + 1 : 1800, 1800)).toLowerCase();
+      if (/shared variances?|squared correlations?/.test(block)) return true;
+    }
+  }
+  return false;
+}
+
 export function findMissing(layer: PdfTextLayer, data: FullData): MissingItem[] {
   const out: MissingItem[] = [];
   const s = data.structure;
@@ -116,7 +142,7 @@ export function findMissing(layer: PdfTextLayer, data: FullData): MissingItem[] 
   );
   for (const t of s.tables) {
     const key = tableKey(t.table_label);
-    if (t.kind === "correlation" && key && !matrixTables.has(key)) {
+    if (t.kind === "correlation" && key && !matrixTables.has(key) && !holdsSquaredCorrelations(layer, t.table_label, t.pdf_page)) {
       out.push({ kind: "matrix_missing", item: t.table_label, studyLabel: t.study_label, note: `${t.table_label} là bảng tương quan nhưng chưa trích được ma trận` });
     }
     if (t.kind === "condition_means" && key && !cellTables.has(key)) {

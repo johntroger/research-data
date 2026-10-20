@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.30 (so với 3.9.29)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **1b.4, việc 2:** kiểm tra "đủ" không báo thiếu ma trận cho bảng được gọi là bảng tương quan nhưng chứa bình phương tương quan (Φ-matrix): nhận ra qua "shared variance" / "squared correlation" trong tiêu đề và chú thích của chính bảng (`holdsSquaredCorrelations`, chỉ xét đoạn từ tiêu đề bảng đến tiêu đề bảng kế). Không thêm trường nào, luật "không quy đổi" giữ nguyên. 5 test mới (kiểm tra đột biến: bỏ bản sửa thì 2 test thất bại); đo trên 18 bài đã lưu: chỉ `csr` đổi, từ "incomplete" thành "complete", các bài khác y nguyên | Table 2 của `csr` bị báo thiếu ma trận oan |
+
 ### Version 3.9.29 (so với 3.9.28)
 
 | # | Thay đổi | Lý do |
