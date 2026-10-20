@@ -5,7 +5,7 @@
 import type { Badge, FieldTier } from "@research-data/schema";
 import type { PdfTextLayer } from "../pdf/text-layer.js";
 import { normaliseForMatch, repairSymbolFont, tokens } from "./normalize.js";
-import { parsePValue, verifyNumber, verifyPValue } from "./number.js";
+import { parsePValue, signCounts, verifyNumber, verifyPValue } from "./number.js";
 import { verifyQuote } from "./quote.js";
 
 export interface CheckResult {
@@ -190,7 +190,7 @@ export function field(
     c.name === "p_in_pdf" && !c.passed && estimateFound ? { ...c, severity: "attention", detail: `${c.detail} (p thường nằm ở chú thích dưới bảng)` } : c,
   );
 
-  const checks = [check, ...meaningCheck(layer, evidence), ...extra];
+  const checks = [check, ...meaningCheck(layer, evidence), ...extra, ...signChecks(evidence.quote, value)];
   return { naturalKey, fieldName, tier, value, evidence: { pdfPage: page, quote: evidence.quote }, badge: badgeFor(tier, checks), checks };
 }
 
@@ -200,4 +200,20 @@ export function scannedPdf(fields: FieldVerification[]): FieldVerification[] {
   return fields.map((f) =>
     f.tier === "T3" ? f : { ...f, badge: "needs_attention", checks: [...f.checks.map((c) => ({ ...c, severity: "attention" as const })), note] },
   );
+}
+
+/**
+ * The number must be printed in the quote with the sign the AI gave it (Mục 6.10). Only a clear contradiction counts:
+ * the quote prints the number, always with the opposite sign. A quote that prints it both ways, or without a sign
+ * for a positive value, says nothing either way, so no check is added then.
+ */
+export function signChecks(quote: string, value: unknown): CheckResult[] {
+  if (typeof value !== "number" || value === 0) return [];
+  const { pos, neg } = signCounts(quote, value);
+  const agree = value < 0 ? neg : pos;
+  const disagree = value < 0 ? pos : neg;
+  if (disagree > 0 && agree === 0) {
+    return [fail("sign_in_quote", `Câu trích in ${Math.abs(value)} với dấu ${value < 0 ? "dương" : "âm"}, khác dấu ${value < 0 ? "âm" : "dương"} của giá trị ${value}`, "attention")];
+  }
+  return value < 0 && agree > 0 && disagree === 0 ? [pass("sign_in_quote", "Dấu âm khớp với câu trích", "attention")] : [];
 }

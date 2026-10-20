@@ -102,3 +102,29 @@ export function parsePValue(reported: string): { operator: "<" | ">" | "=" | "�
   const operator = (match[1] || "=") as "<" | ">" | "=" | "≤" | "≥";
   return { operator, value: Number(match[2]) };
 }
+
+/**
+ * How often `value` is printed in `text` with a plus (no sign) and with a minus, comparing the absolute value.
+ * A dash after a digit, a bracket or a percent sign is a range ("0.29–0.41"), not a sign. Symbol-font minus signs are
+ * restored first ("2 0.47" → "− 0.47"). Used to see that the quote shows the number with the sign the AI gave it.
+ */
+export function signCounts(text: string, value: number): { pos: number; neg: number } {
+  const clean = numberSearchText(repairSymbolFont(text) ?? text);
+  const abs = Math.abs(value);
+  const bodies = new Set([String(abs), String(abs).replace(/^0\./, "."), abs.toFixed(2), abs.toFixed(2).replace(/^0\./, "."), abs.toFixed(3), abs.toFixed(3).replace(/^0\./, ".")]);
+  let pos = 0;
+  let neg = 0;
+  const seen = new Set<number>();
+  for (const body of bodies) {
+    const pattern = new RegExp(`((?<![\\d\\])%])-\\s?)?(?<![\\d.,])${escapeRegExp(body)}0*(?![\\d]|[.,]\\d)`, "g");
+    for (const m of clean.matchAll(pattern)) {
+      // The same printed number is found by several spellings (0.38, .38, 0.380): count it once.
+      const at = m.index + (m[1]?.length ?? 0);
+      if (seen.has(at)) continue;
+      seen.add(at);
+      if (m[1]) neg++;
+      else pos++;
+    }
+  }
+  return { pos, neg };
+}

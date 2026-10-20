@@ -6,7 +6,7 @@
  */
 import type { PdfTextLayer } from "../pdf/text-layer.js";
 import { normaliseForMatch } from "./normalize.js";
-import { containsNumber, numberForms } from "./number.js";
+import { containsNumber, numberForms, signCounts } from "./number.js";
 
 export interface RowQuoteQuery {
   value: number;
@@ -58,14 +58,20 @@ export function findRowQuote(layer: PdfTextLayer, citedPage: number, q: RowQuote
     const data = layer.pages[page - 1];
     if (!data) continue;
     const lines = (data.rowText || data.text).split("\n").map((l) => l.trim()).filter((l) => l.length >= MIN_QUOTE);
-    const hits = lines.map((line, order) => ({ line, order })).filter(({ line }) => containsNumber(line, forms) !== null);
+    const hits = lines
+      .map((line, order) => ({ line, order, sign: signCounts(line, q.value) }))
+      .filter(({ line }) => containsNumber(line, forms) !== null)
+      // A line that prints the number only with the opposite sign is another number (a share is never negative).
+      .filter(({ sign }) => (q.value < 0 ? !(sign.pos > 0 && sign.neg === 0) : !(sign.neg > 0 && sign.pos === 0)));
     if (hits.length === 0) continue;
     const scored = hits.map((h) => ({
       ...h,
       label: labels.length ? labelScore(h.line, labels) : 0,
       numbered: q.rowNumber !== undefined && startsWithNumber(h.line, q.rowNumber) ? 1 : 0,
+      // A negative value is only recognised with its minus; a positive one without a sign or with plus counts as agreeing.
+      signed: (q.value < 0 ? h.sign.neg : h.sign.pos) > 0 ? 0.5 : 0,
     }));
-    const best = [...scored].sort((a, b) => b.label + b.numbered - (a.label + a.numbered) || a.order - b.order)[0]!;
+    const best = [...scored].sort((a, b) => b.label + b.numbered + b.signed - (a.label + a.numbered + a.signed) || a.order - b.order)[0]!;
     // With labels or a row number the row must match them; without any hint the value must sit on exactly one line.
     const hinted = labels.length > 0 || q.rowNumber !== undefined;
     if (hinted ? best.label > 0 || best.numbered > 0 || scored.length === 1 : scored.length === 1) return { page, quote: best.line };

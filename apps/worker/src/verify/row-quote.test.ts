@@ -90,3 +90,18 @@ describe("the row of a table that holds a value (Mục 6.10)", () => {
     expect(layer.pages[0]!.rowText).toContain(line);
   });
 });
+
+describe("signs in the row finder and the sign check (Mục 6.10)", () => {
+  it("does not take a line that prints the number only with the opposite sign", async () => {
+    const page: PageSpec = { blocks: [{ kind: "table", title: "Table 2", header: ["", "1", "2"], rows: [["6. Expectations", ".25", "-.27"], ["7. Performance", ".27", ".15"]], widths: [110, 50, 50] }] };
+    const layer = await layerOf([page]);
+    // R² = .27 cannot be the cell printed "-.27": the other line holds it.
+    expect(findRowQuote(layer, 1, { value: 0.27, labels: ["Expectations"] })?.quote).toBe("7. Performance .27 .15");
+    expect(findRowQuote(layer, 1, { value: -0.27, labels: ["Expectations"] })?.quote).toBe("6. Expectations .25 -.27");
+  });
+
+  it("gives null when the number is printed only with the opposite sign", async () => {
+    const page: PageSpec = { blocks: [{ kind: "text", lines: ["H2 Brand opportunism to ABE - 0.380 p = 0.001 supported effect"] }] };
+    expect(findRowQuote(await layerOf([page]), 1, { value: 0.38, labels: ["Brand opportunism"] })).toBeNull();
+  });
+});
