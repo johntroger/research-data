@@ -25,6 +25,9 @@ export interface RowQuote {
 }
 
 const MIN_QUOTE = 4;
+/** Longest table row, in words of three letters or more (a long row label plus a few headers). */
+const MAX_WORDS = 12;
+const wordCount = (line: string) => (line.match(/\p{L}{3,}/gu) ?? []).length;
 
 /** How many of the label's words the line has, 0–1. A long word may be printed as its first four letters ("Effi"). */
 function labelScore(line: string, labels: string[]): number {
@@ -57,7 +60,11 @@ export function findRowQuote(layer: PdfTextLayer, citedPage: number, q: RowQuote
   for (const page of [citedPage, citedPage - 1, citedPage + 1]) {
     const data = layer.pages[page - 1];
     if (!data) continue;
-    const lines = (data.rowText || data.text).split("\n").map((l) => l.trim()).filter((l) => l.length >= MIN_QUOTE);
+    // A table row is mostly numbers; a line of running text that mentions the number is not evidence for a cell.
+    const lines = (data.rowText || data.text)
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l.length >= MIN_QUOTE && wordCount(l) <= MAX_WORDS);
     const hits = lines
       .map((line, order) => ({ line, order, sign: signCounts(line, q.value) }))
       .filter(({ line }) => containsNumber(line, forms) !== null)

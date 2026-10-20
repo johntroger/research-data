@@ -105,3 +105,17 @@ describe("signs in the row finder and the sign check (Mục 6.10)", () => {
     expect(findRowQuote(await layerOf([page]), 1, { value: 0.38, labels: ["Brand opportunism"] })).toBeNull();
   });
 });
+
+describe("only lines that look like table rows (Mục 6.10)", () => {
+  it("does not take a sentence that mentions the number", async () => {
+    const page: PageSpec = {
+      blocks: [{ kind: "text", lines: ["Respondents were asked to indicate their expectations about novelty and importance (.27), novelty and stakeholding (.12) and complexity"] }],
+    };
+    expect(findRowQuote(await layerOf([page]), 1, { value: 0.27, labels: ["novelty", "expectations"] })).toBeNull();
+  });
+
+  it("still takes a row with a long label and a few numbers", async () => {
+    const page: PageSpec = { blocks: [{ kind: "table", title: "Table 4", header: ["", "M", "SD"], rows: [["Customer positive word-of-mouth intention", "4.12", "1.03"]], widths: [250, 50, 50] }] };
+    expect(findRowQuote(await layerOf([page]), 1, { value: 4.12, labels: ["Customer positive word-of-mouth intention"] })?.quote).toBe("Customer positive word-of-mouth intention 4.12 1.03");
+  });
+});
