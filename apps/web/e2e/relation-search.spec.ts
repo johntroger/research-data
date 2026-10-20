@@ -5,6 +5,7 @@
  * Needs Supabase local (pnpm db:start). Run: pnpm --filter @research-data/web test:e2e
  */
 import { expect, test } from "@playwright/test";
+import ExcelJS from "exceljs";
 import pg from "pg";
 
 const DB_URL = process.env.SUPABASE_DB_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
@@ -135,4 +136,34 @@ test("the library lists the papers, reachable from the header", async ({ page })
   await page.getByRole("link", { name: "Thư viện" }).click();
   await expect(page).toHaveURL(/\/library/);
   await expect(page.getByRole("link", { name: "E2E relation paper one" })).toBeVisible();
+});
+
+test("the Excel file has exactly the tests of the list, with badge, printed page and the disclaimer", async ({ page, request }) => {
+  await page.goto("/?a=zebra&b=quokka");
+  const link = page.getByTestId("export-excel");
+  await expect(link).toContainText("Tải Excel (3 kiểm định)");
+  const href = (await link.getAttribute("href"))!;
+  expect(href).toMatch(/^\/export\?/);
+  expect(href).toContain("a=zebra");
+
+  const response = await request.get(href);
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toContain("spreadsheetml");
+  expect(response.headers()["content-disposition"]).toMatch(/attachment; filename="quan-he-\d{4}-\d{2}-\d{2}\.xlsx"/);
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.load((await response.body()) as unknown as ArrayBuffer);
+  const sheet = wb.getWorksheet("Kết quả")!;
+  const header = (sheet.getRow(1).values as string[]).slice(1);
+  expect(sheet.rowCount).toBe(1 + 3); // the page lists 3 tests: two ✓ and one ⚠ (counted or not)
+  const col = (name: string) => header.indexOf(name) + 1;
+  const badges = [2, 3, 4].map((r) => sheet.getCell(r, col("Huy hiệu")).value);
+  expect(badges.filter((b) => b === "✓ đã kiểm chứng")).toHaveLength(2);
+  expect(badges.filter((b) => b === "⚠ nên xem kỹ")).toHaveLength(1);
+  expect(wb.getWorksheet("Ghi chú")!.getCell(8, 2).value).toContain("tự đối chiếu với bài gốc");
+
+  // The filter in the URL narrows the file in the same way as the page.
+  const filtered = await request.get("/export?a=zebra&b=quokka&status=not_supported");
+  const wb2 = new ExcelJS.Workbook();
+  await wb2.xlsx.load((await filtered.body()) as unknown as ArrayBuffer);
+  expect(wb2.getWorksheet("Kết quả")!.rowCount).toBe(2);
 });

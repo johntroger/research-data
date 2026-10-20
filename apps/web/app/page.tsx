@@ -231,6 +231,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </section>
           ) : (
             <section data-testid="results">
+              <p>
+                <a href={`/export?${queryToSearch(query)}`} download data-testid="export-excel">
+                  Tải Excel ({result.rows.length} kiểm định)
+                </a>{" "}
+                <span className="muted">đúng danh sách bên dưới, có cột huy hiệu, trang in và tuyên bố trách nhiệm.</span>
+              </p>
               {result.groups.map((g) => (
                 <div key={g.paperId} className="relation-paper" data-testid={`paper-${g.paperId}`}>
                   <h3>

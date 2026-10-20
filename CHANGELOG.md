@@ -2,6 +2,14 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.38 (so với 3.9.37)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 3a.4:** nút "Tải Excel (n kiểm định)" trên trang Relationship Search; `GET /export?<cùng tham số tìm kiếm>` trả file .xlsx đúng danh sách đang hiện (cả ⚠ / ◇, có cột huy hiệu để lọc). Sheet "Kết quả" 16 cột (trích dẫn APA, năm, tạp chí, Study, biến A, biến B, vai trò, mã giả thuyết, ước lượng, p, kết quả giả thuyết, chiều tác động, huy hiệu, trang in, trang PDF, liên kết mở bài; dòng tiêu đề cố định, tự lọc). Sheet "Ghi chú": câu hỏi và bộ lọc, ngày xuất, số kiểm định ✓ / chưa kiểm chứng, tuyên bố trách nhiệm | Quyết định đã chốt: dùng exceljs; 2 sheet đủ cột |
+| 2 | Thêm gói `exceljs` vào apps/web. Liên kết "Mở bài" dùng địa chỉ máy hiện tại (localhost khi chạy local); sẽ đổi theo tên miền ở Giai đoạn 2 | Web chưa đưa lên mạng |
+| 3 | Test: 4 test đơn vị (`relations-export.ts`), 1 test e2e (đúng danh sách, đúng bộ lọc, ghi chú). Tổng: 423 test đơn vị, 84 DB, 28 e2e xanh | Kiểm thử bước |
+
 ### Version 3.9.37 (so với 3.9.36)
 
 | # | Thay đổi | Lý do |
