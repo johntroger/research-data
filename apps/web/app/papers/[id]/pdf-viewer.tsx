@@ -26,6 +26,7 @@ export function PdfViewer({
   highlight,
   hasQuote,
   fieldKey,
+  canDownload,
 }: {
   paperId: string;
   /** Page of the selected value (1-based). The frame, when there is one, may sit on the next or previous page. */
@@ -35,6 +36,8 @@ export function PdfViewer({
   hasQuote: boolean;
   /** Changes when another value is selected, so the viewer returns to that value's page. */
   fieldKey: string | null;
+  /** The visitor may save a copy of the PDF (lib/pdf-access decides). */
+  canDownload: boolean;
 }) {
   const target = highlight?.page ?? page;
   const [current, setCurrent] = useState(target);
@@ -166,7 +169,12 @@ export function PdfViewer({
         <label className="pdf-frame-toggle">
           <input type="checkbox" checked={showFrame} onChange={(e) => setShowFrame(e.target.checked)} data-testid="pdf-frame-toggle" /> Tô sáng
         </label>
-        <a className="pdf-native" href={`/api/papers/${paperId}/pdf#page=${current}`} target="_blank" rel="noreferrer">
+        {canDownload && (
+          <a className="pdf-native" href={`/api/papers/${paperId}/pdf?download=1`} download data-testid="pdf-download">
+            Tải PDF
+          </a>
+        )}
+        <a className={canDownload ? undefined : "pdf-native"} href={`/api/papers/${paperId}/pdf#page=${current}`} target="_blank" rel="noreferrer">
           Mở bằng trình xem của trình duyệt
         </a>
       </div>

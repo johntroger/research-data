@@ -168,3 +168,25 @@ test("the PDF endpoint serves the file and refuses paths outside raw_papers", as
   const unknown = await request.get("/api/papers/00000000-0000-0000-0000-000000000000/pdf");
   expect(unknown.status()).toBe(404);
 });
+
+test("the project owner (this machine) gets a Download PDF button and the file arrives as an attachment named after the paper", async ({ page, request }) => {
+  await page.goto(`/papers/${paperId}`);
+  const button = page.getByTestId("pdf-download");
+  await expect(button).toHaveText("Tải PDF");
+  await expect(button).toHaveAttribute("href", `/api/papers/${paperId}/pdf?download=1`);
+
+  const response = await request.get(`/api/papers/${paperId}/pdf?download=1`);
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-disposition"]).toBe('attachment; filename="E2E-synthetic-paper.pdf"');
+  expect((await response.body()).subarray(0, 4).toString()).toBe("%PDF");
+  // Viewing in the page stays inline.
+  expect((await request.get(`/api/papers/${paperId}/pdf`)).headers()["content-disposition"]).toBe("inline");
+});
+
+test("a paper without a PDF file offers no download", async ({ page }) => {
+  const id = (await db.query<{ id: string }>("select id from papers where file_hash = $1", [BAD_HASH])).rows[0]!.id;
+  await db.query("update papers set pdf_path = null where id = $1", [id]);
+  await page.goto(`/papers/${id}`);
+  await expect(page.getByTestId("pdf-download")).toHaveCount(0);
+  await db.query("update papers set pdf_path = '../.env' where id = $1", [id]);
+});

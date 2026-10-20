@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.39 (so với 3.9.38)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 3a.5:** nút "Tải PDF" trong trình xem; `/api/papers/[id]/pdf?download=1` trả file dạng đính kèm, tên file ASCII lấy từ tiêu đề. Quyền do **một hàm** `lib/pdf-access.ts` quyết (cả nút lẫn route dùng chung): chủ dự án (máy truy cập được cơ sở dữ liệu trực tiếp, cùng điều kiện với `/admin`) tải mọi bài; khách chỉ tải bài có `license_source = oa` và `oa_status` gold / green / hybrid (bronze không tính là giấy phép mở); không rõ thì từ chối (403). Xem PDF trong trang giữ nguyên | Quyết định đã chốt: nút tải cho chủ, khách chặn sẵn; đăng nhập thật để Giai đoạn 2 |
+| 2 | Test: 4 test đơn vị mới (quyền, tên file), 2 test e2e mới (nút và tiêu đề đính kèm; bài không có file thì không có nút). Nhánh từ chối khách chỉ kiểm bằng test đơn vị vì máy dev luôn là chủ. Tổng: 427 test đơn vị, 84 DB, 30 e2e xanh | Kiểm thử bước |
+
 ### Version 3.9.38 (so với 3.9.37)
 
 | # | Thay đổi | Lý do |

@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
+import { adminDbUrl } from "@/lib/admin-db";
 import { getPaper, listFields, paperLabel } from "@/lib/data";
+import { canDownloadPdf } from "@/lib/pdf-access";
 import { EvidenceWorkspace } from "./evidence-workspace";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +24,7 @@ export default async function PaperPage({
   return (
     <>
       <h1>{paperLabel(paper)}</h1>
-      <EvidenceWorkspace paperId={paper.id} fields={fields} {...(focusKey ? { focusKey } : {})} />
+      <EvidenceWorkspace paperId={paper.id} fields={fields} canDownload={Boolean(paper.pdf_path) && canDownloadPdf(adminDbUrl() !== null, paper)} {...(focusKey ? { focusKey } : {})} />
     </>
   );
 }

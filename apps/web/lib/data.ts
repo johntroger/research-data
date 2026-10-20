@@ -11,6 +11,8 @@ export interface Paper {
   title: string | null;
   pdf_path: string | null;
   page_count: number | null;
+  oa_status: string | null;
+  license_source: string | null;
 }
 
 export interface CheckResult {
@@ -53,7 +55,7 @@ async function rest<T>(pathAndQuery: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-const PAPER_COLUMNS = "id,doi,title,pdf_path,page_count";
+const PAPER_COLUMNS = "id,doi,title,pdf_path,page_count,oa_status,license_source";
 
 export function listPapers(): Promise<Paper[]> {
   return rest<Paper[]>(`papers?select=${PAPER_COLUMNS}&order=created_at.desc`);

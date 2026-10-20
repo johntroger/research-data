@@ -88,7 +88,7 @@ function Why({ paperId, field, page }: { paperId: string; field: ExtractedField;
   );
 }
 
-export function EvidenceWorkspace({ paperId, fields, focusKey }: { paperId: string; fields: ExtractedField[]; focusKey?: string }) {
+export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = false }: { paperId: string; fields: ExtractedField[]; focusKey?: string; canDownload?: boolean }) {
   const summary = summariseSections(fields);
   const start = focusedField(fields, focusKey) ?? fields.find((f) => f.pdf_page_index !== null && tabOf(f) === firstTabWithFields(summary)) ?? fields.find((f) => f.pdf_page_index !== null);
   const [selectedId, setSelectedId] = useState<string | null>(start?.id ?? null);
@@ -227,6 +227,7 @@ export function EvidenceWorkspace({ paperId, fields, focusKey }: { paperId: stri
           printedPage={selected?.printed_page ?? null}
           highlight={selected?.highlight ?? null}
           hasQuote={Boolean(selected?.evidence_quote) && selected?.pdf_page_index != null}
+          canDownload={canDownload}
           fieldKey={selected ? `${selected.id}:${visit}` : null}
         />
       </section>

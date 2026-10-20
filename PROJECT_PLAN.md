@@ -223,7 +223,7 @@ Chủ dự án là người dùng chính, nên **web chạy local với Supabase
 | **3a.2** ✅ | Split-Screen: tab (Tổng quan, Lý thuyết, Study & Mẫu, Đo lường, Kết quả, Tương quan, Đóng góp), bảng "Vì sao ✓", huy hiệu theo phần, thanh chia kéo được | Dùng thử |
 | **3a.3** ✅ | Tô sáng câu / ô bảng trong PDF khi bấm một giá trị (pdf.js). Vị trí tính ở worker lúc đăng (cột `extracted_fields.highlight`), trình duyệt chỉ vẽ; không định vị được thì mở đúng trang, không vẽ khung và nói rõ | Dùng thử |
 | **3a.4** ✅ | Xuất Excel cho đúng tập kết quả đã lọc (cột huy hiệu, số trang in, tuyên bố trách nhiệm); Word APA 7 để 3b | Mở file thử |
-| **3a.5** | Xem và tải PDF theo quyền: chủ dự án tải mọi bài; quy tắc cho khách (OA có giấy phép mở) làm đủ ở Giai đoạn 2 | — |
+| **3a.5** ✅ | Xem và tải PDF theo quyền: chủ dự án tải mọi bài; quy tắc cho khách (OA có giấy phép mở) làm đủ ở Giai đoạn 2 | — |
 | **3a.6** | Dùng thật cho nghiên cứu: thêm bài (Zotero → Codex → import), ghi góp ý giao diện | Góp ý |
 
 * **Quyết định đã chốt ngày 20/10/2026:** tìm theo tên biến tác giả dùng (chỉ 4/410 đường dẫn đã ánh xạ về khái niệm chuẩn); Relationship Search là trang chủ; tô sáng PDF làm sau 3a.1 và 3a.2; **đăng nhập quản trị và giới hạn tốc độ theo IP để đến Giai đoạn 2 / 3b** (web local một người dùng, `/admin/quality` đã khóa chỉ chạy local); dùng kho hiện có (21 bài: Gemini + Codex trộn, huy hiệu phân biệt nguồn), thêm bài khi dùng thật.
