@@ -13,6 +13,7 @@
  */
 import type { PaperDiscussion, PaperStructure, PathResult, StudyDetail } from "@research-data/schema";
 import type { PdfTextLayer } from "../pdf/text-layer.js";
+import { findRowQuote, type RowQuoteQuery } from "./row-quote.js";
 import {
   type CheckResult,
   type EvidenceIn,
@@ -63,6 +64,27 @@ export function verifyFull(layer: PdfTextLayer, data: FullData, refs: GroupRefs 
     if (!present(value)) return;
     const row = evidence ? field(naturalKey, fieldName, tier, value, evidence, layer, checks) : withoutEvidence(naturalKey, fieldName, tier, value);
     out.push({ ...row, group });
+  };
+  /**
+   * A number read from a table cell. The AI quotes one line for the whole table, so every cell would point at the
+   * same line: the line that holds this cell is chosen here instead (Mục 6.10). No such line → ⚠, not a guess.
+   */
+  const addCell = (
+    naturalKey: string,
+    fieldName: string,
+    value: number | null,
+    evidence: EvidenceIn | null,
+    where: Omit<RowQuoteQuery, "value">,
+    checks: (page: number) => CheckResult[],
+  ) => {
+    const found = evidence && value !== null ? findRowQuote(layer, evidence.pdf_page, { value, ...where }) : null;
+    const rowed = found && evidence ? { ...evidence, pdf_page: found.page, quote: found.quote } : evidence;
+    add(naturalKey, fieldName, "T1", value, rowed, (page) => [
+      ...checks(page),
+      ...(evidence && value !== null
+        ? [logicCheck("quote_has_value", found !== null, "Câu trích là dòng của bảng chứa giá trị này", `Không tìm được dòng chứa ${value} quanh trang PDF ${evidence.pdf_page}; hãy mở PDF để xem`)]
+        : []),
+    ]);
   };
   const num = (name: string, v: number | null, severity: CheckResult["severity"] = "hide") => (page: number) =>
     v === null ? [] : [numberCheck(layer, name, v, page, severity)];
@@ -171,7 +193,7 @@ export function verifyFull(layer: PdfTextLayer, data: FullData, refs: GroupRefs 
       add(`${k}:correlation_type`, "correlation_type", "T2", mx.correlation_type, ev);
       for (const c of mx.cells) {
         const valid = c.i > c.j && c.i < mx.variables.length;
-        add(`${k}:r:${c.i},${c.j}`, "r", "T1", c.r, ev, (page) => [
+        addCell(`${k}:r:${c.i},${c.j}`, "r", c.r, ev, { labels: [mx.variables[c.i]], rowNumber: c.i + 1 }, (page) => [
           numberCheck(layer, "number_in_pdf", c.r, page),
           logicCheck("in_range", c.r >= -1 && c.r <= 1, "r trong [−1, 1]", `r = ${c.r} ngoài [−1, 1]`),
           logicCheck("cell_index", valid, "Ô thuộc tam giác dưới của ma trận", `Ô (${c.i}, ${c.j}) không thuộc tam giác dưới của ${mx.variables.length} biến`),
@@ -179,8 +201,9 @@ export function verifyFull(layer: PdfTextLayer, data: FullData, refs: GroupRefs 
       }
       for (const dsc of mx.descriptives) {
         const dk = `${k}:desc:${slug(dsc.variable)}`;
+        const at = mx.variables.indexOf(dsc.variable);
         for (const [name, v] of [["mean", dsc.mean], ["sd", dsc.sd], ["alpha", dsc.alpha], ["cr", dsc.cr], ["ave", dsc.ave]] as const) {
-          add(`${dk}:${name}`, name, "T1", v, ev, (page) => [
+          addCell(`${dk}:${name}`, name, v, ev, { labels: [dsc.variable], ...(at >= 0 ? { rowNumber: at + 1 } : {}) }, (page) => [
             numberCheck(layer, "number_in_pdf", v!, page),
             ...(name === "sd" ? [logicCheck("positive", v! > 0, "SD > 0", `SD = ${v} không dương`)] : []),
           ]);
@@ -225,12 +248,15 @@ export function verifyFull(layer: PdfTextLayer, data: FullData, refs: GroupRefs 
     ];
     for (const [name, v] of numbers) {
       const checkName = name === "estimate" || name === "indirect_effect" ? "estimate_in_pdf" : "number_in_pdf";
-      add(`${k}:${name}`, name, "T1", v, ev, (page) => [
+      const checks = (page: number) => [
         numberCheck(layer, checkName, v!, page),
         ...(name === "estimate" ? pathLogic(p) : []),
         // When the paper prints p, it belongs with the estimate it qualifies.
         ...(name === "estimate" && p.p_reported_as ? [numberCheck(layer, "p_in_pdf", p.p_reported_as, page)] : []),
-      ]);
+      ];
+      // R² and f² come from the table row of the path (R² often as a percentage); the other numbers keep the path's own quote.
+      if (name === "r2_dv" || name === "f2") addCell(`${k}:${name}`, name, v, ev, { labels: [p.iv_label_original, p.dv_label_original], percent: true }, checks);
+      else add(`${k}:${name}`, name, "T1", v, ev, checks);
     }
     if (p.boot_ci) {
       const [low, high] = p.boot_ci;

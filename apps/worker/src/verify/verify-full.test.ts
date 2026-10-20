@@ -103,6 +103,29 @@ describe("verifyFull catches wrong extractions", () => {
     expect(bad.checks.find((c) => c.name === "cell_index")?.passed).toBe(false);
   });
 
+  it("quotes the row of each matrix cell, not the one line the AI gave for the whole table (Mục 6.10)", () => {
+    const rows = run(p01, () => undefined);
+    const cell = (k: string) => badgeOf(rows, `study_1:corr:table_2:r:${k}`);
+    expect(cell("1,0").evidence.quote).toBe("2. Brand Trust 0.48 0.84");
+    expect(cell("2,0").evidence.quote).toBe("3. Purchase Intention 0.39 0.52 0.84");
+    expect(cell("2,1").evidence.quote).toBe("3. Purchase Intention 0.39 0.52 0.84");
+    for (const k of ["1,0", "2,0", "2,1"]) {
+      expect(cell(k).checks.find((c) => c.name === "quote_has_value")?.passed).toBe(true);
+      expect(cell(k).badge).toBe("auto_verified");
+    }
+  });
+
+  it("gives ⚠ when no row of the table can be told to hold the value, and keeps the AI's quote", () => {
+    // 0.48 is printed on two lines (the matrix row and the H1 line); a variable the table does not list names neither.
+    const rows = run(p01, (d) => {
+      d.studies[0]!.correlation_matrices[0]!.descriptives.push({ variable: "Zzz", mean: 0.48, sd: null, alpha: null, cr: null, ave: null });
+    });
+    const mean = badgeOf(rows, "study_1:corr:table_2:desc:zzz:mean");
+    expect(mean.checks.find((c) => c.name === "quote_has_value")?.passed).toBe(false);
+    expect(mean.badge).toBe("needs_attention");
+    expect(mean.evidence.quote).toBe("2. Brand Trust 0.48 0.84");
+  });
+
   it("flags a reversed bootstrap CI (both bounds printed on the page) with ⚠", () => {
     const rows = run(p03, (d) => (d.studies[0]!.paths[0]!.boot_ci = [0.19, 0.06]));
     const ci = badgeOf(rows, "study_1:h1:perceived_transparency->loyalty:indirect:boot_ci");
