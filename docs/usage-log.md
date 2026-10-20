@@ -13,6 +13,6 @@
 
 | Bài | Phút làm | Vòng sửa | ✓ | ⚠ | ◇ | Ghi chú |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| A Serial Mediation of Deceptive Discount Advertising (làm lại từ Gemini) | chưa ghi | 0 | 88 | 29 | 20 | Gemini cũ: ✓ 85 ⚠ 28 ◇ 19. Khung tô sáng: 84/137 trường có câu trích (61%); phần thiếu chủ yếu là dòng bảng rộng nhiều ô |
-| Does Having an Ethical Brand Matter (làm lại từ Gemini) | chưa ghi | 0 | 74 | 4 | 19 | Gemini cũ: ✓ 80 ⚠ 17 ◇ 17 ẩn 5. Khung tô sáng 97/97 |
-| Enhance green purchase intentions (làm lại từ Gemini) | chưa ghi | 0 | 67 | 17 | 19 | Gemini cũ: ✓ 80 ⚠ 25 ◇ 18. Khung tô sáng 78/103 (76%) |
+| A Serial Mediation of Deceptive Discount Advertising (làm lại từ Gemini) | không đo | 0 | 88 | 29 | 20 | Gemini cũ: ✓ 85 ⚠ 28 ◇ 19. Khung tô sáng: 84/137 trường có câu trích (61%); phần thiếu chủ yếu là dòng bảng rộng nhiều ô |
+| Does Having an Ethical Brand Matter (làm lại từ Gemini) | không đo | 0 | 74 | 4 | 19 | Gemini cũ: ✓ 80 ⚠ 17 ◇ 17 ẩn 5. Khung tô sáng 97/97 |
+| Enhance green purchase intentions (làm lại từ Gemini) | không đo | 0 | 67 | 17 | 19 | Gemini cũ: ✓ 80 ⚠ 25 ◇ 18. Khung tô sáng 78/103 (76%) |

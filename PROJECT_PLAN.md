@@ -208,12 +208,12 @@ Bước 0.4–0.8 tạo thành **bộ khung chạy được** (Giai đoạn 0, m
 * **Bản Gemini của cùng bài bị thay bởi bản Codex** khi import: sao lưu database (`pg_dump`) trước, in bảng tóm tắt trước khi ghi; dòng đã khóa bằng sửa tay được giữ; bản Gemini vẫn nằm trong lịch sử trích xuất.
 * Gói việc ở `C:ProjectsResearch Data Packets` (biến `PACKETS_DIR`), ngoài repo; tên nhóm lệnh giữ là `manual`.
 
-### 📍 Giai đoạn 3a: Web dùng thật trên máy (local, nhóm *Must*)
+### 📍 Giai đoạn 3a: Web dùng thật trên máy (local, nhóm *Must*) ✅ (đóng 20/10/2026)
 Chủ dự án là người dùng chính, nên **web chạy local với Supabase local đã đủ để dùng hằng ngày**. Cloud và Vercel chỉ cần khi chia sẻ công khai.
 1. `apps/web` chạy local, đọc Supabase local; làm các hạng mục nhóm **Must** ở bảng MoSCoW (Giai đoạn 3b).
 2. (Tùy chọn) Nút ✎ sửa trực tiếp cho quản trị (Mục 6.7); trường đã sửa được khóa theo khóa tự nhiên, không bị ghi đè khi trích xuất lại.
 3. Chủ dự án **bắt đầu dùng thật cho nghiên cứu**: thêm bài vào Zotero Inbox, hệ thống tự xử lý; chủ dự án chỉ dùng kết quả và ghi lại góp ý giao diện.
-* **Bàn giao:** web local dùng được cho Relationship Search, Split-Screen, xem PDF, xuất Excel.
+* **Bàn giao:** web local dùng được cho Relationship Search, Split-Screen, xem PDF, xuất Excel. **Kết quả 3a.6 (20/10/2026):** làm lại 3 bài Gemini cũ bằng Codex (Serial Mediation, Ethical Brand, Green Purchase; 0 vòng sửa, số phút không đo): ⚠ 28→29, 17→4, 25→17; khung tô sáng định vị 61% / 100% / 76% số trường có câu trích. Một câu hỏi thật (Green perceived value → Green purchase intentions) được đánh giá hữu ích. Kho hiện 9 bài Codex + 12 bài Gemini; góp ý sau khi dùng nhiều ghi ở `docs/usage-log.md`. Việc còn treo: dòng tổng hợp "0 bài" khi mọi kiểm định đều ⚠; số trong hình không có khung; 12 bài Gemini cũ chưa làm lại.
 
 **Danh sách bước của Giai đoạn 3a** (chủ dự án duyệt ngày 20/10/2026; quy trình theo Mục 10.0):
 
@@ -224,7 +224,7 @@ Chủ dự án là người dùng chính, nên **web chạy local với Supabase
 | **3a.3** ✅ | Tô sáng câu / ô bảng trong PDF khi bấm một giá trị (pdf.js). Vị trí tính ở worker lúc đăng (cột `extracted_fields.highlight`), trình duyệt chỉ vẽ; không định vị được thì mở đúng trang, không vẽ khung và nói rõ | Dùng thử |
 | **3a.4** ✅ | Xuất Excel cho đúng tập kết quả đã lọc (cột huy hiệu, số trang in, tuyên bố trách nhiệm); Word APA 7 để 3b | Mở file thử |
 | **3a.5** ✅ | Xem và tải PDF theo quyền: chủ dự án tải mọi bài; quy tắc cho khách (OA có giấy phép mở) làm đủ ở Giai đoạn 2 | — |
-| **3a.6** | Dùng thật cho nghiên cứu: thêm bài (Zotero → Codex → import), ghi góp ý giao diện | Góp ý |
+| **3a.6** ✅ | Dùng thật cho nghiên cứu: thêm bài (Zotero → Codex → import), ghi góp ý giao diện | Góp ý |
 
 * **Quyết định đã chốt ngày 20/10/2026:** tìm theo tên biến tác giả dùng (chỉ 4/410 đường dẫn đã ánh xạ về khái niệm chuẩn); Relationship Search là trang chủ; tô sáng PDF làm sau 3a.1 và 3a.2; **đăng nhập quản trị và giới hạn tốc độ theo IP để đến Giai đoạn 2 / 3b** (web local một người dùng, `/admin/quality` đã khóa chỉ chạy local); dùng kho hiện có (21 bài: Gemini + Codex trộn, huy hiệu phân biệt nguồn), thêm bài khi dùng thật.
 

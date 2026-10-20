@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.41 (so với 3.9.40)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Đóng Giai đoạn 3a (20/10/2026):** 3a.6 xong. Ba bài Gemini cũ được làm lại bằng Codex và nhập (sao lưu DB trước mỗi lần): Serial Mediation ✓ 85→88, ⚠ 28→29; Ethical Brand ✓ 80→74, ⚠ 17→4; Green Purchase ✓ 80→67, ⚠ 25→17 (không tăng ⚠ ở bài nào ngoài một đơn vị). Khung tô sáng 61% / 100% / 76% trường có câu trích. Số phút Codex **không đo**. Một câu hỏi thật trong Relationship Search đánh giá hữu ích | Chủ dự án chọn đóng 3a |
+| 2 | Sổ `docs/usage-log.md` ghi 4 góp ý / quan sát: dòng tổng hợp `0 bài` khi mọi kiểm định ⚠ (khó chịu, chưa xử lý), số trong hình không có khung (điểm yếu đã biết), dòng bảng rộng thiếu khung, câu hỏi thật hữu ích | Dùng thật |
+
 ### Version 3.9.40 (so với 3.9.39)
 
 | # | Thay đổi | Lý do |
