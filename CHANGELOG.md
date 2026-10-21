@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.50 (so với 3.9.49)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Mở rộng kho (quyết định của chủ dự án, 21/10/2026):** thêm các thư mục Zotero "2.1 - Perceived ethical value" (11 bài), "3 - Brand trust", "4 - Brand loyalty", "5 - Positive eWOM", "6 - Purchase intention" (6 bài), "Transparency & disclosure" (6 bài, thư mục con của thư mục 1), "Brand Gratitude" (6 bài). Cập nhật quy ước trong CLAUDE.md. Các thư mục METHODOLOGY, Theoretical framework, REFERENCES không thêm khi chưa hỏi | Thêm bài ngoài thư mục ban đầu để Relationship Search có nhiều đường dẫn hơn |
+
 ### Version 3.9.49 (so với 3.9.48)
 
 | # | Thay đổi | Lý do |
