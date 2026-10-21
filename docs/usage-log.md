@@ -8,6 +8,7 @@
 | 2026-10-20 | Relationship Search | Tìm satisfaction → loyalty hiện "0 bài · 0 study · 0 kiểm định" dù danh sách bên dưới có 2 kiểm định (cả hai đang ⚠, không được tính); dòng đầu dễ gây hiểu nhầm là kho không có gì | khó chịu | đã sửa (bước B, v3.9.42) |
 | 2026-10-20 | Trình xem PDF | Số nằm trong hình sơ đồ đường dẫn (Holbrook, trang 34) không có khung; web hiện dòng vàng giải thích. Dòng bảng (Table 7, trang 54) được tô đúng dòng | nhỏ (điểm yếu đã biết) | giữ nguyên, không đoán |
 | 2026-10-20 | Relationship Search | Câu hỏi thật Green perceived value → Green purchase intentions (vai trò Tất cả): 1 bài, 2 kiểm định, đánh giá **hữu ích**; chưa có góp ý, chủ dự án sẽ góp ý thêm sau khi dùng nhiều | — | ghi nhận |
+| 2026-10-21 | Trình xem PDF (bài ABE) | Bảng con A và B cùng nhãn trên một trang: khoảng 60 ô của bảng B tô sáng dòng của bảng A (giá trị đúng), 1 ô ⚠ nhầm | nhỏ | **để lại và theo dõi** (chủ dự án chốt 21/10/2026); làm khi gặp thêm bài có bảng con hoặc cần dùng ABE kỹ. Hướng sửa: chọn dòng theo tiêu đề bảng con (đã đề xuất, chưa code) |
 
 ## Số liệu mỗi bài mới (Codex)
 
