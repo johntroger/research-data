@@ -220,6 +220,21 @@ Kiểm lại: cả 7 ca sai dòng trong phạm vi của mẫu 30 nay trỏ đún
 
 **Kiểm tra dấu (20/10/2026):** `signChecks` (trong `field()`) thêm kiểm tra `sign_in_quote`: ⚠ khi câu trích chỉ in số với dấu ngược dấu của giá trị; không kết luận khi câu trích in cả hai dấu hoặc không in dấu cho giá trị dương; dấu gạch trong khoảng ("0,29–0,41") không tính là dấu trừ; dấu trừ in bằng phông ký hiệu ("2 0,47") được khôi phục trước khi đọc. `findRowQuote` loại dòng chỉ in số với dấu ngược (R² và f² không bao giờ âm). Đo trên 1414 trường số: dấu ngược **6 → 0**; huy hiệu cả kho không đổi (✓ 2904 · ⚠ 834 · ◇ 397 · ẩn 462; hai ô r của bài ABE chuyển ⚠, hai trường khác chuyển ✓). **Còn lại:** 30 trường in cả hai dấu (không kết luận được); 5 trường r2_dv của bài Patterson từng lấy một **câu văn** nhắc tương quan ".27" làm bằng chứng vì tên biến trùng với câu. **Đã sửa:** `findRowQuote` chỉ nhận dòng giống dòng bảng (tối đa 12 từ chữ); 5 trường này nay trích đúng câu "antecedents explained 27 percent of the variation in expectations" (R² = 27%). Đo lại sau đăng lại: dòng bằng chứng dài như câu văn trong phạm vi 5 → 0; dấu ngược 0; huy hiệu cả kho ✓ 2904 · ⚠ 836 · ◇ 397 · ẩn 460.
 
+**Kiểm mẫu lần 2 (21/10/2026)** trên kho mới (15 bài Codex, 5 bài Gemini). Mẫu: 30 trường ✓ phân tầng (8 ô bảng, 8 đường dẫn, 5 đo lường, 5 mẫu và thiết kế, 4 chữ; 28 trường từ bản Codex, 21 từ 6 bài mới nhập; loại trường đã chấm lần 1 và trang không có lớp chữ) + 10 trường ⚠. Người chấm: Claude; **kiểm chéo 10 trường ✓ bằng một tác tử AI khác không thấy câu trích**.
+
+| Kết quả (30 trường ✓) | Số trường |
+| :--- | :--- |
+| Đúng giá trị và gắn đúng | 20 |
+| **Gắn nhầm ô (giá trị có trong bài nhưng sai ô / bảng)** | **4 (13%)** — 3 ô ma trận của bài ABE, 1 ô của bài Markovic |
+| Không kết luận được từ văn bản trang (số trong hình, mã giả thuyết ở trang khác, số mục đếm ở trang khác) | 6 |
+| Sai giá trị | 0 |
+
+* **Kiểm chéo:** tác tử độc lập trùng 10/10 với phán quyết của tôi (6 đúng, 2 gắn nhầm, 2 không kết luận), và **tự phát hiện** lỗi chỉ số của ABE. Mức trùng này cho thấy phán quyết không chỉ là thiên lệch của một người chấm, nhưng cả hai đều là AI đọc cùng văn bản trang.
+* **Lỗi hệ thống được tìm thấy (nghiêm trọng hơn lần 1): 4 ma trận của bài ABE (Study 3 bảng A và B, Study 5 bảng A và B; 172 ô) dùng chỉ số ô đếm từ 1 thay vì từ 0.** Số có trong bài nhưng gắn vào hàng / cột sai một vị trí; các ô có i < số biến vẫn qua kiểm tra chỉ số và được ✓, vì kiểm tra `quote_has_value` chỉ hỏi dòng có chứa số, không hỏi số có ở đúng cột không. Chỉ ô có i = số biến mới bị ⚠ (`cell_index`). Các ma trận của 11 bài còn lại dùng chỉ số từ 0 đúng.
+* Ô thứ tư (Markovic): hai ma trận cùng được gọi "Table 9" (`table_9` và `table_9#2`) với số khác nhau, nhưng câu trích và trang dẫn là của Table 6.
+* **⚠ có đáng tin không:** trong 10 trường ⚠, 8 là đúng "chưa kiểm chứng được" (câu trích không có trên trang dẫn, giá trị ở trang khác, số trong hình), 1 chưa xem hết, **1 báo động nhầm** (giá trị đúng, nhưng dòng bảng viết tắt nên máy không chọn được dòng). Tức khoảng 90% ⚠ là có cơ sở.
+* Giới hạn: 30 trường chỉ cho phép kết luận lỗi sai giá trị không quá khoảng 11,6%; lỗi gắn nhầm ô thì đã thấy 13% trong mẫu ô bảng và tập trung ở một bài. Chỉ ✓ có lớp chữ được chấm; số trong hình và trang ảnh nằm ngoài tầm.
+
 ## 12. TÀI LIỆU THAM KHẢO PHƯƠNG PHÁP LUẬN (dùng cho Codebook)
 
 * Alvesson, M., & Sandberg, J. (2011). Generating research questions through problematization. *Academy of Management Review, 36*(2), 247–271.

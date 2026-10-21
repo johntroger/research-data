@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.46 (so với 3.9.45)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Kiểm mẫu lần 2 (Mục 6.10):** 30 trường ✓ + 10 trường ⚠ trên kho mới, kiểm chéo 10 trường bằng tác tử AI khác không thấy câu trích (trùng 10/10). Kết quả: 20 đúng, 4 gắn nhầm ô, 6 không kết luận được, 0 sai giá trị; 9/10 ⚠ có cơ sở | Đo lại độ đúng sau khi làm lại 9 bài bằng Codex |
+| 2 | **Phát hiện lỗi hệ thống:** 4 ma trận của bài ABE (172 ô) dùng chỉ số ô đếm từ 1; chưa sửa, chờ chủ dự án duyệt hướng sửa (chuẩn hóa chỉ số + kiểm tra đúng cột) | Phát hiện trong kiểm mẫu, được tác tử kiểm chéo xác nhận |
+
 ### Version 3.9.45 (so với 3.9.44)
 
 | # | Thay đổi | Lý do |
