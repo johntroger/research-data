@@ -15,6 +15,7 @@ import { type Highlight, locateQuote, readPageItems } from "../pdf/locate.js";
 import { resolvePrintedPages } from "../pdf/printed-page.js";
 import { readTextLayer } from "../pdf/text-layer.js";
 import { analysePaper, type PaperAnalysis } from "../verify/analyse.js";
+import { normaliseMatrixIndices } from "../verify/matrix-index.js";
 import type { FieldVerification } from "../verify/verify-skeleton.js";
 import type { FullData } from "../verify/verify-full.js";
 import { attachPaper, processingKey, runStep, type StepOutcome, type Versions } from "./runs.js";
@@ -63,7 +64,8 @@ export async function publishExtracted(
   db: pg.Client,
   input: { pdf: Uint8Array; pdfPath: string; saved: SavedExtraction; force?: boolean; /** Other versions than the current ones, e.g. a prompt suffix for a source (manual import). */ versions?: Versions },
 ): Promise<PublishStepsResult> {
-  const { saved } = input;
+  // A matrix whose cells were counted from 1 is shifted back to 0 before anything reads it (Mục 6.10).
+  const { data: saved } = normaliseMatrixIndices(input.saved);
   if (saved.status !== "done") throw new Error(`The saved extraction did not finish (${saved.status})`);
 
   const layer = await readTextLayer(input.pdf);

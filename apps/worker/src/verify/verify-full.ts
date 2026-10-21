@@ -13,6 +13,7 @@
  */
 import type { PaperDiscussion, PaperStructure, PathResult, StudyDetail } from "@research-data/schema";
 import type { PdfTextLayer } from "../pdf/text-layer.js";
+import { INDEX_SHIFTED } from "./matrix-index.js";
 import { findRowQuote, type RowQuoteQuery } from "./row-quote.js";
 import {
   type CheckResult,
@@ -194,6 +195,7 @@ export function verifyFull(layer: PdfTextLayer, data: FullData, refs: GroupRefs 
       for (const c of mx.cells) {
         const valid = c.i > c.j && c.i < mx.variables.length;
         addCell(`${k}:r:${c.i},${c.j}`, "r", c.r, ev, { labels: [mx.variables[c.i]], rowNumber: c.i + 1 }, (page) => [
+          ...((mx as Record<string, unknown>)[INDEX_SHIFTED] ? [logicCheck("index_base", true, "Chỉ số ô trong dữ liệu AI đếm từ 1 (có ô i = số biến); máy đã chuyển về 0", "")] : []),
           numberCheck(layer, "number_in_pdf", c.r, page),
           logicCheck("in_range", c.r >= -1 && c.r <= 1, "r trong [−1, 1]", `r = ${c.r} ngoài [−1, 1]`),
           logicCheck("cell_index", valid, "Ô thuộc tam giác dưới của ma trận", `Ô (${c.i}, ${c.j}) không thuộc tam giác dưới của ${mx.variables.length} biến`),
