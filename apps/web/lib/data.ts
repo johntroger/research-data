@@ -13,6 +13,9 @@ export interface Paper {
   page_count: number | null;
   oa_status: string | null;
   license_source: string | null;
+  authors: { given?: string | null; family?: string | null }[];
+  year: number | null;
+  journal: string | null;
 }
 
 export interface CheckResult {
@@ -55,10 +58,23 @@ async function rest<T>(pathAndQuery: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-const PAPER_COLUMNS = "id,doi,title,pdf_path,page_count,oa_status,license_source";
+const PAPER_COLUMNS = "id,doi,title,pdf_path,page_count,oa_status,license_source,authors,year,journal";
 
 export function listPapers(): Promise<Paper[]> {
   return rest<Paper[]>(`papers?select=${PAPER_COLUMNS}&order=created_at.desc`);
+}
+
+/** How many visible fields of each paper are ✓ / ⚠ / ◇ (a view that obeys the visitor's row-level security). */
+export interface BadgeCounts {
+  paper_id: string;
+  verified: number;
+  attention: number;
+  interpreted: number;
+}
+
+export async function listBadgeCounts(): Promise<Map<string, BadgeCounts>> {
+  const rows = await rest<BadgeCounts[]>("paper_badge_counts?select=paper_id,verified,attention,interpreted");
+  return new Map(rows.map((r) => [r.paper_id, r]));
 }
 
 export async function getPaper(id: string): Promise<Paper | null> {

@@ -2,6 +2,14 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.48 (so với 3.9.47)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Trang lỗi thân thiện (`app/error.tsx`):** khi không đọc được dữ liệu (cơ sở dữ liệu chưa bật) hiện hướng dẫn tiếng Việt (mở Docker Desktop, `pnpm db:start`) và nút "Thử lại" thật sự tải lại trang, thay cho lỗi 500 trần. Đã thử bằng cách tắt container REST rồi bật lại | Docker Desktop tự tắt qua đêm nhiều lần; trước đây người dùng chỉ thấy lỗi 500 |
+| 2 | **Thư viện hiển thị thêm** tác giả (năm), tạp chí và số trường ✓ / ⚠ / ◇ của từng bài (view mới `paper_badge_counts` với `security_invoker`, nên khách chỉ thấy số trường hiện được; migration `20261021100000`) | Chọn bài nào để mở thì cần biết bài nào đã được kiểm chứng nhiều |
+| 3 | Test: 1 kiểm tra e2e thư viện (31 e2e xanh), 461 đơn vị, build ok | Kiểm thử |
+
 ### Version 3.9.47 (so với 3.9.46)
 
 | # | Thay đổi | Lý do |

@@ -500,3 +500,9 @@ h1 {
 .sample-list li {
   margin: 6px 0;
 }
+
+/* Library: details and badge counts under each title (step after 3a) */
+.library-counts {
+  font-size: 12px;
+  margin-top: 2px;
+}

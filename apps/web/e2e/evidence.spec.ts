@@ -68,6 +68,9 @@ test.afterAll(async () => {
 
 test("lists the paper in the library and opens its workspace", async ({ page }) => {
   await page.goto("/library");
+  // Each paper shows how many of its visible fields are ✓ / ⚠ / ◇ (the hidden one is not counted for a visitor).
+  await expect(page.getByTestId(`library-${paperId}`).getByTestId("library-counts")).toHaveText("✓ 2 · ⚠ 0 · ◇ 0");
+  await expect(page.getByTestId(`library-${paperId}`)).toContainText("4 trang");
   await page.getByRole("link", { name: "E2E synthetic paper" }).click();
   await expect(page.getByRole("heading", { name: "E2E synthetic paper" })).toBeVisible();
   await expect(page.locator(".site-footer")).toContainText("chỉ để tham khảo");
