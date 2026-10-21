@@ -19,3 +19,4 @@
 | Authentic Brand Ethicality (làm lại từ Gemini, 7 Study; bỏ Study 1 và 6 định tính) | không đo | 0 | 617 | 752 | 26 | Gemini cũ: ✓ 651 ⚠ 408 ◇ 30 ẩn 265. ⚠ tăng vì trang 10 là bảng hồi quy dạng ảnh (518 trường): Codex đọc được ảnh, máy không kiểm chứng được nên ⚠. Khung tô sáng 819/1395 (59%) |
 | How does disclosing the old age of an ethical brand (làm lại từ Gemini, 3 Study) | không đo | 0 | 553 | 115 | 25 | Gemini cũ: ✓ 489 ⚠ 127 ◇ 24 ẩn 19. Khung tô sáng 672/693 (97%) |
 | A multidimensional service-value scale (Holbrook, làm lại từ Gemini) | không đo | 0 | 771 | 3 | 25 | Gemini cũ: ✓ 442 ⚠ 124 ◇ 26 ẩn 109. Ẩn 8. Khung tô sáng 799/799. Chưa đủ: Table 8 và Table 11 là bảng tương quan nhưng chưa trích ma trận |
+| Un/ethical Company and Brand Perceptions (làm lại từ Gemini, 2 Study; bỏ Study 1 định tính) | không đo | 0 | 52 | 6 | 18 | Gemini cũ: ✓ 64 ⚠ 22 ◇ 18 ẩn 2 (3 Study). Ẩn 3 |
