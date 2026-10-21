@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.47 (so với 3.9.46)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Sửa lỗi chỉ số ma trận ABE (Mục 6.10):** `normaliseMatrixIndices` (chuyển ma trận đếm từ 1 về 0 khi có ô i = số biến) và `matrixPositions` + kiểm tra `cell_position` (số phải đúng cột của ô), nối vào `publishExtracted` và `verify-full`; đăng lại 18 bài (sao lưu DB trước) | Kiểm mẫu lần 2: 4 ma trận ABE (288 ô theo dữ liệu đã lưu) gắn lệch một ô nhưng vẫn ✓ |
+| 2 | Kết quả: ABE ✓ 617 → 696, ⚠ 752 → 673; cả kho ✓ 3349, ⚠ 960. 12/12 ô ABE kiểm lại đúng ô. Test: 460 đơn vị, 84 DB | Kiểm thử |
+
 ### Version 3.9.46 (so với 3.9.45)
 
 | # | Thay đổi | Lý do |

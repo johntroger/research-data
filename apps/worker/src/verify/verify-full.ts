@@ -13,6 +13,7 @@
  */
 import type { PaperDiscussion, PaperStructure, PathResult, StudyDetail } from "@research-data/schema";
 import type { PdfTextLayer } from "../pdf/text-layer.js";
+import { matrixPositions } from "./cell-position.js";
 import { INDEX_SHIFTED } from "./matrix-index.js";
 import { findRowQuote, type RowQuoteQuery } from "./row-quote.js";
 import {
@@ -192,9 +193,17 @@ export function verifyFull(layer: PdfTextLayer, data: FullData, refs: GroupRefs 
       add(`${k}:n`, "n", "T1", mx.n, ev, num("number_in_pdf", mx.n));
       add(`${k}:diagonal_type`, "diagonal_type", "T2", mx.diagonal_type, ev);
       add(`${k}:correlation_type`, "correlation_type", "T2", mx.correlation_type, ev);
-      for (const c of mx.cells) {
+      // The row of each cell, then where in its row each value sits: the layout of the print is read from the whole matrix.
+      const rowOf = mx.cells.map((c) => (ev ? findRowQuote(layer, ev.pdf_page, { value: c.r, labels: [mx.variables[c.i]], rowNumber: c.i + 1 }) : null));
+      const withRow = mx.cells.flatMap((c, n) => (rowOf[n] ? [{ n, row: { line: rowOf[n]!.quote, i: c.i, j: c.j, value: c.r, rowNumber: c.i + 1 } }] : []));
+      const placed = matrixPositions(withRow.map((w) => w.row), mx.variables.length);
+      const position = new Map(withRow.map((w, n) => [w.n, placed[n]!]));
+      for (const [n, c] of mx.cells.entries()) {
         const valid = c.i > c.j && c.i < mx.variables.length;
+        const where = position.get(n);
         addCell(`${k}:r:${c.i},${c.j}`, "r", c.r, ev, { labels: [mx.variables[c.i]], rowNumber: c.i + 1 }, (page) => [
+          ...(where === "ok" ? [logicCheck("cell_position", true, "Số nằm đúng cột của ô trong dòng của bảng", "")] : []),
+          ...(where === "off" ? [logicCheck("cell_position", false, "", `Số ${c.r} có trên dòng nhưng không ở đúng cột của ô (${c.i}, ${c.j}); ô có thể bị lệch hoặc dòng thuộc bảng con khác`)] : []),
           ...((mx as Record<string, unknown>)[INDEX_SHIFTED] ? [logicCheck("index_base", true, "Chỉ số ô trong dữ liệu AI đếm từ 1 (có ô i = số biến); máy đã chuyển về 0", "")] : []),
           numberCheck(layer, "number_in_pdf", c.r, page),
           logicCheck("in_range", c.r >= -1 && c.r <= 1, "r trong [−1, 1]", `r = ${c.r} ngoài [−1, 1]`),

@@ -115,6 +115,14 @@ describe("verifyFull catches wrong extractions", () => {
     }
   });
 
+  it("checks that each matrix value sits in the column of its cell, and says so (Mục 6.10)", () => {
+    const rows = run(p01, () => undefined);
+    for (const k of ["1,0", "2,0", "2,1"]) {
+      const check = badgeOf(rows, `study_1:corr:table_2:r:${k}`).checks.find((c) => c.name === "cell_position");
+      expect(check?.passed).toBe(true);
+    }
+  });
+
   it("gives ⚠ when no row of the table can be told to hold the value, and keeps the AI's quote", () => {
     // 0.48 is printed on two lines (the matrix row and the H1 line); a variable the table does not list names neither.
     const rows = run(p01, (d) => {
