@@ -152,6 +152,20 @@ test("the viewer has page, zoom and highlight controls and a link to the browser
   await expect(page.getByTestId("pdf-highlight")).toHaveCount(1);
 });
 
+test("on a phone the PDF comes into view when a value is tapped", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto(`/papers/${paperId}`);
+  await page.getByTestId("tab-results").click();
+  const pane = page.getByRole("region", { name: "PDF gốc" });
+  const top = async () => (await pane.boundingBox())!.y;
+  const before = await top();
+  await page.getByTestId("field-study_1:h2:risk->intention").click();
+  // The page scrolls so that the PDF pane starts at the top of the screen.
+  await expect.poll(top).toBeLessThan(Math.min(before, 120));
+  // No sideways scrolling on a phone.
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
+});
+
 test("hidden fields are not shown to visitors", async ({ page }) => {
   await page.goto(`/papers/${paperId}`);
   await expect(page.getByTestId("field-study_1:sample_size")).toBeVisible();

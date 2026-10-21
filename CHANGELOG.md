@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.49 (so với 3.9.48)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Điện thoại:** chạm một giá trị thì trang tự cuộn tới khung PDF (hai khung xếp chồng khi màn hình ≤ 900 px, PDF nằm dưới danh sách giá trị nên trước đây phải tự cuộn). Đã kiểm trên bề rộng 375 px: trang chủ, thư viện và trang bài không bị tràn ngang. Thêm 1 test e2e (32 e2e xanh) | Rà giao diện trên màn hình hẹp |
+| 2 | Chuẩn bị gói Codex `montecchi` (bài thực nghiệm nhiều Study chưa có bản trích xuất đầy đủ) để chạy khi chủ dự án rảnh | Bài Montecchi 2024 là bài có dữ liệu thật nhưng đang chỉ có vài trường |
+
 ### Version 3.9.48 (so với 3.9.47)
 
 | # | Thay đổi | Lý do |

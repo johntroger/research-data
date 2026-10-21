@@ -98,6 +98,7 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
   const [split, setSplit] = useState(SPLIT_DEFAULT);
   const [dragging, setDragging] = useState(false);
   const container = useRef<HTMLDivElement>(null);
+  const pdfPane = useRef<HTMLElement>(null);
 
   // The remembered width is read after the first render, so the server and the browser draw the same page first.
   useEffect(() => {
@@ -182,6 +183,8 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
                 onClick={() => {
                   setSelectedId(field.id);
                   setVisit((v) => v + 1);
+                  // On a narrow screen the PDF sits below the values (the panes are stacked): bring it into view.
+                  if (window.matchMedia("(max-width: 900px)").matches) pdfPane.current?.scrollIntoView({ behavior: "smooth", block: "start" });
                 }}
               >
                 <div className="field-head">
@@ -220,7 +223,7 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
         onKeyDown={onKeyDown}
       />
 
-      <section className="pdf-pane" aria-label="PDF gốc">
+      <section ref={pdfPane} className="pdf-pane" aria-label="PDF gốc">
         <PdfViewer
           paperId={paperId}
           page={page}
