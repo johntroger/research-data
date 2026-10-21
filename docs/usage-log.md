@@ -17,3 +17,4 @@
 | Does Having an Ethical Brand Matter (làm lại từ Gemini) | không đo | 0 | 74 | 4 | 19 | Gemini cũ: ✓ 80 ⚠ 17 ◇ 17 ẩn 5. Khung tô sáng 97/97 |
 | Enhance green purchase intentions (làm lại từ Gemini) | không đo | 0 | 67 | 17 | 19 | Gemini cũ: ✓ 80 ⚠ 25 ◇ 18. Khung tô sáng 78/103 (76%) |
 | Authentic Brand Ethicality (làm lại từ Gemini, 7 Study; bỏ Study 1 và 6 định tính) | không đo | 0 | 617 | 752 | 26 | Gemini cũ: ✓ 651 ⚠ 408 ◇ 30 ẩn 265. ⚠ tăng vì trang 10 là bảng hồi quy dạng ảnh (518 trường): Codex đọc được ảnh, máy không kiểm chứng được nên ⚠. Khung tô sáng 819/1395 (59%) |
+| How does disclosing the old age of an ethical brand (làm lại từ Gemini, 3 Study) | không đo | 0 | 553 | 115 | 25 | Gemini cũ: ✓ 489 ⚠ 127 ◇ 24 ẩn 19. Khung tô sáng 672/693 (97%) |
