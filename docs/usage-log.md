@@ -21,3 +21,4 @@
 | A multidimensional service-value scale (Holbrook, làm lại từ Gemini) | không đo | 0 | 771 | 3 | 25 | Gemini cũ: ✓ 442 ⚠ 124 ◇ 26 ẩn 109. Ẩn 8. Khung tô sáng 799/799. Chưa đủ: Table 8 và Table 11 là bảng tương quan nhưng chưa trích ma trận |
 | Un/ethical Company and Brand Perceptions (làm lại từ Gemini, 2 Study; bỏ Study 1 định tính) | không đo | 0 | 52 | 6 | 18 | Gemini cũ: ✓ 64 ⚠ 22 ◇ 18 ẩn 2 (3 Study). Ẩn 3 |
 | How does the Perceived Ethicality of Corporate Services Brands (Markovic, làm lại từ Gemini) | không đo | 0 | 192 | 24 | 21 | Gemini cũ: ✓ 162 ⚠ 15 ◇ 18 ẩn 6. Ẩn 5. ⚠ tăng 9 nhưng ✓ tăng 30 |
+| jtaer (AI influencer, làm lại từ Gemini) | không đo | 0 | 135 | 1 | 21 | Gemini cũ: ✓ 146 ⚠ 2 ◇ 23 ẩn 14. Ẩn 0; ít trường hơn (157 so với 185) |
