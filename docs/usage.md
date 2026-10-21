@@ -31,3 +31,25 @@ Gemini API chỉ là dự phòng (trần 25 USD, đã chi 14,86); không chạy 
 - Báo cáo: số phút mỗi bài, tỷ lệ ✓ / ⚠ / ◇, các góp ý trong [usage-log.md](usage-log.md).
 
 Góp ý giao diện: nói trong lúc dùng, Claude Code ghi vào [usage-log.md](usage-log.md); cuối đợt gom lại và đề xuất sửa từng việc một.
+
+## Hàng đợi bài mới (21/10/2026)
+
+15 bài từ 7 thư mục Zotero mới đã nạp (không tốn API) và đã có gói Codex sẵn trong `C:\Projects\Research Data Packets\`. Thứ tự đề xuất (bài thực nghiệm ngắn trước, bài lý thuyết sau); có thể mở nhiều phiên Codex song song, mỗi phiên một thư mục gói.
+
+| # | Gói | Bài | Trang |
+| :--- | :--- | :--- | :--- |
+| 1 | chain-effects | The Chain of Effects from Brand Trust and Brand Affect to Brand Performance (2001) | 14 |
+| 2 | brand-integrity | Inferring brand integrity from marketing communications (2020) | 11 |
+| 3 | ewom-scale | e-WOM Scale (2010) | 19 |
+| 4 | ethics-retail | The Ethics of Online Retailing: Scale Development (2007) | 18 |
+| 5 | brand-transparency | Brand Transparency as a Driver of Socially Conscious Purchasing | 18 |
+| 6 | beyond-info | Beyond information availability: consumer perceived brand transparency (2024) | 15 |
+| 7 | csr-emotions | CSR, emotions, and consumer loyalty in the food retail sector (2021) | 19 |
+| 8 | ethical-csr | Ethical CSR and customer loyalty (2021) | 23 |
+| 9 | cool-brands | The role of brand gratitude with cool brands (2024) | 17 |
+| 10 | customer-gratitude | The Role of Customer Gratitude in Relationship Marketing (2009) | 19 |
+| 11 | price-brand | Effects of Price, Brand, and Store Information on Buyers' Product Evaluations (1991) | 13 |
+| 12 | complaining | Complaining to the Masses: Protest Framing (2006) | 11 |
+| 13 | elevation | Experimentally distinguishing elevation from gratitude (2014) | 15 |
+| 14 | brand-community | Brand Community (2001, định tính) | 22 |
+| 15 | gratitude-model | A social-cognitive model of trait and state levels of gratitude (2008, lý thuyết) | 37 |
