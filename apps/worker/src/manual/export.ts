@@ -13,11 +13,11 @@ export interface PaperRow {
   title: string | null;
 }
 
-/** The one paper whose title contains `query` or whose file hash starts with it. */
+/** The one paper whose title contains `query` or whose file hash starts with it (a paper without a title: whose file name contains it). */
 export async function findPaper(db: pg.Client, query: string): Promise<PaperRow> {
   const q = query.toLowerCase();
   const res = await db.query<{ file_hash: string; pdf_path: string; title: string | null }>("select file_hash, pdf_path, title from papers where pdf_path is not null order by created_at");
-  const hits = res.rows.filter((r) => r.file_hash.startsWith(q) || (r.title ?? "").toLowerCase().includes(q));
+  const hits = res.rows.filter((r) => r.file_hash.startsWith(q) || (r.title ?? "").toLowerCase().includes(q) || (!r.title && r.pdf_path.toLowerCase().includes(q)));
   if (hits.length !== 1) throw new Error(`--paper "${query}" matches ${hits.length} papers (need exactly one)`);
   const r = hits[0]!;
   return { fileHash: r.file_hash, pdfPath: r.pdf_path, title: r.title };
