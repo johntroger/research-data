@@ -68,3 +68,23 @@ describe("buildPacket", () => {
     }
   });
 });
+
+describe("page texts in the packet", () => {
+  const base = { code: "Q-test", fileHash: "a".repeat(64), title: "T", pdf: new Uint8Array([1, 2, 3]) };
+
+  it("adds one text file per page and tells the extractor to copy quotes from them", () => {
+    const files = buildPacket({ ...base, pageTexts: [{ text: "First page text", rows: "First page rows" }, { text: "Second", rows: "Second rows" }] });
+    expect(files.map((f) => f.path)).toEqual(expect.arrayContaining(["text/page-01.txt", "text/page-02.txt"]));
+    const page = text(files, "text/page-02.txt");
+    expect(page).toContain("PAGE 2: TEXT IN READING ORDER");
+    expect(page).toContain("Second");
+    expect(page).toContain("VISUAL ROWS");
+    expect(text(files, "INSTRUCTIONS.md")).toMatch(/folder `text\/` has the text of every page/);
+  });
+
+  it("is the same packet as before when there are no page texts", () => {
+    const files = buildPacket(base);
+    expect(files.some((f) => f.path.startsWith("text/"))).toBe(false);
+    expect(text(files, "INSTRUCTIONS.md")).not.toMatch(/text\//);
+  });
+});

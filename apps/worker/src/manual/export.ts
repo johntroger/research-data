@@ -5,6 +5,7 @@
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type pg from "pg";
+import { readTextLayer } from "../pdf/text-layer.js";
 import { buildPacket, PACKET_FILES, type PacketFile } from "./packet.js";
 
 export interface PaperRow {
@@ -52,6 +53,6 @@ export async function exportPacket(db: pg.Client, opts: { repoRoot: string; pack
   const paper = await findPaper(db, opts.paper);
   const code = opts.code ?? paper.fileHash.slice(0, 12);
   const pdf = new Uint8Array(await readFile(path.join(opts.repoRoot, paper.pdfPath)));
-  const dir = await writePacket(opts.packetsRoot, code, buildPacket({ code, fileHash: paper.fileHash, title: paper.title, pdf }), { force: opts.force ?? false });
+  const dir = await writePacket(opts.packetsRoot, code, buildPacket({ code, fileHash: paper.fileHash, title: paper.title, pdf, pageTexts: (await readTextLayer(pdf)).pages.map((p) => ({ text: p.text, rows: p.rowText })) }), { force: opts.force ?? false });
   return { dir, paper, code };
 }

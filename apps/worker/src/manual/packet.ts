@@ -13,6 +13,8 @@ export interface PacketInput {
   fileHash: string;
   title: string | null;
   pdf: Uint8Array;
+  /** The text of each page as our checker reads it (reading order, then visual rows): quotes copied from it pass the check. */
+  pageTexts?: { text: string; rows: string }[];
 }
 
 export interface PacketFile {
@@ -39,10 +41,22 @@ export const paperFileName = (pass: "paper_structure" | "paper_discussion") => `
 /** Name of the answer file of one part of a study (studies are numbered from 1, in the order of paper_structure). */
 export const studyFileName = (studyNumber: number, part: StudyPartName) => `study_${studyNumber}_${part}.json`;
 
+/** Text copy of page n (1-based) of the PDF, inside `text/`. */
+export const pageTextFileName = (page: number) => `text/page-${String(page).padStart(2, "0")}.txt`;
+
 export const schemaFileName = (pass: ExtractionSchemaName) => `schemas/${pass}.schema.json`;
 
 export function packetMeta(input: PacketInput): PacketMeta {
   return { code: input.code, fileHash: input.fileHash, title: input.title, promptVersion: FULL_PROMPT_VERSION, schemaVersion: SCHEMA_VERSION, codebookVersion: CODEBOOK_VERSION };
+}
+
+/** The extra rule that points at the page texts, when the packet has them. */
+function pageTextRule(input: PacketInput): string {
+  if (!input.pageTexts) return "";
+  return (
+    "\n* The folder `text/` has the text of every page (`page-NN.txt`, NN = pdf_page): first the text in reading order, then the same page as visual rows (use the rows for tables). " +
+    'A checker compares your quotes with exactly this text, so copy quotes from these files character for character (also odd characters such as ligatures, "!" or "->" standing for an arrow) and use the PDF itself for layout, tables and figures.'
+  );
 }
 
 const oneLine = (text: string) => text.replace(/\s*\n\s*/g, " ");
@@ -69,7 +83,7 @@ ${FULL_INSTRUCTIONS}
 * If numbers are only in a figure or image and you cannot read them reliably, return null for them. Never guess.
 * Each output file contains ONE JSON object, exactly matching the JSON Schema named for that file: no markdown fences, no comments, no text around it, UTF-8.
 * Field names, enum values and nesting must follow the schema exactly. Use null for unreported values where the schema allows it.
-* A quote must be a single continuous passage that appears in the PDF (see rule 3). Copy it as printed, also when a word is split by a hyphen at the end of a line.
+* A quote must be a single continuous passage that appears in the PDF (see rule 3). Copy it as printed, also when a word is split by a hyphen at the end of a line.${pageTextRule(input)}
 
 ## Work order (write every file into \`${PACKET_FILES.out}/\`, with exactly these names)
 
@@ -112,6 +126,12 @@ export function buildPacket(input: PacketInput): PacketFile[] {
     { path: PACKET_FILES.instructions, content: instructions(input) },
     { path: PACKET_FILES.agents, content: agents },
   ];
+  (input.pageTexts ?? []).forEach((page, i) => files.push({ path: pageTextFileName(i + 1), content: `=== PAGE ${i + 1}: TEXT IN READING ORDER ===
+${page.text}
+
+=== PAGE ${i + 1}: VISUAL ROWS (tables) ===
+${page.rows}
+` }));
   for (const pass of Object.keys(EXTRACTION_SCHEMAS) as ExtractionSchemaName[]) {
     files.push({ path: schemaFileName(pass), content: `${JSON.stringify(toGeminiJsonSchema(EXTRACTION_SCHEMAS[pass]), null, 2)}\n` });
   }
