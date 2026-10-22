@@ -254,6 +254,16 @@ Kiểm lại: cả 7 ca sai dòng trong phạm vi của mẫu 30 nay trỏ đún
 * **Giới hạn:** mẫu rất nhỏ (12 trường, 2 bài, một model chấm); chưa có so sánh trực tiếp trên cùng một bài với Codex; khung tô sáng của csr-emotions chỉ định vị 45% vì bảng ở trang 11 (486 trường) có dòng không khớp bố cục máy dựng; chain-effects chưa nhập vì là bản scan OCR.
 * **Đã nhập:** csr-emotions (2 Study) và brand-integrity (6 Study) với nguồn `manual:claude:claude-opus-subagent`. Chưa mở rộng sang 13 bài còn lại (chủ dự án chờ Codex có token).
 
+**Lô hàng đợi 13 bài bằng tác tử Claude (22/10/2026):** gói có `text/page-NN.txt`; quy tắc của chủ dự án: tỷ lệ vấn đề ≤ 20% thì nhập tự động, cao hơn thì giữ lại và báo.
+
+| Kết quả | Bài (tỷ lệ vấn đề) |
+| :--- | :--- |
+| Đã nhập (10) | ewom-scale 4,1% · chain-effects 5,6% (bản scan OCR, lượt thử trước không có văn bản trang là 44%) · ethics-retail 4,5% · brand-transparency 2,3% · ethical-csr 8,0% · beyond-info 2,5% · cool-brands 1,5% · customer-gratitude 4,5% · brand-community 6,2% · elevation 10,9% |
+| Giữ lại (2) | complaining 40,6% (13 mục đo lường "khung" không có bằng chứng nên ẩn; 43 trường còn lại ổn) · gratitude-model 26,4% (38 trường ẩn: số trong hình đọc từ lệnh vẽ của PDF) |
+| Không làm được (1) | price-brand (Dodds 1991): bản scan ảnh, không có lớp chữ (cần OCR chưa cài) |
+
+**Lỗi hệ thống tìm thấy trong lô:** nhiều PDF lưu dấu trừ trong phông ký hiệu thành ký tự NUL (U+0000), làm cơ sở dữ liệu từ chối nhập (lỗi UTF8) và làm hỏng kiểm tra số âm. Đã sửa: lớp chữ, khung tô sáng và bước nhập đều đọc NUL thành dấu trừ (`fixNul`); beyond-info từ ẩn 21 còn 5.
+
 ## 12. TÀI LIỆU THAM KHẢO PHƯƠNG PHÁP LUẬN (dùng cho Codebook)
 
 * Alvesson, M., & Sandberg, J. (2011). Generating research questions through problematization. *Academy of Management Review, 36*(2), 247–271.

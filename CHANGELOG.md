@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.54 (so với 3.9.53)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Lô 13 bài hàng đợi bằng tác tử Claude (Mục 6.11):** nhập 10 bài (tỷ lệ vấn đề 1,5% đến 10,9%); giữ complaining (40,6%) và gratitude-model (26,4%) chờ chủ dự án; price-brand là bản scan ảnh nên không làm được. Cả kho 36 bài, 9461 trường (✓ 7214 · ⚠ 1167 · ◇ 712 · ẩn 368), 899 đường dẫn hiển thị | Theo quy tắc chủ dự án chốt 22/10/2026 |
+| 2 | **Sửa lỗi NUL = dấu trừ** trong lớp chữ PDF (`fixNul`, khung tô sáng, nhập câu trả lời); 1 test mới, 466 đơn vị xanh | PDF lưu dấu trừ trong phông ký hiệu thành ký tự NUL; cơ sở dữ liệu từ chối và số âm bị ẩn |
+
 ### Version 3.9.53 (so với 3.9.52)
 
 | # | Thay đổi | Lý do |
