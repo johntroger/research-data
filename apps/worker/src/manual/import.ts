@@ -80,7 +80,8 @@ export async function loadAnswers(dir: string, meta: PacketMeta, who: Provenance
   const calls: CallRecord[] = [];
   const read = async <S extends ExtractionSchemaName>(file: string, pass: S, studyLabel: string | null) => {
     const text = await readFile(path.join(dir, PACKET_FILES.out, file), "utf8");
-    const parsed = parseAnswer(pass, text);
+    // A NUL in a quote (copied from a page text) is a minus sign that the PDF stored in a symbol font; a database cannot hold it.
+    const parsed = parseAnswer(pass, text.replaceAll("\\u0000", "\\u2212").replaceAll("\u0000", "\u2212"));
     if (!parsed.ok) throw new Error(`${file}: ${parsed.error}`); // cannot happen after a successful check
     hash.update(`${file}\0${text}\0`);
     calls.push({ pass, studyLabel, usage: { inputTokens: 0, outputTokens: 0 }, costUsd: 0, rawText: text, durationMs: 0, ...(parsed.shortened.length ? { shortenedQuotes: parsed.shortened } : {}) });

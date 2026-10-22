@@ -77,6 +77,10 @@ interface Segment {
   y: number;
 }
 
+/** A minus sign set in a symbol font can come out of the PDF as a NUL character (U+0000); it is a minus (a database refuses NUL anyway). */
+export const fixNul = (text: string): string => text.replace(/\u0000/g, "\u2212");
+const minusFromNul = <T extends { str?: string }>(item: T): T => ("str" in item && typeof item.str === "string" && item.str.includes("\u0000") ? { ...item, str: fixNul(item.str) } : item);
+
 export function sha256(bytes: Uint8Array): string {
   return createHash("sha256").update(bytes).digest("hex");
 }
@@ -308,7 +312,7 @@ export async function readTextLayer(bytes: Uint8Array): Promise<PdfTextLayer> {
     // Text turned a quarter circle: read upwards (b > 0) or downwards (b < 0), each in its own frame.
     type Turned = { str: string; e: number; f: number; width: number; size: number };
     const turned: { up: Turned[]; down: Turned[] } = { up: [], down: [] };
-    for (const item of content.items) {
+    for (const item of content.items.map((it) => minusFromNul(it as { str?: string }) as typeof it)) {
       if (!("str" in item) || !item.str.trim()) continue;
       const [a = 1, b = 0, c = 0, d = 0, e = 0, f = 0] = item.transform;
       if (Math.abs(b) > 1e-3 || Math.abs(c) > 1e-3 || a < 0) {

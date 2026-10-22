@@ -24,3 +24,10 @@
 | How does the Perceived Ethicality of Corporate Services Brands (Markovic, làm lại từ Gemini) | không đo | 0 | 192 | 24 | 21 | Gemini cũ: ✓ 162 ⚠ 15 ◇ 18 ẩn 6. Ẩn 5. ⚠ tăng 9 nhưng ✓ tăng 30 |
 | jtaer (AI influencer, làm lại từ Gemini) | không đo | 0 | 135 | 1 | 21 | Gemini cũ: ✓ 146 ⚠ 2 ◇ 23 ẩn 14. Ẩn 0; ít trường hơn (157 so với 185) |
 | Montecchi et al. 2024 (Perceived brand transparency; trước chỉ có 18 trường kiểu cũ) | không đo | 0 | 481 | 52 | 22 | 7 Study, 559 trường, ẩn 4 (trước: 18 trường). Nhập tự động theo quyền chủ động của chủ dự án |
+| e-WOM Scale (2010) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 70 | 3 | 17 | ẩn 0, tỷ lệ vấn đề 4.1%; Tổng: 90/90 câu trích được định vị (100%). |
+| The Chain of Effects from Brand Trust and Brand Affect to Brand Performance (2001, scan OCR) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 151 | 3 | 24 | ẩn 6, tỷ lệ vấn đề 5.6%; Tổng: 143/178 câu trích được định vị (80.3%). |
+| The Ethics of Online Retailing: Scale Development (2007) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 191 | 9 | 26 | ẩn 0, tỷ lệ vấn đề 4.5%; Tổng: 226/226 câu trích được định vị (100%). |
+| Brand Transparency as a Driver of Socially Conscious Purchasing (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 384 | 9 | 20 | ẩn 0, tỷ lệ vấn đề 2.3%; Tổng: 413/413 câu trích được định vị (100%). |
+| Relationship between ethical CSR and customer loyalty (2021) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 104 | 9 | 21 | ẩn 0, tỷ lệ vấn đề 8.0%; Tổng: 134/134 câu trích được định vị (100%). |
+| Beyond information availability: consumer perceived brand transparency (2024) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 345 | 4 | 27 | ẩn 5, tỷ lệ vấn đề 2.5%; Tổng: 376/376 câu trích được định vị (100%). |
+| The role of brand gratitude with cool brands (2024) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 196 | 3 | 36 | ẩn 0, tỷ lệ vấn đề 1.5%; Tổng: 235/235 câu trích được định vị (100%). |

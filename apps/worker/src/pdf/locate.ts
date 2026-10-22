@@ -10,7 +10,7 @@
 import { getDocumentProxy } from "unpdf";
 import { normaliseForMatch } from "../verify/normalize.js";
 import { FUZZY_THRESHOLD, tokenEditDistance } from "../verify/quote.js";
-import { findGutter } from "./text-layer.js";
+import { findGutter, fixNul } from "./text-layer.js";
 
 /** x0, y0, x1, y1. */
 export type Rect = [number, number, number, number];
@@ -51,17 +51,18 @@ export async function readPageItems(bytes: Uint8Array): Promise<PageItems[]> {
     const items: PageItem[] = [];
     for (const item of content.items) {
       if (!("str" in item) || !item.str.trim()) continue;
+      const str = fixNul(item.str);
       const [a = 1, b = 0, c = 0, d = 0, e = 0, f = 0] = item.transform;
       const w = item.width;
       if (Math.abs(b) <= 1e-3 && Math.abs(c) <= 1e-3 && a > 0) {
         const size = Math.abs(d) || item.height || 0;
-        items.push({ str: item.str, rect: [e, f - DESCENT * size, e + w, f + ASCENT * size], dir: "none", size });
+        items.push({ str, rect: [e, f - DESCENT * size, e + w, f + ASCENT * size], dir: "none", size });
       } else if (Math.abs(a) < 1e-3 && Math.abs(d) < 1e-3 && b > 0 && c < 0) {
         const size = Math.abs(c); // reads upwards, the top of the letters points left
-        items.push({ str: item.str, rect: [e - ASCENT * size, f, e + DESCENT * size, f + w], dir: "up", size });
+        items.push({ str, rect: [e - ASCENT * size, f, e + DESCENT * size, f + w], dir: "up", size });
       } else if (Math.abs(a) < 1e-3 && Math.abs(d) < 1e-3 && b < 0 && c > 0) {
         const size = Math.abs(c); // reads downwards, the top of the letters points right
-        items.push({ str: item.str, rect: [e - DESCENT * size, f - w, e + ASCENT * size, f], dir: "down", size });
+        items.push({ str, rect: [e - DESCENT * size, f - w, e + ASCENT * size, f], dir: "down", size });
       }
     }
     pages.push({ width, height, items });

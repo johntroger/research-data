@@ -256,3 +256,11 @@ describe("tables printed sideways (step 1.9d)", () => {
     expect(page.text).toBe("An ordinary paragraph of the paper.");
   });
 });
+
+describe("a minus sign stored as NUL (symbol font)", () => {
+  it("is read as a minus sign, so quotes and numbers match and databases accept the text", async () => {
+    const { fixNul } = await import("./text-layer.js");
+    expect(fixNul("r = \u0000 0.29, \u0000.12")).toBe("r = − 0.29, −.12");
+    expect(fixNul("no nul here")).toBe("no nul here");
+  });
+});
