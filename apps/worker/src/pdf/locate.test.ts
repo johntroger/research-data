@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PAGE_HEIGHT, PAGE_WIDTH, renderPdf, type PageSpec } from "../synthetic/render.js";
-import { locateQuote, readPageItems, type Rect } from "./locate.js";
+import { locateOnPage, locateQuote, type PageItem, type PageItems, readPageItems, type Rect } from "./locate.js";
 
 async function locate(pages: PageSpec[], quote: string, citedPage: number) {
   const bytes = await renderPdf({ title: "t", pages });
@@ -85,5 +85,25 @@ describe("locating a quote on its page (step 3a.3)", () => {
     expect(await locate([body, other, other, other], "Employees reported lower burnout after the intervention", 1)).toBeNull();
     expect(await locate([other, other, other, body], "Brand trust increases loyalty among young consumers", 1)).toBeNull();
     expect(await locate([body], "", 1)).toBeNull();
+  });
+});
+
+describe("a sideways table stored cell by cell (step 3a.3 follow-up)", () => {
+  // Items of one turned line (reads upwards: increasing y), stored in an order that does not follow the line.
+  const item = (str: string, y: number, x = 222): PageItem => ({ str, rect: [x, y, x + 6, y + str.length * 4], dir: "up", size: 6 });
+  const page = (items: PageItem[]): PageItems => ({ width: 595, height: 782, items });
+
+  it("finds a row whose cells are stored out of order", () => {
+    const row = [item("CSR perceptions", 54), item("0.70", 106), item("** /0.07/", 130), item("0.52", 170), item("** /0.07/", 194)];
+    const other = [item("Age", 54, 232), item("0.30", 106, 232)];
+    const stored = [row[3]!, other[0]!, row[0]!, row[4]!, other[1]!, row[2]!, row[1]!]; // scrambled across two lines
+    const rects = locateOnPage(page(stored), "CSR perceptions 0.70 ** /0.07/ 0.52 ** /0.07/");
+    expect(rects).toHaveLength(1);
+    expect(rects![0]![1]).toBeLessThan(60); // starts at the first cell of the row
+    expect(rects![0]![3]).toBeGreaterThan(194);
+  });
+
+  it("still gives null for a row that is not on the page", () => {
+    expect(locateOnPage(page([item("CSR perceptions", 54), item("0.70", 106)]), "CSR perceptions 0.99")).toBeNull();
   });
 });

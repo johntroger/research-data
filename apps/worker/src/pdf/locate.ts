@@ -173,9 +173,30 @@ function rowOrder(items: PageItem[]): PageItem[] {
   return rows.flatMap((r) => r.sort((a, b) => a.rect[0] - b.rect[0]));
 }
 
+/**
+ * Text turned a quarter circle (a sideways table), line by line: a line is the items sharing one column of the page, read
+ * along the turn (upwards: increasing y; downwards: decreasing y). The PDF may store such a table cell by cell across rows,
+ * so the stored order does not give a row.
+ */
+function turnedOrder(items: PageItem[]): PageItem[] {
+  const out: PageItem[] = [];
+  for (const dir of ["up", "down"] as const) {
+    const turned = items.filter((i) => i.dir === dir);
+    const lines: PageItem[][] = [];
+    for (const item of [...turned].sort((a, b) => (a.rect[0] + a.rect[2]) / 2 - (b.rect[0] + b.rect[2]) / 2)) {
+      const line = lines.at(-1);
+      if (line && Math.abs((line[0]!.rect[0] + line[0]!.rect[2]) / 2 - (item.rect[0] + item.rect[2]) / 2) <= 0.5 * Math.max(item.size, 1)) line.push(item);
+      else lines.push([item]);
+    }
+    for (const line of dir === "up" ? lines : lines.reverse()) out.push(...line.sort((a, b) => (dir === "up" ? a.rect[1] - b.rect[1] : b.rect[1] - a.rect[1])));
+  }
+  return out;
+}
+
 /** The ways to read a page: the order the PDF stores the text, row by row, and column by column on a two-column page. */
 function readings(page: PageItems): Token[][] {
   const orders: PageItem[][] = [page.items, rowOrder(page.items)];
+  if (page.items.some((i) => i.dir !== "none")) orders.push(turnedOrder(page.items));
   const upright = page.items.filter((i) => i.dir === "none");
   const gutter = findGutter(upright.map((i) => ({ x0: i.rect[0], x1: i.rect[2], y: i.rect[1] })), page.width);
   if (gutter !== null) {

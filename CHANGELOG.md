@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.52 (so với 3.9.51)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Khung tô sáng cho bảng xoay ngang lưu theo từng ô:** `pdf/locate.ts` thêm cách đọc `turnedOrder` (gom chữ xoay thành từng dòng theo cột trang, đọc theo chiều xoay) vì file PDF có thể lưu ô này sang ô khác chứ không theo dòng. Kết quả: csr-emotions 45% → 100% (759/759); cả kho 5787/6561 trường có câu trích được định vị (88,2%). 2 test mới (11 test locate) | Bảng trang 11 của csr-emotions (486 trường) không có khung |
+
 ### Version 3.9.51 (so với 3.9.50)
 
 | # | Thay đổi | Lý do |
