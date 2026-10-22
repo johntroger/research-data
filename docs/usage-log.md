@@ -31,3 +31,4 @@
 | Relationship between ethical CSR and customer loyalty (2021) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 104 | 9 | 21 | ẩn 0, tỷ lệ vấn đề 8.0%; Tổng: 134/134 câu trích được định vị (100%). |
 | Beyond information availability: consumer perceived brand transparency (2024) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 345 | 4 | 27 | ẩn 5, tỷ lệ vấn đề 2.5%; Tổng: 376/376 câu trích được định vị (100%). |
 | The role of brand gratitude with cool brands (2024) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 196 | 3 | 36 | ẩn 0, tỷ lệ vấn đề 1.5%; Tổng: 235/235 câu trích được định vị (100%). |
+| The Role of Customer Gratitude in Relationship Marketing (2009) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 381 | 17 | 31 | ẩn 1, tỷ lệ vấn đề 4.5%; Tổng: 427/429 câu trích được định vị (99.5%). |

@@ -78,7 +78,7 @@ interface Segment {
 }
 
 /** A minus sign set in a symbol font can come out of the PDF as a NUL character (U+0000); it is a minus (a database refuses NUL anyway). */
-export const fixNul = (text: string): string => text.replace(/\u0000/g, "\u2212");
+export const fixNul = (text: string): string => text.replaceAll("\u0000", "\u2212");
 const minusFromNul = <T extends { str?: string }>(item: T): T => ("str" in item && typeof item.str === "string" && item.str.includes("\u0000") ? { ...item, str: fixNul(item.str) } : item);
 
 export function sha256(bytes: Uint8Array): string {
