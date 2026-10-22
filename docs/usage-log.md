@@ -32,3 +32,5 @@
 | Beyond information availability: consumer perceived brand transparency (2024) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 345 | 4 | 27 | ẩn 5, tỷ lệ vấn đề 2.5%; Tổng: 376/376 câu trích được định vị (100%). |
 | The role of brand gratitude with cool brands (2024) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 196 | 3 | 36 | ẩn 0, tỷ lệ vấn đề 1.5%; Tổng: 235/235 câu trích được định vị (100%). |
 | The Role of Customer Gratitude in Relationship Marketing (2009) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 381 | 17 | 31 | ẩn 1, tỷ lệ vấn đề 4.5%; Tổng: 427/429 câu trích được định vị (99.5%). |
+| Brand Community (2001, định tính) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 15 | 1 | 30 | ẩn 0, tỷ lệ vấn đề 6.2%; Tổng: 46/46 câu trích được định vị (100%). |
+| Experimentally distinguishing elevation from gratitude (2014) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 352 | 40 | 13 | ẩn 3, tỷ lệ vấn đề 10.9%; Tổng: 405/405 câu trích được định vị (100%). |
