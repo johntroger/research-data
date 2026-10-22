@@ -237,6 +237,23 @@ Kiểm lại: cả 7 ca sai dòng trong phạm vi của mẫu 30 nay trỏ đún
 
 **Sửa lỗi chỉ số ABE (21/10/2026):** `verify/matrix-index.ts` (`normaliseMatrixIndices`, gọi đầu `publishExtracted`) chuyển một ma trận về chỉ số từ 0 khi có ô i bằng số biến (bằng chứng chắc chắn là đếm từ 1); dữ liệu đã lưu không bị sửa, mỗi ô được chuyển có kiểm tra `index_base` ghi rõ điều đó. `verify/cell-position.ts` (`matrixPositions`) chọn một bố cục in cho cả ma trận (vuông, tam giác dưới, có hoặc không đường chéo; số đọc từ cuối dòng) rồi kiểm tra từng số có đúng cột của ô không; kiểm tra `cell_position` đạt thì ghi "Số nằm đúng cột", lệch thì ⚠, không kết luận khi không bố cục nào khớp (≥ 60% và ≥ 3 ô). Đo thử trên 334 ô ma trận cả kho: 293 đúng cột, 40 không kết luận, 1 ⚠ (báo động nhầm do bảng con A và B của ABE cùng nhãn, máy lấy dòng bảng A). Đăng lại 18 bài: ABE ✓ 617 → 696, ⚠ 752 → 673; cả kho ✓ 3349 · ⚠ 960 · ◇ 394 · ẩn 323. Kiểm lại 12 ô ma trận ABE ✓ ngẫu nhiên bằng cách đọc PDF: **12/12 đúng ô** (trước khi sửa 3/4 ô mẫu bị lệch). **Giới hạn còn lại:** bảng con trùng nhãn (ABE 3A/3B) lấy dòng của bảng A, nên một số ô của bảng B hiện câu trích của bảng A dù giá trị trùng; ca Markovic (ô thuộc bảng khác trang dẫn) vẫn chưa bị bắt.
 
+### 6.11. Thử tác tử Claude làm nguồn trích xuất (22/10/2026)
+
+**Bối cảnh:** Codex hết token; chủ dự án chọn thử một tác tử Claude (model Opus, chạy như tiến trình con, làm việc trong thư mục gói) trích xuất theo đúng `INSTRUCTIONS.md` rồi đo bằng đúng các lớp máy kiểm của mọi bài. Claude Code vẫn là bên nhập và đăng.
+
+| Bài (trang) | Lượt 1: không có văn bản trang | Lượt 2: gói có `text/page-NN.txt` |
+| :--- | :--- | :--- |
+| chain-effects (14, bản scan OCR) | ✓ 102 · ⚠ 21 · ẩn 59 (44%) | chưa chạy lại |
+| brand-integrity (11) | ✓ 359 · ⚠ 116 · ẩn 49 (31%) | **✓ 521 · ⚠ 15 · ẩn 15 (5%)** |
+| csr-emotions (19) | ✓ 336 · ⚠ 398 · ẩn 12 (55%) | **✓ 685 · ⚠ 49 · ẩn 11 (8%)** |
+
+(Tỷ lệ vấn đề = (⚠ + ẩn) / (✓ + ⚠ + ẩn); Codex trên 16 bài khoảng 17%.)
+
+* **Bài học:** ở lượt 1 gần như mọi chỗ trượt là `quote_in_pdf`: tác tử đọc PDF như hình ảnh nên chép ra dấu, ký tự và mũi tên khác lớp chữ mà máy kiểm dùng. Thêm văn bản từng trang (đúng lớp chữ của máy kiểm) vào gói cùng một dòng hướng dẫn "chép câu trích từ các file này" đưa tỷ lệ vấn đề xuống dưới mức Codex. Thay đổi này nằm trong mọi gói tạo từ 22/10 (`pageTexts` trong `manual/packet.ts`).
+* **Kiểm mù giá trị:** 12 giá trị ✓ ngẫu nhiên của hai bài lượt 2 giao cho một tác tử **model khác (Sonnet)** chỉ thấy tên trường, khóa, giá trị và văn bản trang (không thấy câu trích): **10 đúng, 2 không kết luận được** (trang không nói rõ mã giả thuyết hoặc người trung gian), **0 sai giá trị, 0 gắn nhầm**.
+* **Giới hạn:** mẫu rất nhỏ (12 trường, 2 bài, một model chấm); chưa có so sánh trực tiếp trên cùng một bài với Codex; khung tô sáng của csr-emotions chỉ định vị 45% vì bảng ở trang 11 (486 trường) có dòng không khớp bố cục máy dựng; chain-effects chưa nhập vì là bản scan OCR.
+* **Đã nhập:** csr-emotions (2 Study) và brand-integrity (6 Study) với nguồn `manual:claude:claude-opus-subagent`. Chưa mở rộng sang 13 bài còn lại (chủ dự án chờ Codex có token).
+
 ## 12. TÀI LIỆU THAM KHẢO PHƯƠNG PHÁP LUẬN (dùng cho Codebook)
 
 * Alvesson, M., & Sandberg, J. (2011). Generating research questions through problematization. *Academy of Management Review, 36*(2), 247–271.

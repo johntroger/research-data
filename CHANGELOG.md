@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.51 (so với 3.9.50)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Thử tác tử Claude làm nguồn trích xuất (Mục 6.11):** gói nay kèm `text/page-NN.txt` (văn bản từng trang đúng như máy kiểm đọc) và dòng hướng dẫn chép câu trích từ đó; với gói này tác tử Claude đạt tỷ lệ vấn đề 5% (brand-integrity) và 8% (csr-emotions), so với 31% và 55% khi chưa có văn bản trang, và Codex khoảng 17%. Kiểm mù 12 giá trị bằng model khác: 10 đúng, 2 không kết luận, 0 sai | Codex hết token; chủ dự án chọn thử |
+| 2 | Nhập 2 bài pilot (csr-emotions 770 trường, brand-integrity 577 trường); cả kho 6914 trường: ✓ 5025 · ⚠ 1069 · ◇ 467 · ẩn 353. 13 bài còn lại trong hàng đợi chờ Codex (chủ dự án quyết) | Quyết định của chủ dự án |
+
 ### Version 3.9.50 (so với 3.9.49)
 
 | # | Thay đổi | Lý do |
