@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.53 (so với 3.9.52)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Đổi thứ tự ưu tiên nguồn trích xuất (D16, chủ dự án chốt 22/10/2026): tác tử Claude → Codex → Antigravity → Gemini API.** Bài nào tỷ lệ vấn đề > 20% thì giữ lại và báo chủ dự án trước khi thử nguồn kế tiếp; Gemini API vẫn cần đồng ý trước khi chi tiền. Cập nhật CLAUDE.md. Đã giao tác tử Claude trích 13 bài còn lại trong hàng đợi | Tác tử Claude đạt 5 đến 8% ở lượt thử (Mục 6.11), Codex hết token |
+
 ### Version 3.9.52 (so với 3.9.51)
 
 | # | Thay đổi | Lý do |
