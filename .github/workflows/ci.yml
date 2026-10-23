@@ -1,0 +1,38 @@
+name: ci
+
+# Every pull request and every push to main (docs/architecture.md Mục 9.3 and 9.5): type-check, lint, unit tests, the plan's own link check,
+# and a production build of the web. Database tests and the browser (e2e) tests need a local Supabase and are added later.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4 # the version comes from "packageManager" in package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Type-check, lint and unit tests
+        run: pnpm check
+      - name: Links in the plan and the docs
+        run: pnpm docs:check
+      - name: Build the web (production)
+        run: pnpm --filter @research-data/web build
+        env:
+          # Placeholders: the pages are rendered on request, so the build needs the names, not working keys.
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-not-a-key

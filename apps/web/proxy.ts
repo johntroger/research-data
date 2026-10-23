@@ -8,10 +8,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { clientIp, enforce, memoryStore, rateLimitEnabled, rulesFor, visitorId } from "./lib/rate-limit";
+import { upstashFromEnv, upstashStore } from "./lib/rate-limit-upstash";
 
-// One store for the life of the server process; a shared one (Upstash) replaces it when the site runs on serverless functions (step 4).
-const store = memoryStore();
-const salt = process.env.RATE_LIMIT_SALT?.trim() || crypto.randomUUID();
+// With Upstash configured (UPSTASH_REDIS_REST_URL and _TOKEN, or the KV_REST_API_* names of the Vercel integration) the limits are shared by every
+// function instance; without it they live in the memory of this process, which is right for one server and for development.
+const upstash = upstashFromEnv(process.env);
+const store = upstash ? upstashStore(upstash) : memoryStore();
+// The salt must be the same in every function instance that shares a store, or one visitor would be counted under a different name in each:
+// RATE_LIMIT_SALT, else (with Upstash) the store's own secret token, else a random one for this process.
+const salt = process.env.RATE_LIMIT_SALT?.trim() || upstash?.token || crypto.randomUUID();
 
 export async function proxy(request: NextRequest) {
   if (rateLimitEnabled(process.env)) {

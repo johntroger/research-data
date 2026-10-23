@@ -4,7 +4,7 @@
  */
 import type { Badge } from "@research-data/schema";
 import type { LibraryItem } from "./library";
-import type { MatrixPath, SampleRow, TheoryRow } from "./matrix";
+import { buildMatrix, type MatrixPath, type PathLine, type SampleRow, type TheoryRow } from "./matrix";
 import type { Concept, PathRow } from "./relations";
 
 export interface Paper {
@@ -173,6 +173,17 @@ export async function listMatrixData(): Promise<{ theories: TheoryRow[]; samples
     restAll<MatrixPath>(`path_results?select=${PATH_COLUMNS},ci_low,ci_high,r2_dv&order=paper_id,natural_key`),
   ]);
   return { theories, samples, paths };
+}
+
+/** The tests of one paper, by study, for the matrix row that was opened (step 4.1: the page no longer carries every test of every paper). */
+export async function listPaperLines(paperId: string): Promise<{ studyId: string; label: string; lines: PathLine[] }[] | null> {
+  if (!/^[0-9a-f-]{36}$/i.test(paperId)) return null;
+  const [samples, paths] = await Promise.all([
+    restAll<SampleRow>(`samples?select=paper_id,study_id,n,country_iso,sample_type,studies(study_label,position,research_design)&paper_id=eq.${paperId}`),
+    restAll<MatrixPath>(`path_results?select=${PATH_COLUMNS},ci_low,ci_high,r2_dv&paper_id=eq.${paperId}&order=natural_key`),
+  ]);
+  const row = buildMatrix([paperId], [], samples, paths).get(paperId);
+  return (row?.studies ?? []).filter((s) => s.lines.length > 0).map((s) => ({ studyId: s.studyId, label: s.label, lines: s.lines }));
 }
 
 /** What the About page says the repository holds right now, as a visitor sees it (hidden fields are not counted). */

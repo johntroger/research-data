@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { LibraryFilters } from "../library/filters";
+import { PaperLines } from "./paper-lines";
 import { listLibraryItems, listMatrixData, paperLabel } from "@/lib/data";
 import { countryName, DESIGN_LABELS, filterLibrary, libraryQueryString, parseLibraryQuery } from "@/lib/library";
 import { buildMatrix, sampleSummary, THEORY_ROLE_LABELS } from "@/lib/matrix";
-import { paperLabel as citation, STATUS_LABEL } from "@/lib/relations";
+import { paperLabel as citation } from "@/lib/relations";
 
 export const dynamic = "force-dynamic";
 
@@ -92,44 +93,7 @@ export default async function MatrixPage({ searchParams }: { searchParams: Promi
                   {row.studies.some((s) => s.lines.length > 0) && (
                     <tr className="matrix-detail">
                       <td colSpan={4}>
-                        <details>
-                          <summary>Xem kiểm định theo Study ({row.studies.reduce((n, s) => n + s.lines.length, 0)})</summary>
-                          {row.studies.filter((s) => s.lines.length > 0).map((s) => (
-                            <div key={s.studyId} className="matrix-study">
-                              <strong>{s.label}</strong>
-                              <table className="matrix-lines">
-                                <thead>
-                                  <tr>
-                                    <th>Giả thuyết</th>
-                                    <th>Quan hệ</th>
-                                    <th>Thống kê</th>
-                                    <th>Trạng thái</th>
-                                    <th>Trang</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {s.lines.map((l) => (
-                                    <tr key={l.id}>
-                                      <td>{l.hypothesis ?? ""}</td>
-                                      <td>{l.relation}</td>
-                                      <td>
-                                        {l.statistic}
-                                        {l.r2 && <div className="muted">{l.r2}</div>}
-                                      </td>
-                                      <td>
-                                        {STATUS_LABEL[l.status]}
-                                        {!l.verified && <span className="badge badge-needs_attention"> ⚠</span>}
-                                      </td>
-                                      <td>
-                                        <Link href={`/papers/${paper.id}?focus=${encodeURIComponent(l.naturalKey)}`}>{l.printedPage ? `tr. ${l.printedPage}` : "mở"}</Link>
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          ))}
-                        </details>
+                        <PaperLines paperId={paper.id} count={row.studies.reduce((n, s) => n + s.lines.length, 0)} />
                       </td>
                     </tr>
                   )}

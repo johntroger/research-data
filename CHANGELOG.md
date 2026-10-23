@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.75 (so với 3.9.74)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 4.1:** bộ đếm Upstash cho giới hạn tốc độ (Lua, fail-open, chọn theo biến môi trường); `robots.txt` đóng, `noindex`, header bảo mật; `/matrix` nạp kiểm định từng bài khi mở (HTML 1,16 MB còn 151 KB); `ci.yml`; `apps/web/vercel.json` (vùng `sin1`); `.env.example` thêm biến mới; ghi danh sách 4.1 đến 4.8 vào kế hoạch Giai đoạn 4 | Chủ dự án duyệt 23/10/2026 (Giai đoạn 4, bốn mặc định) |
+
 ### Version 3.9.74 (so với 3.9.73)
 
 | # | Thay đổi | Lý do |
