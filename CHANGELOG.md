@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.70 (so với 3.9.69)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước A.2:** đăng nhập chủ bằng link email: `/login`, `/auth/callback`, `/auth/logout`, `proxy.ts`, `lib/owner.ts`, `lib/supabase-server.ts`, header Đăng nhập hoặc Đăng xuất; thêm `@supabase/ssr` và `@supabase/supabase-js` vào `apps/web`; biến `ADMIN_EMAILS`; route PDF và trang bài dùng `getOwner()`; 6 test đơn vị và 4 test e2e mới (49 e2e xanh), e2e đi trọn luồng link thật qua Mailpit của Supabase local | Chủ dự án duyệt 23/10/2026 (D2) |
+
 ### Version 3.9.69 (so với 3.9.68)
 
 | # | Thay đổi | Lý do |

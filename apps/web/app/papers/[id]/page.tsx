@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { adminDbUrl } from "@/lib/admin-db";
 import { getPaper, listFields, paperLabel } from "@/lib/data";
+import { getOwner } from "@/lib/supabase-server";
 import { canDownloadPdf, canViewPdf, pdfLinks } from "@/lib/pdf-access";
 import { EvidenceWorkspace } from "./evidence-workspace";
 
@@ -16,7 +16,7 @@ export default async function PaperPage({
   const { id } = await params;
   const paper = await getPaper(id);
   if (!paper) notFound();
-  const isOwner = adminDbUrl() !== null;
+  const isOwner = (await getOwner()) !== null;
   const fields = await listFields(paper.id);
   // A link from the search results names the test (its natural key); its estimate is selected first.
   const raw = (await searchParams).focus;

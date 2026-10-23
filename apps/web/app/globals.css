@@ -674,3 +674,50 @@ h1 {
   background: var(--surface);
   font-size: 14px;
 }
+
+/* Sign-in (step A.2) */
+.header-right {
+  margin-left: auto;
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  font-size: 13px;
+}
+
+.header-right .admin-link {
+  margin-left: 0;
+}
+
+.session-box {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin: 0;
+}
+
+.session-box button {
+  font-size: 12px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.login-form {
+  margin: 16px 0;
+}
+
+.login-form input[type="email"] {
+  padding: 6px 8px;
+  min-width: 260px;
+}
+
+.login-note {
+  max-width: 640px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.login-error {
+  border-color: var(--warn);
+}

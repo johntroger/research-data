@@ -5,8 +5,8 @@
  */
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { adminDbUrl } from "@/lib/admin-db";
 import { getPaper } from "@/lib/data";
+import { getOwner } from "@/lib/supabase-server";
 import { canDownloadPdf, canViewPdf, pdfFileName } from "@/lib/pdf-access";
 import { pdfKey, presignPdf, r2Config } from "@/lib/r2";
 
@@ -19,7 +19,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if (!paper?.pdf_path) return new Response("Not found", { status: 404 });
 
   // Viewing and saving a copy both follow the licence rule of lib/pdf-access (D14): the owner sees every PDF, a visitor only open-licence ones.
-  const isOwner = adminDbUrl() !== null;
+  const isOwner = (await getOwner()) !== null;
   const download = new URL(request.url).searchParams.get("download") === "1";
   if (!canViewPdf(isOwner, paper)) return new Response("Forbidden: this PDF is not published (no open licence)", { status: 403 });
   if (download && !canDownloadPdf(isOwner, paper)) return new Response("Forbidden: this PDF may only be downloaded by the project owner", { status: 403 });
