@@ -7,7 +7,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
-import { renderPageAsImage } from "unpdf";
+import { pathToFileURL } from "node:url";
 import { readTextLayer, type PdfTextLayer } from "./text-layer.js";
 
 export interface OcrPage {
@@ -62,19 +62,36 @@ export async function ocrPages(pdf: Uint8Array, indexes: number[], options: { sc
   const { createWorker } = await import("tesseract.js");
   const require = createRequire(import.meta.url);
   const langPath = path.join(path.dirname(require.resolve("@tesseract.js-data/eng/package.json")), "4.0.0_best_int");
+  // Scans are often JBIG2 or JPEG 2000 pictures: pdfjs-dist decodes them with its wasm files (the copy inside unpdf has none).
+  // pdf.js wants a forward-slash path that ends in a slash, also on Windows.
+  const wasmUrl = `${path.join(path.dirname(require.resolve("pdfjs-dist/package.json")), "wasm").replaceAll("\\", "/")}/`;
+  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const { createCanvas } = await import("@napi-rs/canvas");
+  // unpdf's pdf.js (loaded by readTextLayer) leaves its own worker in a global, and pdfjs-dist would reuse it: that worker has no
+  // wasm decoders. Hide it while this document is open and give pdfjs-dist its own worker file.
+  const globals = globalThis as { pdfjsWorker?: unknown };
+  const unpdfWorker = globals.pdfjsWorker;
+  delete globals.pdfjsWorker;
+  pdfjs.GlobalWorkerOptions.workerSrc = pathToFileURL(path.join(path.dirname(require.resolve("pdfjs-dist/package.json")), "legacy", "build", "pdf.worker.mjs")).href;
+  const doc = await pdfjs.getDocument({ data: new Uint8Array(pdf), wasmUrl, useSystemFonts: true, verbosity: 0 }).promise;
   const worker = await createWorker("eng", 1, { langPath, cachePath: path.join(langPath, ".."), gzip: true });
   try {
     await worker.setParameters({ preserve_interword_spaces: "1" });
     const pages: OcrPage[] = [];
     for (const index of indexes) {
-      const png = await renderPageAsImage(new Uint8Array(pdf), index + 1, { canvasImport: () => import("@napi-rs/canvas"), scale });
-      const { data } = await worker.recognize(Buffer.from(png));
+      const page = await doc.getPage(index + 1);
+      const viewport = page.getViewport({ scale });
+      const canvas = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
+      await page.render({ canvas: canvas as never, canvasContext: canvas.getContext("2d") as never, viewport }).promise;
+      const { data } = await worker.recognize(canvas.toBuffer("image/png"));
       pages.push({ index, text: data.text.replace(/\r/g, "").trim(), confidence: Math.round(data.confidence) });
       options.onPage?.(index, data.text.length);
     }
     return { engine: "tesseract.js 4.0.0_best_int eng", scale, pages };
   } finally {
     await worker.terminate();
+    await (doc as unknown as { destroy?: () => Promise<void> }).destroy?.();
+    if (unpdfWorker !== undefined) globals.pdfjsWorker = unpdfWorker;
   }
 }
 
