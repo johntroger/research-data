@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { CopyButton } from "@/app/library/copy-button";
 import { listConcepts, listPathRows } from "@/lib/data";
+import { academicSentence } from "@/lib/sentence";
 import {
   DEFAULT_QUERY,
   EFFECT_LABEL,
@@ -51,6 +53,7 @@ function TestLine({ row, concepts }: { row: PathRow; concepts: Map<string, strin
   const iv = concepts.get(row.iv_construct_id ?? "");
   const dv = concepts.get(row.dv_construct_id ?? "");
   const stats = [formatEstimate(row), formatP(row)].filter(Boolean).join("  ");
+  const sentence = academicSentence(row);
   return (
     <li data-testid={`test-${row.id}`} className="relation-row">
       <Link href={`/papers/${row.paper_id}?focus=${encodeURIComponent(row.natural_key)}`}>
@@ -58,6 +61,12 @@ function TestLine({ row, concepts }: { row: PathRow; concepts: Map<string, strin
       </Link>{" "}
       <span className="stats">{stats}</span> <span>{STATUS_LABEL[row.status]}</span>{" "}
       <span className={`badge badge-${row.badge}`}>{BADGE[row.badge] ?? row.badge}</span>
+      {sentence && (
+        <>
+          {" "}
+          <CopyButton text={sentence} label="Copy câu" testId="copy-sentence" />
+        </>
+      )}
       <div className="muted">
         {EFFECT_LABEL[row.effect_type]}
         {row.mediator_labels.length ? ` · qua trung gian: ${row.mediator_labels.join(", ")}` : ""}
@@ -154,6 +163,23 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       {!result && (
         <section data-testid="samples">
+          <details className="quick-guide" open data-testid="quick-guide">
+            <summary>Hướng dẫn nhanh: 3 việc làm được ở đây</summary>
+            <ol>
+              <li>
+                <strong>Tìm một mối quan hệ.</strong> Gõ biến A và biến B (tên tiếng Anh bất kỳ trong bài), bấm “Tìm kiếm”. Thanh tổng hợp cho biết bao nhiêu bài, bao nhiêu kiểm định ủng hộ hay không.
+              </li>
+              <li>
+                <strong>Mở bằng chứng trong PDF.</strong> Bấm một kiểm định trong danh sách: bài mở ra đúng trang, có khung tô chỗ bằng chứng. Hãy đối chiếu trước khi dùng số.
+              </li>
+              <li>
+                <strong>Lấy bảng và câu dùng được.</strong> “Tải Excel” hoặc “Tải Word APA 7” xuất đúng danh sách đang xem; “Copy câu” chép một câu kết quả kèm trích dẫn (chỉ kiểm định ✓).
+              </li>
+            </ol>
+            <p className="muted">
+              Muốn hiểu các huy hiệu ✓ ⚠ ◇ và độ chính xác đã đo? Xem <Link href="/about">Giới thiệu và cách đọc dữ liệu</Link>.
+            </p>
+          </details>
           <p className="muted">Nhập một hoặc hai biến (tên bất kỳ trong bài, tiếng Anh), hoặc thử:</p>
           <ul className="sample-list">
             {SAMPLE_QUERIES.map((x) => (

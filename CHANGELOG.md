@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.61 (so với 3.9.60)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 3b.5:** nút "Copy câu" (câu kết quả kèm thống kê APA và trích dẫn, chỉ kiểm định ✓ / ★) ở Relationship Search; khung "Hướng dẫn nhanh" 3 việc trên trang chủ; `lib/sentence.ts`; 8 test đơn vị và 1 test e2e mới (498 đơn vị, 45 e2e xanh). Kết thúc danh sách 3b.1 đến 3b.5 | Danh sách bước 3b do chủ dự án duyệt 23/10/2026 |
+
 ### Version 3.9.60 (so với 3.9.59)
 
 | # | Thay đổi | Lý do |

@@ -7,7 +7,7 @@ import { expect, test } from "@playwright/test";
 
 test("is reachable from the header and explains the badges, the checks and the limits", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: "Giới thiệu" }).click();
+  await page.getByRole("link", { name: "Giới thiệu", exact: true }).click();
   await expect(page).toHaveURL(/\/about/);
   await expect(page.getByRole("heading", { name: "Giới thiệu và cách đọc dữ liệu" })).toBeVisible();
   await expect(page.getByText("Người dùng có trách nhiệm tự đối chiếu với bài gốc").first()).toBeVisible();

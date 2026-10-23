@@ -64,7 +64,7 @@ test("without a question the home page offers sample questions that lead to resu
   await page.goto("/");
   await expect(page.getByRole("heading", { name: /Mối quan hệ giữa hai biến/ })).toBeVisible();
   await expect(page.getByTestId("samples")).toBeVisible();
-  await page.getByTestId("samples").getByRole("link").first().click();
+  await page.locator(".sample-list").getByRole("link").first().click();
   await expect(page).toHaveURL(/a=ethicality&b=trust/);
   await expect(page.getByTestId("summary-counts")).toBeVisible();
 });
@@ -197,4 +197,23 @@ test("the Word file (APA 7) follows the same URL as the page and is a .docx atta
   expect(body.subarray(0, 2).toString()).toBe("PK");
   const narrow = await request.get("/export/word?a=zebra&b=quokka&status=not_supported");
   expect((await narrow.body()).length).toBeLessThan(body.length);
+});
+
+test("a ✓ test offers a draft sentence to copy; a ⚠ test does not; the first-time guide shows without a question", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/?a=zebra&b=quokka");
+  const buttons = page.getByTestId("copy-sentence");
+  expect(await buttons.count()).toBeGreaterThan(0);
+  await buttons.first().click();
+  await expect(buttons.first()).toHaveText(/Đã chép/);
+  const text = await page.evaluate(() => navigator.clipboard.readText());
+  expect(text).toMatch(/^.+ \((β|b|r|est\.)? ?.*p [<=] ?\.\d+.*\)\.$|^.+\(.+\)\.$/);
+  expect(text.endsWith(".")).toBe(true);
+  // 3 tests are listed: two ✓ and one ⚠, so exactly two buttons.
+  await expect(buttons).toHaveCount(2);
+
+  await page.goto("/");
+  await expect(page.getByTestId("quick-guide")).toContainText("Mở bằng chứng trong PDF");
+  await page.goto("/?a=zebra&b=quokka");
+  await expect(page.getByTestId("quick-guide")).toHaveCount(0);
 });

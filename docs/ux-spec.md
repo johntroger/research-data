@@ -162,7 +162,7 @@ Chiều tác động:      ＋ Dương 4    － Âm 27    ∅ Không có ý ngh�
 * Dòng mở rộng: đường quan hệ theo Study với estimate (kèm `estimate_type`), CI, p, R², trạng thái, câu trích và số trang.
 * Cố định cột đầu; chọn cột; **saved views**; chỉnh mật độ hiển thị.
 * Mã trạng thái luôn có biểu tượng kèm màu: ✓ Supported (xanh ngọc dịu) · ✗ Not supported (xám đá) · ◐ Partially / Mixed (vàng hổ phách) · ○ Not hypothesized (viền xám).
-* Copy câu học thuật (bản nháp), chỉ với dữ liệu `auto_verified` / `human_reviewed`.
+* Copy câu học thuật (bản nháp), chỉ với dữ liệu `auto_verified` / `human_reviewed`. **Đã làm (bước 3b.5, 23/10/2026)** ở danh sách kiểm định của trang chủ: nút "Copy câu" (`lib/sentence.ts`) cho kiểm định ✓ / ★ trực tiếp, gián tiếp và điều tiết; "affects" chỉ dùng cho thực nghiệm, khảo sát dùng "relates to"; kiểm định ⚠, ◇, biến kiểm soát và hiệu ứng tổng không có nút. Trang chủ có khung "Hướng dẫn nhanh" 3 việc khi chưa có câu hỏi.
   *Ví dụ: "Perceived ease of use positively affects intention to use (β = .35, p < .001; Nguyen et al., 2023, p. 1252)."*
 * Xuất **Excel** (`exceljs`) và **Word** (`docx`) theo bảng APA 7: số bảng in đậm, tiêu đề in nghiêng, ba đường kẻ ngang, phần *Note.*, Times New Roman 12. **Mọi file xuất** kèm cột huy hiệu tin cậy, số trang in của bằng chứng, và dòng tuyên bố trách nhiệm (Mục 6.8).
 * Mobile: dạng thẻ chỉ đọc.
