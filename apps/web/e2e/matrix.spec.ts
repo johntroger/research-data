@@ -67,11 +67,22 @@ test("uses the library filters", async ({ page }) => {
   await page.goto("/matrix?q=quokka&design=online_experiment");
   await expect(page.getByText("Không có bài nào khớp")).toBeVisible();
   await page.goto("/matrix?q=quokka&country=VN&year=1960s");
-  await expect(page.getByTestId("matrix-total")).toContainText(/^1 \/ \d+ bài$/);
+  await expect(page.getByTestId("matrix-total")).toContainText(/^1 \/ \d+ bài/);
 });
 
 test("is reachable from the header", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("link", { name: "Ma trận" }).click();
   await expect(page).toHaveURL(/\/matrix/);
+});
+
+test("the Word file of the matrix follows the page's filters", async ({ page, request }) => {
+  await page.goto("/matrix?q=quokka");
+  const href = (await page.getByTestId("matrix-word").getAttribute("href"))!;
+  expect(href).toBe("/matrix/word?q=quokka");
+  const response = await request.get(href);
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toContain("wordprocessingml");
+  expect(response.headers()["content-disposition"]).toMatch(/ma-tran-\d{4}-\d{2}-\d{2}\.docx/);
+  expect((await response.body()).subarray(0, 2).toString()).toBe("PK");
 });

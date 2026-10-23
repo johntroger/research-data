@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.59 (so với 3.9.58)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 3b.3:** xuất Word APA 7 cho Relationship Search (`/export/word`) và ma trận (`/matrix/word`); thêm thư viện `docx` vào `apps/web`, mã `lib/word-export.ts`; 4 test đơn vị và 2 test e2e mới (490 đơn vị, 42 e2e xanh); đã mở thử file thật (khổ ngang, Times New Roman, bảng và ghi chú) | Danh sách bước 3b do chủ dự án duyệt 23/10/2026 |
+
 ### Version 3.9.58 (so với 3.9.57)
 
 | # | Thay đổi | Lý do |

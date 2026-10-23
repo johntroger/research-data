@@ -180,3 +180,21 @@ test("the Excel file has exactly the tests of the list, with badge, printed page
   await wb2.xlsx.load((await filtered.body()) as unknown as ArrayBuffer);
   expect(wb2.getWorksheet("Kết quả")!.rowCount).toBe(2);
 });
+
+test("the Word file (APA 7) follows the same URL as the page and is a .docx attachment", async ({ page, request }) => {
+  await page.goto("/?a=zebra&b=quokka");
+  const link = page.getByTestId("export-word");
+  await expect(link).toContainText("Tải Word APA 7");
+  const href = (await link.getAttribute("href"))!;
+  expect(href).toMatch(/^\/export\/word\?/);
+  expect(href).toContain("a=zebra");
+
+  const response = await request.get(href);
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toContain("wordprocessingml");
+  expect(response.headers()["content-disposition"]).toMatch(/attachment; filename="quan-he-\d{4}-\d{2}-\d{2}\.docx"/);
+  const body = await response.body();
+  expect(body.subarray(0, 2).toString()).toBe("PK");
+  const narrow = await request.get("/export/word?a=zebra&b=quokka&status=not_supported");
+  expect((await narrow.body()).length).toBeLessThan(body.length);
+});

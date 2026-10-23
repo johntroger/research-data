@@ -243,6 +243,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <p>
                 <a href={`/export?${queryToSearch(query)}`} download data-testid="export-excel">
                   Tải Excel ({result.rows.length} kiểm định)
+                </a>
+                {" · "}
+                <a href={`/export/word?${queryToSearch(query)}`} download data-testid="export-word">
+                  Tải Word APA 7
                 </a>{" "}
                 <span className="muted">đúng danh sách bên dưới, có cột huy hiệu, trang in và tuyên bố trách nhiệm.</span>
               </p>

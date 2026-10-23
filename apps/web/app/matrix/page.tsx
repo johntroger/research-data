@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LibraryFilters } from "../library/filters";
 import { listLibraryItems, listMatrixData, paperLabel } from "@/lib/data";
-import { countryName, DESIGN_LABELS, filterLibrary, parseLibraryQuery } from "@/lib/library";
+import { countryName, DESIGN_LABELS, filterLibrary, libraryQueryString, parseLibraryQuery } from "@/lib/library";
 import { buildMatrix, sampleSummary, THEORY_ROLE_LABELS } from "@/lib/matrix";
 import { paperLabel as citation, STATUS_LABEL } from "@/lib/relations";
 
@@ -23,6 +23,14 @@ export default async function MatrixPage({ searchParams }: { searchParams: Promi
       <LibraryFilters all={all} query={query} filtered={filtered} action="/matrix" />
       <p className="muted" data-testid="matrix-total">
         {filtered ? `${papers.length} / ${all.length} bài` : `${all.length} bài`}
+        {papers.length > 0 && (
+          <>
+            {" · "}
+            <a href={`/matrix/word?${libraryQueryString(query)}`} download data-testid="matrix-word">
+              Tải Word APA 7
+            </a>
+          </>
+        )}
       </p>
       {papers.length === 0 ? (
         <p className="muted">Không có bài nào khớp các bộ lọc. Bỏ bớt một bộ lọc hoặc bấm “Xóa lọc”.</p>
