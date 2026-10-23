@@ -53,8 +53,18 @@ const firstYear = (...dates: (CrossrefWork["issued"] | undefined)[]) => {
   return null;
 };
 
-/** Crossref titles may carry JATS / HTML markup such as <i>…</i>. */
-const plain = (text: string | undefined) => (text ? text.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim() || null : null);
+const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
+const decodeEntities = (text: string) =>
+  text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (whole, name: string) => {
+    if (name.startsWith("#")) {
+      const code = name[1]!.toLowerCase() === "x" ? parseInt(name.slice(2), 16) : Number(name.slice(1));
+      return Number.isFinite(code) && code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : whole;
+    }
+    return ENTITIES[name.toLowerCase()] ?? whole;
+  });
+
+/** Crossref titles may carry JATS / HTML markup such as <i>…</i> and entities such as &amp;. */
+const plain = (text: string | undefined) => (text ? decodeEntities(text.replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim() || null : null);
 
 export function parseCrossrefWork(work: CrossrefWork): BibMetadata {
   const pages = work.page ?? null;

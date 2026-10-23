@@ -35,6 +35,11 @@ describe("parseCrossrefWork", () => {
     });
   });
 
+  it("decodes HTML entities in titles and journal names", () => {
+    const parsed = parseCrossrefWork({ DOI: "10.1/x", title: ["A &amp; B &#233;"], "container-title": ["Journal of Product &amp; Brand Management"] });
+    expect(parsed).toMatchObject({ title: "A & B é", journal: "Journal of Product & Brand Management" });
+  });
+
   it("copes with missing fields and article numbers", () => {
     const parsed = parseCrossrefWork({ DOI: "10.1/x", page: "e12345", issued: { "date-parts": [[2024]] } });
     expect(parsed).toMatchObject({ title: null, authors: [], year: 2024, journal: null, firstPage: null });
