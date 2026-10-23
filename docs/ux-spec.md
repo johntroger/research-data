@@ -192,6 +192,8 @@ Chiều tác động:      ＋ Dương 4    － Âm 27    ∅ Không có ý ngh�
 * Kèm gợi ý *problematization*: các giả định nền mà nhiều bài cùng chấp nhận (từ trường `problematization_hint`).
 
 ### 8.9. Trang "Giới thiệu & cách đọc dữ liệu"
+
+> **Tình trạng (bước 3b.4, 23/10/2026):** đã làm trang `/about` (liên kết "Giới thiệu" ở đầu trang): mục đích và trách nhiệm đối chiếu, số liệu kho hiện tại (đọc từ database với quyền khách), quy trình trích xuất và kiểm chứng, bảng huy hiệu, bảng ba lần kiểm mẫu (Mục 6.10 đến 6.12) kèm giới hạn thống kê, giới hạn đã biết, nội dung và bản quyền. Bảng kiểm mẫu viết tay trong mã; khi có lần kiểm mới phải cập nhật `app/about/page.tsx`. **Chưa làm:** phiên bản model (khách không đọc được `extraction_runs`), kênh yêu cầu gỡ bỏ cụ thể (chọn khi đưa web lên mạng), tiếng Anh.
 * Công khai, ngắn gọn: mục đích của trang (công cụ nghiên cứu cá nhân, chia sẻ công khai), nguồn dữ liệu (thư viện Zotero của chủ dự án), cách hệ thống trích xuất và kiểm chứng, ý nghĩa các huy hiệu tin cậy, độ chính xác đo trên bộ bài chuẩn (một bảng nhỏ), phiên bản model, chính sách nội dung và kênh yêu cầu gỡ bỏ.
 
 ### 8.10. Bộ sưu tập theo dự án (hoãn, ngoài MVP)

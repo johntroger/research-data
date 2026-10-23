@@ -616,3 +616,38 @@ h1 {
   padding: 4px 8px;
   border-top: 1px solid var(--border);
 }
+
+/* About page (step 3b.4) */
+.about {
+  max-width: 820px;
+}
+
+.about h2 {
+  font-size: 18px;
+  margin-top: 28px;
+}
+
+.about-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
+}
+
+.about-table th,
+.about-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.about-table th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .about-table th {
+    white-space: normal;
+  }
+}

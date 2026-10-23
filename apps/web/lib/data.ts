@@ -172,6 +172,25 @@ export async function listMatrixData(): Promise<{ theories: TheoryRow[]; samples
   return { theories, samples, paths };
 }
 
+/** What the About page says the repository holds right now, as a visitor sees it (hidden fields are not counted). */
+export interface Overview {
+  papers: number;
+  fields: number;
+  verified: number;
+  attention: number;
+  interpreted: number;
+}
+
+export async function getOverview(): Promise<Overview> {
+  const [papers, counts] = await Promise.all([listPapers(), listBadgeCounts()]);
+  const all = [...counts.values()];
+  const sum = (pick: (c: BadgeCounts) => number) => all.reduce((n, c) => n + pick(c), 0);
+  const verified = sum((c) => c.verified);
+  const attention = sum((c) => c.attention);
+  const interpreted = sum((c) => c.interpreted);
+  return { papers: papers.length, fields: verified + attention + interpreted, verified, attention, interpreted };
+}
+
 /** The canonical concepts with their other names. */
 export async function listConcepts(): Promise<Concept[]> {
   const rows = await restAll<{ id: string; canonical_name: string; construct_aliases: { alias: string }[] }>(

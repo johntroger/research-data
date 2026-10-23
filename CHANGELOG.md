@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.60 (so với 3.9.59)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 3b.4:** trang `/about` (Giới thiệu và cách đọc dữ liệu) với số liệu kho sống, bảng huy hiệu, ba lần kiểm mẫu, giới hạn; `getOverview` trong `lib/data.ts`; liên kết "Giới thiệu" ở đầu trang; 2 test e2e mới | Danh sách bước 3b do chủ dự án duyệt 23/10/2026 |
+
 ### Version 3.9.59 (so với 3.9.58)
 
 | # | Thay đổi | Lý do |
