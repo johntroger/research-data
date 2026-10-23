@@ -230,6 +230,7 @@ Chủ dự án là người dùng chính, nên **web chạy local với Supabase
 
 ### 📍 Giai đoạn 2: Đám mây & Đồng bộ hai chiều
 1. Supabase `prod` (slot cloud còn lại): áp dụng migrations đã thử trên local; index, RLS (khách chỉ đọc, không đọc được trường bị ẩn; chỉ tài khoản quản trị được ghi), materialized views.
+   * **Bước 2.1 ✅ (23/10/2026):** project `research-data` (Free, Singapore, ref trong `.env` là `SUPABASE_PROD_REF`; mật khẩu database `SUPABASE_PROD_DB_PASSWORD`, URL và khóa anon `SUPABASE_PROD_URL` / `SUPABASE_PROD_ANON_KEY`, mọi thứ ngoài git); đăng nhập Supabase CLI do chủ dự án làm; `supabase link` rồi `db push` áp đủ 8 migrations (database prod còn trống, chưa có bài). Kiểm khách (khóa anon) trên prod bằng một bài thử đã xóa: thấy trường ✓, không thấy trường và Study bị ẩn, thanh đếm huy hiệu không tính ẩn, không ghi / sửa / xóa được `papers`; cả 24 bảng bật RLS, 7 bảng nội bộ (`api_spend`, `batch_jobs`, `extraction_runs`, `pipeline_runs`, `review_changes`, `user_reports`, `zotero_annotations`) không có chính sách nên khách không đọc được. **Chưa làm:** đẩy dữ liệu 36 bài lên prod (2.3), kho PDF R2 (2.2), tài khoản quản trị, sao lưu hằng đêm.
 2. Bucket R2 private, CORS cho pdf.js; Unpaywall + `license_source` gán quyền truy cập PDF (Mục 7, D14).
 3. Bước S8–S11: chuẩn hóa khái niệm, upload R2, publish, **ghi ngược Zotero** (tag + child note; bật quyền ghi cho API key Zotero ở bước này).
 4. GitHub Actions (Mục 9.3): `pg_dump` hằng đêm lên R2; ping giữ Supabase hoạt động; kiểm tra bài bị rút hằng tháng.

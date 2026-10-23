@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.62 (so với 3.9.61)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 2.1:** tạo Supabase `prod` (project `research-data`, Free, Singapore), áp 8 migrations, kiểm RLS bằng khóa anon trên prod (không thấy trường ẩn, không ghi được; 24 bảng bật RLS). Khóa và mật khẩu chỉ ở `.env` | Chủ dự án duyệt 23/10/2026 |
+
 ### Version 3.9.61 (so với 3.9.60)
 
 | # | Thay đổi | Lý do |
