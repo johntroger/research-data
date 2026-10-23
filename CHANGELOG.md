@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.74 (so với 3.9.73)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước A.6, đóng D2:** thử thật trên prod ở chế độ production: chủ đăng nhập bằng link email thật, trang quản trị đọc bằng phiên (ẩn 452), xem và tải PDF bài đóng; khách (không cookie) bị chặn PDF bài đóng (403), trang quản trị (404), không thấy trường ẩn hay lượt trích xuất, `quality_report` bị từ chối. D2 chuyển sang "làm xong và thử thật" | Chủ dự án duyệt 23/10/2026 |
+
 ### Version 3.9.73 (so với 3.9.72)
 
 | # | Thay đổi | Lý do |

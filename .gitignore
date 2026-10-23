@@ -23,6 +23,7 @@ coverage/
 # Next.js
 .next/
 .next-prod/
+.next-a6/
 next-env.d.ts
 
 # Playwright
