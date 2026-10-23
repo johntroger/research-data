@@ -140,7 +140,7 @@ const PRIVATE_TABLES = ["zotero_annotations", "pipeline_runs", "review_changes",
 describe("business tables (step 1.1)", () => {
   it("creates every table of Mục 5.1", async () => {
     const res = await client.query<{ table_name: string }>(
-      "select table_name from information_schema.tables where table_schema = 'public'",
+      "select table_name from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE'",
     );
     expect(res.rows.map((r) => r.table_name).sort()).toEqual(
       [
@@ -157,6 +157,12 @@ describe("business tables (step 1.1)", () => {
         "matrix_descriptives",
       ].sort(),
     );
+  });
+
+  it("has the view the library reads for its ✓ / ⚠ / ◇ counts, and it obeys the caller's row-level security", async () => {
+    const view = await client.query<{ reloptions: string[] | null }>("select c.reloptions from pg_class c where c.relname = 'paper_badge_counts' and c.relkind = 'v'");
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0]!.reloptions).toContain("security_invoker=true");
   });
 
   it("enables row level security on every table", async () => {

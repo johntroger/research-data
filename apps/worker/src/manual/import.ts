@@ -18,7 +18,8 @@ import { parseAnswer } from "../extract/parse.js";
 import { publishExtracted, type SavedExtraction } from "../pipeline/extracted.js";
 import { resultFile } from "../pipeline/queue.js";
 import { CURRENT_VERSIONS, type Versions } from "../pipeline/runs.js";
-import { readTextLayer, sha256 } from "../pdf/text-layer.js";
+import { loadTextLayer } from "../pdf/ocr.js";
+import { sha256 } from "../pdf/text-layer.js";
 import { analysePaper } from "../verify/analyse.js";
 import { checkPacket, type Issue } from "./check.js";
 import { PACKET_FILES, type PacketMeta, paperFileName, studyFileName } from "./packet.js";
@@ -143,7 +144,7 @@ export async function importPacket(db: pg.Client, deps: ImportDeps, dir: string,
 
   const pdf = new Uint8Array(await readFile(path.join(deps.repoRoot, row.pdf_path)));
   if (sha256(pdf) !== meta.fileHash) throw new Error(`${row.pdf_path} is not the PDF this packet was made for (hash differs)`);
-  const analysis = analysePaper(await readTextLayer(pdf), saved);
+  const analysis = analysePaper(await loadTextLayer(pdf, deps.extractedDir), saved);
   const count = (b: string) => analysis.fields.filter((f) => f.badge === b).length;
   const summary: ImportSummary = {
     studies: saved.studies.length,

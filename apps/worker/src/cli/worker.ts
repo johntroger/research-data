@@ -20,10 +20,11 @@ import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { geminiConfig, loadEnv, packetsDir, REPO_ROOT, zoteroConfig } from "../config.js";
 import { checkPacket, formatCheck } from "../manual/check.js";
-import { checkCode, exportPacket } from "../manual/export.js";
+import { checkCode, exportPacket, findPaper } from "../manual/export.js";
 import { backupFile, importPacket, manualVersions, once, pgDumpViaDocker } from "../manual/import.js";
 import { connect } from "../db/client.js";
 import { refreshHighlights } from "../db/highlights.js";
+import { ocrPaper, pagesNeedingOcr } from "../pdf/ocr.js";
 import { geminiBatchClient } from "../extract/batch-client.js";
 import { type BatchDeps, listBatches, pollOnce, submitPaper } from "../extract/batch.js";
 import { Budget, BudgetExceeded, budgetConfigFromEnv, PgLedger } from "../extract/budget.js";
@@ -428,6 +429,32 @@ async function quality(args: string[]): Promise<number> {
   }
 }
 
+/**
+ * pnpm worker ocr --paper X: recognises the text of a scanned paper (pages with no text of their own) on this machine and
+ * saves it next to the saved extraction; after that, packets, checks and imports read that text. Slow (seconds per page).
+ */
+async function ocr(args: string[]): Promise<number> {
+  const query = option(args, "--paper");
+  if (!query) {
+    console.error("--paper (title, file name or hash) is required");
+    return 1;
+  }
+  const db = await connect();
+  try {
+    const paper = await findPaper(db, query);
+    const pdf = new Uint8Array(await readFile(path.join(REPO_ROOT, paper.pdfPath)));
+    const layer = await readTextLayer(pdf);
+    const todo = pagesNeedingOcr(layer);
+    console.log(`${paper.title ?? paper.pdfPath}: ${todo.length} of ${layer.pageCount} page(s) have no text of their own`);
+    const started = Date.now();
+    const saved = await ocrPaper(pdf, EXTRACTED_DIR, { onPage: (i, chars) => console.log(`  page ${i + 1}: ${chars} characters (${Math.round((Date.now() - started) / 1000)} s)`) });
+    console.log(`Saved ${saved.pages.length} page(s) to ${saved.file}`);
+    return 0;
+  } finally {
+    await db.end();
+  }
+}
+
 /** pnpm worker highlights [--paper X]: recompute where each quote sits on its PDF page (step 3a.3). No API call. */
 async function highlights(args: string[]): Promise<number> {
   const only = option(args, "--paper");
@@ -621,8 +648,9 @@ async function main(): Promise<number> {
   if (command === "quality") return quality(args);
   if (command === "manual") return manual(args);
   if (command === "highlights") return highlights(args);
+  if (command === "ocr") return ocr(args);
   if (command === "republish") return republish(args);
-  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | republish [--paper X] [--yes] | manual export --paper X");
+  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | ocr --paper X | republish [--paper X] [--yes] | manual export --paper X");
   return 1;
 }
 

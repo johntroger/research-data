@@ -6,14 +6,16 @@
  * A paper already published under the same processing key is skipped unless `force` is set
  * (use it after improving a check, which does not change the key).
  */
+import path from "node:path";
 import type pg from "pg";
+import { REPO_ROOT } from "../config.js";
 import { withTransaction } from "../db/client.js";
 import { publishFull, type PublishFullSummary, type RunInput } from "../db/publish-full.js";
 import type { CallRecord } from "../extract/extract-full.js";
 import { mapExtraction, type ExtractionMapping } from "../mapping/extraction.js";
 import { type Highlight, locateQuote, readPageItems } from "../pdf/locate.js";
 import { resolvePrintedPages } from "../pdf/printed-page.js";
-import { readTextLayer } from "../pdf/text-layer.js";
+import { loadTextLayer } from "../pdf/ocr.js";
 import { analysePaper, type PaperAnalysis } from "../verify/analyse.js";
 import { normaliseMatrixIndices } from "../verify/matrix-index.js";
 import type { FieldVerification } from "../verify/verify-skeleton.js";
@@ -68,7 +70,7 @@ export async function publishExtracted(
   const { data: saved } = normaliseMatrixIndices(input.saved);
   if (saved.status !== "done") throw new Error(`The saved extraction did not finish (${saved.status})`);
 
-  const layer = await readTextLayer(input.pdf);
+  const layer = await loadTextLayer(input.pdf, path.join(REPO_ROOT, "extracted_data"));
   const printed = resolvePrintedPages(layer);
   const ctx = { processingKey: processingKey(layer.fileHash, input.versions), paperId: null as string | null, fileHash: layer.fileHash, zoteroItemKey: null };
   const steps: PublishStepsResult["steps"] = {};

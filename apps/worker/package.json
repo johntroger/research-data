@@ -22,8 +22,11 @@
   },
   "dependencies": {
     "@google/genai": "^2.30.0",
+    "@napi-rs/canvas": "^1.0.13",
     "@research-data/schema": "workspace:*",
+    "@tesseract.js-data/eng": "^1.0.0",
     "pg": "^8.23.1",
+    "tesseract.js": "^7.0.0",
     "unpdf": "^1.9.0",
     "zod": "^4.6.7"
   },
