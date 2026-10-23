@@ -34,3 +34,5 @@
 | The Role of Customer Gratitude in Relationship Marketing (2009) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 381 | 17 | 31 | ẩn 1, tỷ lệ vấn đề 4.5%; Tổng: 427/429 câu trích được định vị (99.5%). |
 | Brand Community (2001, định tính) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 15 | 1 | 30 | ẩn 0, tỷ lệ vấn đề 6.2%; Tổng: 46/46 câu trích được định vị (100%). |
 | Experimentally distinguishing elevation from gratitude (2014) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 352 | 40 | 13 | ẩn 3, tỷ lệ vấn đề 10.9%; Tổng: 405/405 câu trích được định vị (100%). |
+| Complaining to the Masses: Protest Framing (2006) (tác tử Claude, nhập theo đề nghị) | không đo | 0 | 19 | 0 | 24 | ẩn 13 (mục đo lường thiếu bằng chứng), tỷ lệ vấn đề 40,6% > 20% nhưng trường ẩn không hiện cho khách |
+| A social-cognitive model of trait and state levels of gratitude (2008) (tác tử Claude, nhập theo đề nghị) | không đo | 0 | 153 | 17 | 19 | ẩn 38 (số trong hình), tỷ lệ vấn đề 26,4% > 20% nhưng trường ẩn không hiện cho khách |
