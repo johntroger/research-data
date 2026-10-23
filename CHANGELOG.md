@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.67 (so với 3.9.66)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 2.4:** sao lưu hằng đêm Supabase prod lên R2 bằng GitHub Actions (`.github/workflows/backup.yml`, `scripts/backup-prod.sh`), bucket riêng `research-data-backups`, token giới hạn đúng bucket, giữ 30 bản; `scripts/set-r2-keys.ps1 -Role backup` và `scripts/set-github-secrets.ps1`; đã chạy tay, phục hồi thử khớp prod, thử dọn bản cũ; hướng dẫn phục hồi ở architecture Mục 9.3; `keepalive.yml` không cần nữa | Chủ dự án duyệt 23/10/2026 (kế hoạch Giai đoạn 2 mục 4) |
+
 ### Version 3.9.66 (so với 3.9.65)
 
 | # | Thay đổi | Lý do |

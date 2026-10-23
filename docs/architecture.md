@@ -98,13 +98,23 @@ Mọi tác vụ định kỳ đặt tập trung ở GitHub Actions để dễ th
 
 | Workflow | Lịch | Việc làm |
 | :--- | :--- | :--- |
-| `backup.yml` | Hằng đêm | `pg_dump` Supabase `prod` → nén → R2 (giữ 30 bản gần nhất) |
-| `keepalive.yml` | 2 lần/tuần | Gửi truy vấn nhẹ tới Supabase `prod` để project không bị tạm dừng |
+| `backup.yml` ✅ | Hằng đêm 02:17 giờ Việt Nam (19:17 UTC), chạy tay được với `keep` | `scripts/backup-prod.sh`: `pg_dump -Fc` schema `public` của Supabase `prod` (qua pooler, ảnh `postgres:17`) → bucket R2 riêng `research-data-backups` thành `backups/db-<giờ UTC>.dump`, kiểm kích thước sau khi tải lên, giữ 30 bản mới nhất (chỉ xóa tệp đúng mẫu tên của chính nó) |
+| `keepalive.yml` | (không cần) | `backup.yml` mở database mỗi đêm nên đã giữ project Supabase Free không bị tạm dừng; chỉ làm workflow riêng nếu bỏ sao lưu hằng đêm |
 | `retraction-check.yml` | Hằng tháng | Kiểm tra lại trạng thái rút bài qua Crossref cho mọi bài; gắn cảnh báo lên bài và mọi kết quả liên quan |
 | `ci.yml` | Mỗi pull request / push | Lint, type-check, unit test (Mục 9.4) |
 | `regression.yml` | Khi `packages/schema` hoặc prompt thay đổi | Chạy bộ bài giả lập (Mục 6.6); có trần chi phí riêng |
 
 Các khóa bí mật (Supabase, R2, Gemini) lưu trong **GitHub Actions Secrets**, không bao giờ in ra log.
+
+**Sao lưu: khóa và quyền (bước 2.4).** Bản sao lưu nằm ở bucket riêng `research-data-backups`, tách khỏi bucket PDF; token R2 `research-data-backup-rw` (quyền "Workers R2 Storage Bucket Item: Edit") **chỉ thấy bucket này** (đã thử: không liệt kê hay ghi được bucket PDF và bucket của dự án khác). Bảy secrets của repo (`SUPABASE_PROD_REF`, `SUPABASE_PROD_DB_PASSWORD`, `SUPABASE_PROD_POOLER_HOST`, `R2_ACCOUNT_ID`, `R2_BACKUP_BUCKET`, `R2_BACKUP_ACCESS_KEY_ID`, `R2_BACKUP_SECRET_ACCESS_KEY`) được đặt bằng `scripts\set-github-secrets.ps1` từ `.env`, không in giá trị. Khóa nhập bằng `scripts\set-r2-keys.ps1 -Role backup`.
+
+**Phục hồi (đã thử ngày 23/10/2026).** Tải bản mới nhất từ R2 (bằng token sao lưu hoặc `wrangler r2 object get research-data-backups/backups/<tên>.dump --remote --file b.dump`), rồi:
+
+```bash
+pg_restore --no-owner --no-privileges -d <database đích> b.dump
+```
+
+Lệnh báo một lỗi vô hại `schema "public" already exists` (bản dump có lệnh tạo schema). Thử phục hồi bản sao lưu thật vào một database tạm: số dòng 9 bảng chính **khớp prod** (10.746 trường, 2.672 bằng chứng, 36 bài...). Bản dump chỉ có schema `public` (bảng, view, chính sách RLS và dữ liệu; chưa có schema `auth`, `storage` vì dự án chưa dùng). Số dòng đã đối chiếu sau phục hồi; **chính sách RLS chưa được kiểm riêng sau phục hồi**, nên sau một lần phục hồi thật hãy chạy lại phép kiểm khách ở Mục 2.1 (khách không đọc được trường ẩn). Kiểm tra phục hồi định kỳ (3 tháng một lần) là việc của chủ dự án.
 
 ### 9.3b. Phân chia lưu trữ giữa Supabase và Cloudflare R2 (chủ dự án yêu cầu 23/10/2026)
 Cloudflare R2 (Free 10 GB) còn nhiều chỗ hơn Supabase (Free 500 MB cho database), nên **Supabase chỉ giữ dữ liệu cần truy vấn**, mọi thứ nặng đưa sang R2:
