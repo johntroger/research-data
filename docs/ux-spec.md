@@ -64,6 +64,8 @@ Phong cách **Tối giản học thuật (Clean Academic Deep-Work Workspace)**;
 * Thẻ bài báo: tác giả & năm, tạp chí + xếp hạng, thiết kế, số Study, tóm tắt mức tin cậy, nút **Copy APA**, **Copy citekey**, **Xem chi tiết**, **Xem PDF** và **Tải PDF gốc** (theo quyền, Mục 7.1), **DOI**.
 * Có màn hình trống và skeleton khi tải.
 
+> **Tình trạng (bước 3b.1, 23/10/2026):** đã làm trang `/library` với ô tìm (tên bài, tác giả không phân biệt dấu, tạp chí, DOI), bộ lọc nhiều lựa chọn kèm số bài (năm theo thập niên, loại bài, thiết kế, loại mẫu, quốc gia), tỷ lệ trường ⚠ (tối đa 10% hoặc 25%), có ma trận tương quan; số bài mỗi giá trị tính theo các bộ lọc còn lại; bộ lọc nằm trong URL (form GET, không cần JavaScript); thẻ bài có **Copy APA** (tạo từ metadata) và liên kết **DOI**. **Chưa làm:** lý thuyết nền, miền nghiên cứu, ngành, B2B/B2C, xếp hạng tạp chí, OA (database chưa có dữ liệu cho các mục này), Copy citekey, gợi ý tự động khi gõ.
+
 ### 8.2b. Tìm theo mối quan hệ giữa hai biến (Relationship Search) (MỚI)
 Trả lời trực tiếp câu hỏi cốt lõi số 1: *"Mối quan hệ giữa biến A và biến B đã được nghiên cứu thế nào?"*
 

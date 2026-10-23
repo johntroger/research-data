@@ -3,6 +3,7 @@
  * so the web sees exactly what visitors are allowed to see (RLS: no hidden fields, no runs).
  */
 import type { Badge } from "@research-data/schema";
+import type { LibraryItem } from "./library";
 import type { Concept, PathRow } from "./relations";
 
 export interface Paper {
@@ -16,6 +17,10 @@ export interface Paper {
   authors: { given?: string | null; family?: string | null }[];
   year: number | null;
   journal: string | null;
+  volume?: string | null;
+  issue?: string | null;
+  pages?: string | null;
+  paper_type?: string | null;
 }
 
 export interface CheckResult {
@@ -58,7 +63,7 @@ async function rest<T>(pathAndQuery: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-const PAPER_COLUMNS = "id,doi,title,pdf_path,page_count,oa_status,license_source,authors,year,journal";
+const PAPER_COLUMNS = "id,doi,title,pdf_path,page_count,oa_status,license_source,authors,year,journal,volume,issue,pages,paper_type";
 
 export function listPapers(): Promise<Paper[]> {
   return rest<Paper[]>(`papers?select=${PAPER_COLUMNS}&order=created_at.desc`);
@@ -93,6 +98,38 @@ export function listFields(paperId: string): Promise<ExtractedField[]> {
 /** Short display name for a paper until real metadata (Crossref) arrives in Giai đoạn 1. */
 export function paperLabel(paper: Paper): string {
   return paper.title ?? paper.pdf_path?.split("/").pop()?.replace(/\.pdf$/i, "") ?? paper.id;
+}
+
+/** Papers with the facts the library filters on (step 3b.1), read with the visitor's rights. */
+export async function listLibraryItems(): Promise<LibraryItem[]> {
+  const [papers, studies, samples, matrices, counts] = await Promise.all([
+    listPapers(),
+    restAll<{ paper_id: string; research_design: string | null }>("studies?select=paper_id,research_design"),
+    restAll<{ paper_id: string; sample_type: string | null; country_iso: string[] }>("samples?select=paper_id,sample_type,country_iso"),
+    restAll<{ paper_id: string }>("correlation_matrices?select=paper_id"),
+    listBadgeCounts(),
+  ]);
+  const by = <T extends { paper_id: string }>(rows: T[]) => {
+    const m = new Map<string, T[]>();
+    for (const r of rows) m.set(r.paper_id, [...(m.get(r.paper_id) ?? []), r]);
+    return m;
+  };
+  const uniq = (xs: (string | null | undefined)[]) => [...new Set(xs.filter((x): x is string => !!x))];
+  const studiesBy = by(studies);
+  const samplesBy = by(samples);
+  const matrixIds = new Set(matrices.map((m) => m.paper_id));
+  return papers.map((p) => {
+    const c = counts.get(p.id);
+    return {
+      id: p.id, title: p.title, authors: p.authors ?? [], year: p.year, journal: p.journal, doi: p.doi,
+      volume: p.volume ?? null, issue: p.issue ?? null, pages: p.pages ?? null, pageCount: p.page_count, paperType: p.paper_type ?? null,
+      designs: uniq((studiesBy.get(p.id) ?? []).map((s) => s.research_design)),
+      sampleTypes: uniq((samplesBy.get(p.id) ?? []).map((s) => s.sample_type)),
+      countries: uniq((samplesBy.get(p.id) ?? []).flatMap((s) => s.country_iso)),
+      hasMatrix: matrixIds.has(p.id),
+      verified: c?.verified ?? 0, attention: c?.attention ?? 0, interpreted: c?.interpreted ?? 0,
+    };
+  });
 }
 
 // --- Relationship Search (step 3a.1) ---------------------------------------------------------------

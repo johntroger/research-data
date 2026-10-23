@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.57 (so với 3.9.56)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 3b.1:** bộ lọc Thư viện (tìm chữ, năm, loại bài, thiết kế, loại mẫu, quốc gia, tỷ lệ ⚠, có ma trận; số bài mỗi giá trị; URL chia sẻ được), nút Copy APA và liên kết DOI. Mã mới: `lib/library.ts`, `lib/apa.ts`, `app/library/*`; 11 test đơn vị và 4 test e2e mới (481 đơn vị, 36 e2e xanh) | Danh sách bước 3b do chủ dự án duyệt 23/10/2026 |
+
 ### Version 3.9.56 (so với 3.9.55)
 
 | # | Thay đổi | Lý do |

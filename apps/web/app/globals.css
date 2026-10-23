@@ -506,3 +506,56 @@ h1 {
   font-size: 12px;
   margin-top: 2px;
 }
+
+/* Library filters and per-paper actions (step 3b.1) */
+.library-filters {
+  margin: 12px 0;
+}
+
+.library-search {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.library-search input[type="search"] {
+  flex: 1 1 240px;
+  min-width: 0;
+  padding: 6px 8px;
+}
+
+.library-facets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px 16px;
+  margin-top: 10px;
+}
+
+.library-facets details {
+  font-size: 14px;
+}
+
+.library-facets summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.library-facets label {
+  display: block;
+  margin: 3px 0;
+}
+
+.library-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.copy-button {
+  font-size: 12px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
