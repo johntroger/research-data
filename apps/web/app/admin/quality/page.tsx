@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { adminDbUrl, withAdminDb } from "@/lib/admin-db";
+import { withAdminDb } from "@/lib/admin-db";
 import { loadQuality, type QualityRow } from "@/lib/quality";
+import { loadQualityAsOwner } from "@/lib/quality-session";
+import { getOwner } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
@@ -42,17 +44,19 @@ function Table({ title, rows, testId }: { title: string; rows: QualityRow[]; tes
 }
 
 export default async function QualityPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
-  // Admin page: only where the database is reachable on purpose (local development, or SUPABASE_DB_URL set).
-  if (!adminDbUrl()) notFound();
+  // Owner only: the signed-in owner (a session), or the developer machine (a direct database connection). Anyone else gets a 404.
+  const owner = await getOwner();
+  if (!owner) notFound();
   const raw = (await searchParams).source;
   const source = (Array.isArray(raw) ? raw[0] : raw)?.trim() || undefined;
-  const report = await withAdminDb((db) => loadQuality(db, source ? { source } : {}));
+  const options = source ? { source } : {};
+  const report = owner.via === "session" ? await loadQualityAsOwner(options) : await withAdminDb((db) => loadQuality(db, options));
   const t = report.total;
 
   return (
     <>
       <h1>Chất lượng trích xuất</h1>
-      <p className="muted">Trang quản trị, chỉ chạy trên máy này. Cùng số liệu với lệnh `pnpm worker quality`.</p>
+      <p className="muted">Trang quản trị, chỉ chủ dự án thấy (đã đăng nhập, hoặc máy phát triển). Cùng số liệu với lệnh `pnpm worker quality`.</p>
       <form method="get" className="quality-filter">
         <label>
           Lọc theo nguồn (model của lượt trích xuất, ví dụ <code>manual:codex</code> hoặc <code>gemini</code>){" "}

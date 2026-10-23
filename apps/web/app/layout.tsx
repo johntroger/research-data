@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { adminDbUrl } from "@/lib/admin-db";
 import { getOwner } from "@/lib/supabase-server";
 import "./globals.css";
 
@@ -25,7 +24,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <a href="/about">Giới thiệu</a>
           </nav>
           <div className="header-right">
-            {adminDbUrl() ? (
+            {owner ? (
               <a href="/admin/quality" className="admin-link">
                 Chất lượng (quản trị)
               </a>

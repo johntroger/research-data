@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.71 (so với 3.9.70)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước A.3:** migration `owner_access` (`is_owner()`, chính sách chủ đọc mọi hàng cho 24 bảng, hàm `quality_report`); `/admin/quality` đọc bằng phiên chủ (`lib/quality-session.ts`) hoặc kết nối trực tiếp ở máy dev (`lib/quality.ts` chỉ còn ánh xạ kết quả của hàm DB); 8 test DB, 2 test đơn vị mới; đã áp lên local và prod và thử bằng khóa khách và phiên chủ thật | Chủ dự án duyệt 23/10/2026 (D2: trường ẩn chỉ hiện cho quản trị) |
+
 ### Version 3.9.70 (so với 3.9.69)
 
 | # | Thay đổi | Lý do |

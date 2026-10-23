@@ -1,5 +1,5 @@
 /**
- * Quality numbers for the admin page (step 1b.5): how many extracted fields are ✓ / ⚠ / ◇ / hidden, by source,
+ * Quality numbers for the admin page (step 1b.5, A.3): how many extracted fields are ✓ / ⚠ / ◇ / hidden, by source,
  * study design, field and failed check, and which papers need attention. Same definitions as `pnpm worker quality`:
  * problem rate = (⚠ + hidden) / (✓ + ⚠ + hidden), because ◇ fields (interpretations) cannot be checked.
  */
@@ -41,23 +41,6 @@ export const problemRate = (c: Counts): number => {
   return checkable === 0 ? 0 : (c.attention + c.hidden) / checkable;
 };
 
-/** Fields with the model of their run and the design of their study; `source` keeps runs whose model contains the text. */
-const FIELDS = `
-  select f.paper_id, f.field_name, f.badge, f.check_results,
-         coalesce(er.model_name, '(unknown)') as source,
-         coalesce((select s.research_design from studies s
-                    where s.paper_id = f.paper_id and (f.natural_key = s.natural_key or f.natural_key like s.natural_key || ':%')
-                    order by length(s.natural_key) desc limit 1), '(paper-level)') as design
-    from extracted_fields f
-    left join extraction_runs er on er.id = f.extraction_run_id
-   where ($1::text is null or er.model_name ilike '%' || $1 || '%')`;
-
-const COUNTS = `
-  count(*) filter (where badge = 'auto_verified')::int as verified,
-  count(*) filter (where badge = 'needs_attention')::int as attention,
-  count(*) filter (where badge = 'ai_interpreted')::int as interpreted,
-  count(*) filter (where badge = 'hidden')::int as hidden`;
-
 interface RawCounts {
   verified: number;
   attention: number;
@@ -67,51 +50,41 @@ interface RawCounts {
 
 const withRate = <T extends RawCounts>(r: T): T & { problemRate: number } => ({ ...r, problemRate: problemRate(r) });
 
-async function groupBy(db: pg.Client, column: "source" | "design" | "field_name", source: string | null, limit: number): Promise<QualityRow[]> {
-  const res = await db.query<RawCounts & { name: string; papers: number }>(
-    `with f as (${FIELDS})
-     select ${column} as name, ${COUNTS}, count(distinct paper_id)::int as papers
-       from f group by 1
-      order by (count(*) filter (where badge in ('needs_attention', 'hidden'))) desc, 1
-      limit $2`,
-    [source, limit],
-  );
-  return res.rows.map(withRate);
+/** What the database function `public.quality_report` returns (supabase/migrations/20261023200000_owner_access.sql). */
+export interface RawReport {
+  total: RawCounts & { fields: number; papers: number };
+  bySource: (RawCounts & { name: string; papers: number })[];
+  byDesign: (RawCounts & { name: string; papers: number })[];
+  byField: (RawCounts & { name: string; papers: number })[];
+  byCheck: { name: string; fields: number; papers: number }[];
+  attention: (RawCounts & { id: string; title: string })[];
 }
 
-export async function loadQuality(db: pg.Client, options: { source?: string; limit?: number } = {}): Promise<QualityReport> {
-  const source = options.source?.trim() || null;
-  const limit = options.limit ?? 15;
-  const total = await db.query<RawCounts & { fields: number; papers: number }>(
-    `with f as (${FIELDS}) select ${COUNTS}, count(*)::int as fields, count(distinct paper_id)::int as papers from f`,
-    [source],
-  );
-  const t = total.rows[0]!;
-  const checks = await db.query<{ name: string; fields: number; papers: number }>(
-    `with f as (${FIELDS})
-     select f.field_name || ' / ' || (c ->> 'name') as name, count(*)::int as fields, count(distinct f.paper_id)::int as papers
-       from f, jsonb_array_elements(f.check_results -> 'checks') c
-      where f.badge in ('needs_attention', 'hidden') and (c ->> 'passed') = 'false'
-      group by 1 order by 2 desc, 1 limit $2`,
-    [source, limit],
-  );
-  const attention = await db.query<RawCounts & { id: string; title: string }>(
-    `with f as (${FIELDS})
-     select p.id, coalesce(p.title, p.pdf_path, p.id::text) as title, ${COUNTS.replaceAll("badge", "f.badge")}
-       from f join papers p on p.id = f.paper_id
-      group by p.id, p.title, p.pdf_path
-     having count(*) filter (where f.badge in ('needs_attention', 'hidden')) > 0
-      order by (count(*) filter (where f.badge in ('needs_attention', 'hidden'))) desc, 2`,
-    [source],
-  );
+export function toReport(raw: RawReport): QualityReport {
+  const t = raw.total;
   return {
     fields: t.fields,
     papers: t.papers,
     total: withRate({ verified: t.verified, attention: t.attention, interpreted: t.interpreted, hidden: t.hidden }),
-    bySource: await groupBy(db, "source", source, limit),
-    byDesign: await groupBy(db, "design", source, limit),
-    byField: await groupBy(db, "field_name", source, limit),
-    byCheck: checks.rows,
-    attention: attention.rows.map(withRate),
+    bySource: raw.bySource.map(withRate),
+    byDesign: raw.byDesign.map(withRate),
+    byField: raw.byField.map(withRate),
+    byCheck: raw.byCheck,
+    attention: raw.attention.map(withRate),
   };
+}
+
+/**
+ * The report through a direct database connection (the developer machine). The function only answers the owner, so the connection says so
+ * explicitly for one transaction, as the owner's session token would; nothing is allowed by default.
+ */
+export async function loadQuality(db: pg.Client, options: { source?: string; limit?: number } = {}): Promise<QualityReport> {
+  await db.query("begin");
+  try {
+    await db.query("select set_config('request.jwt.claims', $1, true)", [JSON.stringify({ app_metadata: { role: "owner" } })]);
+    const res = await db.query<{ r: RawReport }>("select public.quality_report($1, $2) as r", [options.source?.trim() || null, options.limit ?? 15]);
+    return toReport(res.rows[0]!.r);
+  } finally {
+    await db.query("rollback");
+  }
 }

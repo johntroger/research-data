@@ -83,6 +83,12 @@ test("the owner gets a link by email, opens it, is signed in, and signs out", as
   await page.goto("/login");
   await expect(page.getByTestId("login-already")).toContainText(OWNER);
 
+  // With a session, the admin page reads through the owner's own token (one call to quality_report), not a direct database connection:
+  // the hidden fields are counted, which a visitor's token can never see.
+  await page.goto("/admin/quality");
+  await expect(page.getByTestId("quality-total")).toContainText(/\d+ bài, \d+ trường/);
+  await expect(page.getByTestId("quality-total")).toContainText(/ẩn [1-9]\d*/);
+
   await page.getByTestId("logout").click();
   await expect(page.getByTestId("session-email")).toHaveCount(0);
   await page.goto("/login");
