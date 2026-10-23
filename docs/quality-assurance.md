@@ -266,6 +266,16 @@ Kiểm lại: cả 7 ca sai dòng trong phạm vi của mẫu 30 nay trỏ đún
 
 **OCR cho bài scan (22–23/10/2026):** `pnpm worker ocr --paper X` (tesseract.js + @napi-rs/canvas + pdfjs-dist cho ảnh JBIG2; chạy trên máy) nhận dạng chữ các trang không có chữ và lưu `<hash16>.ocr.json` cạnh bản trích xuất; `loadTextLayer` áp văn bản đó nên gói, kiểm tra và nhập đều dùng chung. Văn bản OCR không có tọa độ nên bài scan không có khung tô sáng. Thử trên Dodds 1991 (13 trang, khoảng 2 phút, độ tin cậy 88 đến 94%): tác tử Claude trích 1002 trường nhưng **✓ 677 · ⚠ 271 · ◇ 21 · ẩn 33 (tỷ lệ vấn đề 31%)** vì OCR làm nhiễu số trong bảng; bài đang **giữ lại**, chưa nhập.
 
+### 6.12. Kiểm mẫu độ đúng lần 3 trên bài do tác tử Claude trích (23/10/2026)
+Mẫu: 30 trường ✓ (12 ô bảng, 8 đường dẫn, 5 đo lường, 5 mẫu) + 10 trường ⚠, rút ngẫu nhiên từ 13 bài do tác tử Claude trích (tối đa 4 trường ✓ và 2 trường ⚠ mỗi bài, chỉ trang có lớp chữ). Chấm **mù** bởi 4 tác tử Sonnet (model khác với Opus đã trích), chỉ thấy khóa trường, giá trị và văn bản trang, không thấy câu trích.
+
+| Nhóm | Đúng | Không phán đoán được từ trang | Sai |
+| :--- | :--- | :--- | :--- |
+| ✓ (30) | **28** | 2 (một giá trị 5,57 ở bảng so với 5,56 ở văn bản bài; một nước không nêu trên trang bằng chứng) | **0** |
+| ⚠ (10) | 6 | 4 (số ô thiếu trên trang, khóa không nêu mô hình) | 0 |
+
+Kết luận: không phát hiện trường ✓ nào sai; các trường ⚠ không phải báo động giả vô cớ (6/10 vẫn đúng, 4/10 không xác nhận được từ trang). Mẫu nhỏ nên chỉ là bằng chứng gián tiếp. Tệp mẫu và nhận định nằm ở `extracted_data/audit/blind3/` (ngoài git).
+
 ## 12. TÀI LIỆU THAM KHẢO PHƯƠNG PHÁP LUẬN (dùng cho Codebook)
 
 * Alvesson, M., & Sandberg, J. (2011). Generating research questions through problematization. *Academy of Management Review, 36*(2), 247–271.

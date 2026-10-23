@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.56 (so với 3.9.55)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Mục 6.12: kiểm mẫu lần 3 (30 ✓ + 10 ⚠, chấm mù bằng Sonnet): 28 đúng, 2 không phán đoán được, 0 sai | Xác nhận chất lượng bài do tác tử Claude trích |
+| 2 | Sửa `&amp;` hiện nguyên văn ở tên tạp chí (Crossref trả thực thể HTML): `crossref.ts` giải mã thực thể, thêm 1 test (470 xanh), sửa 4 dòng trong database | Phát hiện khi kiểm web kho 36 bài |
+
 ### Version 3.9.55 (so với 3.9.54)
 
 | # | Thay đổi | Lý do |
