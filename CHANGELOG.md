@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.78 (so với 3.9.77)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 4.4:** deploy lần đầu lên `https://research-data-five.vercel.app`; vùng hàm đặt `sin1` ở cài đặt dự án (`regions` trong `vercel.json` vô hiệu ở Hobby, đã bỏ); thêm địa chỉ vào CORS R2 và Auth Supabase (`supabase/config.toml`: `site_url`, chuyển hướng); đã kiểm trên địa chỉ thật: khách bị chặn, noindex, header, CORS, `TRUST_PROXY` với header giả, 429 qua Upstash thật, chủ đăng nhập bằng link email thật, trang quản trị, PDF bài đóng | Chủ dự án duyệt 23/10/2026 (Giai đoạn 4) |
+
 ### Version 3.9.77 (so với 3.9.76)
 
 | # | Thay đổi | Lý do |
