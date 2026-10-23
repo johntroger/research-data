@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.72 (so với 3.9.71)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước A.4:** bộ e2e chế độ production (`pnpm test:e2e:prod`, `e2e/prod-owner.spec.ts`, `playwright.prod.config.ts`, `e2e/support/local-auth.ts` dùng chung với `login.spec.ts`): khách bị chặn, chủ đăng nhập bằng link thật xem và tải PDF bài đóng qua R2 và vào trang quản trị, đăng xuất thì mất quyền | Chủ dự án duyệt 23/10/2026; chứng minh trường hợp triển khai thật (không có lối tắt máy dev) |
+| 2 | Route PDF: nhánh đọc tệp từ đĩa chỉ khi phát triển (production thiếu R2 trả 503); `distDir` theo `NEXT_DIST_DIR`; ESLint bỏ qua `.next-prod` | Cảnh báo build: truy cập tệp làm cả dự án bị đóng gói, sẽ cản triển khai Vercel |
+
 ### Version 3.9.71 (so với 3.9.70)
 
 | # | Thay đổi | Lý do |

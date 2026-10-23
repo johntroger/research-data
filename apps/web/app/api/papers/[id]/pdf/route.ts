@@ -1,7 +1,7 @@
 /**
  * A paper's PDF. With the read-only R2 token configured (step 2.2b) the browser is sent to a 5-minute presigned R2 link, so the
- * file never passes through this server; without it (development) the file is read from the local raw_papers folder.
- * Viewing is open; saving a copy follows the licence rule of lib/pdf-access (Mục 7, D14).
+ * file never passes through this server; without it, in development only, the file is read from the local raw_papers folder.
+ * Viewing and saving a copy both follow the licence rule of lib/pdf-access (Mục 7, D14): the owner gets every PDF, a visitor only open-licence ones.
  */
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -10,7 +10,7 @@ import { getOwner } from "@/lib/supabase-server";
 import { canDownloadPdf, canViewPdf, pdfFileName } from "@/lib/pdf-access";
 import { pdfKey, presignPdf, r2Config } from "@/lib/r2";
 
-const REPO_ROOT = path.resolve(process.cwd(), "../..");
+const REPO_ROOT = path.resolve(/* turbopackIgnore: true */ process.cwd(), "../..");
 const RAW_PAPERS = path.join(REPO_ROOT, "raw_papers");
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -30,8 +30,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     if (link) return new Response(null, { status: 302, headers: { Location: link, "Cache-Control": "no-store" } });
   }
 
+  // Reading the file from disk is for development only. A deployed site has no raw_papers folder, and tracing this code would pull the whole project into the deployment.
+  if (process.env.NODE_ENV === "production") return new Response("PDF storage is not configured", { status: 503 });
+
   // Only files inside raw_papers/ may be served, whatever the database says.
-  const file = path.resolve(REPO_ROOT, paper.pdf_path);
+  const file = path.resolve(/* turbopackIgnore: true */ REPO_ROOT, paper.pdf_path);
   if (!file.startsWith(RAW_PAPERS + path.sep) || !file.toLowerCase().endsWith(".pdf")) {
     return new Response("Forbidden", { status: 403 });
   }

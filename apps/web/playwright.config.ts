@@ -2,6 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./e2e",
+  // The production-mode tests run with their own config: pnpm test:e2e:prod.
+  testIgnore: "**/prod-*.spec.ts",
   fullyParallel: false,
   workers: 1,
   reporter: "list",
