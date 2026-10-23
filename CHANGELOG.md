@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.73 (so với 3.9.72)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước A.5:** giới hạn tốc độ theo IP (`lib/rate-limit.ts`, `proxy.ts`): cửa sổ trượt, chỉ đếm yêu cầu được cho qua, IP băm có muối, 429 kèm `Retry-After`, mức theo loại yêu cầu (trang, tìm kiếm, PDF, tải PDF, xuất, đăng nhập); bật khi production, `TRUST_PROXY=1` mới tin `x-forwarded-for`; kho trong bộ nhớ, Upstash gắn khi lên Vercel; 13 test đơn vị, 6 e2e production | Chủ dự án duyệt 23/10/2026 (rủi ro 18: web công khai bị lạm dụng) |
+
 ### Version 3.9.72 (so với 3.9.71)
 
 | # | Thay đổi | Lý do |

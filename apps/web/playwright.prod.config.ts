@@ -17,6 +17,7 @@ export default defineConfig({
     url: "http://localhost:3001/login",
     reuseExistingServer: false,
     timeout: 300_000,
-    env: { NEXT_DIST_DIR: ".next-prod" },
+    // TRUST_PROXY: the tests play different visitors by sending their own forwarded-for address (A.5).
+    env: { NEXT_DIST_DIR: ".next-prod", TRUST_PROXY: "1" },
   },
 });
