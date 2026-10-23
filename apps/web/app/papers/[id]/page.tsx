@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { adminDbUrl } from "@/lib/admin-db";
 import { getPaper, listFields, paperLabel } from "@/lib/data";
-import { canDownloadPdf } from "@/lib/pdf-access";
+import { canDownloadPdf, canViewPdf, pdfLinks } from "@/lib/pdf-access";
 import { EvidenceWorkspace } from "./evidence-workspace";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +16,7 @@ export default async function PaperPage({
   const { id } = await params;
   const paper = await getPaper(id);
   if (!paper) notFound();
+  const isOwner = adminDbUrl() !== null;
   const fields = await listFields(paper.id);
   // A link from the search results names the test (its natural key); its estimate is selected first.
   const raw = (await searchParams).focus;
@@ -24,7 +25,7 @@ export default async function PaperPage({
   return (
     <>
       <h1>{paperLabel(paper)}</h1>
-      <EvidenceWorkspace paperId={paper.id} fields={fields} canDownload={Boolean(paper.pdf_path) && canDownloadPdf(adminDbUrl() !== null, paper)} {...(focusKey ? { focusKey } : {})} />
+      <EvidenceWorkspace paperId={paper.id} fields={fields} canDownload={Boolean(paper.pdf_path) && canDownloadPdf(isOwner, paper)} access={{ canView: canViewPdf(isOwner, paper), ...pdfLinks(paper) }} {...(focusKey ? { focusKey } : {})} />
     </>
   );
 }

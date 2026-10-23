@@ -57,7 +57,7 @@ export function focusedField(fields: ExtractedField[], focusKey: string | undefi
 }
 
 /** The small table "why this badge": the checks that passed and the ones that did not (Mục 8.3). */
-function Why({ paperId, field, page }: { paperId: string; field: ExtractedField; page: number }) {
+function Why({ paperId, field, page, canView }: { paperId: string; field: ExtractedField; page: number; canView: boolean }) {
   const checks = field.check_results.checks ?? [];
   const failed = checks.filter((c) => !c.passed);
   const passed = checks.filter((c) => c.passed);
@@ -79,7 +79,7 @@ function Why({ paperId, field, page }: { paperId: string; field: ExtractedField;
           ))}
         </ul>
       )}
-      {field.pdf_page_index !== null && (
+      {canView && field.pdf_page_index !== null && (
         <a href={`/api/papers/${paperId}/pdf#page=${page}`} target="_blank" rel="noreferrer">
           Mở trong PDF (trang {page})
         </a>
@@ -88,7 +88,14 @@ function Why({ paperId, field, page }: { paperId: string; field: ExtractedField;
   );
 }
 
-export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = false }: { paperId: string; fields: ExtractedField[]; focusKey?: string; canDownload?: boolean }) {
+/** What a visitor may do with the PDF (step 2.2c): view it here, or only follow the links to the paper's own copy. */
+export interface PdfAccess {
+  canView: boolean;
+  oaUrl: string | null;
+  doiUrl: string | null;
+}
+
+export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = false, access = { canView: true, oaUrl: null, doiUrl: null } }: { paperId: string; fields: ExtractedField[]; focusKey?: string; canDownload?: boolean; access?: PdfAccess }) {
   const summary = summariseSections(fields);
   const start = focusedField(fields, focusKey) ?? fields.find((f) => f.pdf_page_index !== null && tabOf(f) === firstTabWithFields(summary)) ?? fields.find((f) => f.pdf_page_index !== null);
   const [selectedId, setSelectedId] = useState<string | null>(start?.id ?? null);
@@ -200,7 +207,7 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
                     : "Không có trang bằng chứng"}
                 </div>
               </button>
-              {field.id === selectedId && <Why paperId={paperId} field={field} page={page} />}
+              {field.id === selectedId && <Why paperId={paperId} field={field} page={page} canView={access.canView} />}
             </div>
           ))}
         </div>
@@ -224,15 +231,37 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
       />
 
       <section ref={pdfPane} className="pdf-pane" aria-label="PDF gốc">
-        <PdfViewer
-          paperId={paperId}
-          page={page}
-          printedPage={selected?.printed_page ?? null}
-          highlight={selected?.highlight ?? null}
-          hasQuote={Boolean(selected?.evidence_quote) && selected?.pdf_page_index != null}
-          canDownload={canDownload}
-          fieldKey={selected ? `${selected.id}:${visit}` : null}
-        />
+        {access.canView ? (
+          <PdfViewer
+            paperId={paperId}
+            page={page}
+            printedPage={selected?.printed_page ?? null}
+            highlight={selected?.highlight ?? null}
+            hasQuote={Boolean(selected?.evidence_quote) && selected?.pdf_page_index != null}
+            canDownload={canDownload}
+            fieldKey={selected ? `${selected.id}:${visit}` : null}
+          />
+        ) : (
+          <div className="pdf-restricted" data-testid="pdf-restricted">
+            <p>
+              <strong>PDF của bài này không được đăng công khai.</strong> Bài không có giấy phép mở, nên web chỉ hiện dữ liệu trích xuất và câu trích kèm số trang để bạn đối chiếu với bản gốc.
+            </p>
+            <p>
+              {access.oaUrl && (
+                <a href={access.oaUrl} target="_blank" rel="noreferrer" data-testid="link-oa">
+                  Bản OA (nhà xuất bản hoặc kho lưu trữ)
+                </a>
+              )}
+              {access.oaUrl && access.doiUrl && " · "}
+              {access.doiUrl && (
+                <a href={access.doiUrl} target="_blank" rel="noreferrer" data-testid="link-doi">
+                  Mở DOI
+                </a>
+              )}
+              {!access.oaUrl && !access.doiUrl && <span className="muted">Chưa có liên kết tới bản gốc.</span>}
+            </p>
+          </div>
+        )}
       </section>
     </div>
   );

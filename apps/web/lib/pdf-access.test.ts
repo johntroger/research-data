@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canDownloadPdf, isOpenLicence, pdfFileName } from "./pdf-access";
+import { canDownloadPdf, canViewPdf, isOpenLicence, pdfFileName, pdfLinks } from "./pdf-access";
 
 describe("who may download a PDF", () => {
   it("lets the owner download every paper", () => {
@@ -18,6 +18,22 @@ describe("who may download a PDF", () => {
   it("refuses a visitor when nothing is known", () => {
     expect(isOpenLicence({ oa_status: null, license_source: null })).toBe(false);
     expect(isOpenLicence({ oa_status: "unknown", license_source: "oa" })).toBe(false);
+  });
+});
+
+describe("who may view a PDF, and the links for those who may not", () => {
+  it("lets a visitor view only an open-licence paper; the owner views all", () => {
+    expect(canViewPdf(false, { oa_status: "hybrid", license_source: "oa" })).toBe(true);
+    expect(canViewPdf(false, { oa_status: "closed", license_source: null })).toBe(false);
+    expect(canViewPdf(false, { oa_status: "bronze", license_source: null })).toBe(false);
+    expect(canViewPdf(true, { oa_status: "closed", license_source: null })).toBe(true);
+  });
+
+  it("offers the open-access copy and the DOI, never a link that is not http(s)", () => {
+    expect(pdfLinks({ oa_status: "bronze", oa_url: "https://publisher.example/a", doi: "10.1/x" })).toEqual({ oaUrl: "https://publisher.example/a", doiUrl: "https://doi.org/10.1/x" });
+    expect(pdfLinks({ oa_status: "closed", oa_url: "https://publisher.example/a", doi: "10.1/x" }).oaUrl).toBeNull();
+    expect(pdfLinks({ oa_status: "green", oa_url: "javascript:alert(1)", doi: null })).toEqual({ oaUrl: null, doiUrl: null });
+    expect(pdfLinks({ oa_status: null, oa_url: null, doi: " " })).toEqual({ oaUrl: null, doiUrl: null });
   });
 });
 

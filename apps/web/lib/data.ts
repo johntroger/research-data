@@ -23,6 +23,8 @@ export interface Paper {
   pages?: string | null;
   paper_type?: string | null;
   file_hash?: string | null;
+  oa_url?: string | null;
+  oa_license?: string | null;
 }
 
 export interface CheckResult {
@@ -65,7 +67,7 @@ async function rest<T>(pathAndQuery: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-const PAPER_COLUMNS = "id,doi,title,pdf_path,page_count,oa_status,license_source,authors,year,journal,volume,issue,pages,paper_type,file_hash";
+const PAPER_COLUMNS = "id,doi,title,pdf_path,page_count,oa_status,license_source,authors,year,journal,volume,issue,pages,paper_type,file_hash,oa_url,oa_license";
 
 export function listPapers(): Promise<Paper[]> {
   return rest<Paper[]>(`papers?select=${PAPER_COLUMNS}&order=created_at.desc`);

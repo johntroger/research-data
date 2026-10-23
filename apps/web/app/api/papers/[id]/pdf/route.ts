@@ -7,7 +7,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { adminDbUrl } from "@/lib/admin-db";
 import { getPaper } from "@/lib/data";
-import { canDownloadPdf, pdfFileName } from "@/lib/pdf-access";
+import { canDownloadPdf, canViewPdf, pdfFileName } from "@/lib/pdf-access";
 import { pdfKey, presignPdf, r2Config } from "@/lib/r2";
 
 const REPO_ROOT = path.resolve(process.cwd(), "../..");
@@ -18,9 +18,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const paper = await getPaper(id);
   if (!paper?.pdf_path) return new Response("Not found", { status: 404 });
 
-  // Viewing is open; saving a copy (?download=1) follows the licence rule of lib/pdf-access.
+  // Viewing and saving a copy both follow the licence rule of lib/pdf-access (D14): the owner sees every PDF, a visitor only open-licence ones.
+  const isOwner = adminDbUrl() !== null;
   const download = new URL(request.url).searchParams.get("download") === "1";
-  if (download && !canDownloadPdf(adminDbUrl() !== null, paper)) return new Response("Forbidden: this PDF may only be downloaded by the project owner", { status: 403 });
+  if (!canViewPdf(isOwner, paper)) return new Response("Forbidden: this PDF is not published (no open licence)", { status: 403 });
+  if (download && !canDownloadPdf(isOwner, paper)) return new Response("Forbidden: this PDF may only be downloaded by the project owner", { status: 403 });
 
   const r2 = r2Config();
   if (r2 && pdfKey(paper.file_hash)) {

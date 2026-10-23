@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.66 (so với 3.9.65)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 2.2c:** Unpaywall (`metadata/unpaywall.ts`, `db/oa.ts`, lệnh `pnpm worker oa`), migration `oa_fields` (3 cột), `license_source = 'oa'` chỉ với giấy phép CC / public domain; 7/36 bài mở; áp lên local và prod | D14: khách chỉ tải được bài OA có giấy phép mở; chủ dự án duyệt quy tắc gồm cả NC và ND |
+| 2 | Web: khách chỉ **xem** và tải PDF bài giấy phép mở (trước đó ai cũng xem được); bài khác hiện khung kèm "Bản OA" và "Mở DOI"; `canViewPdf`, `pdfLinks`; `prodDbUrl` cho `--target prod`; 18 test đơn vị mới (516 đơn vị, 85 DB, 45 e2e xanh) | Thực hiện Mục 7 / D14 trước khi mở công khai |
+
 ### Version 3.9.65 (so với 3.9.64)
 
 | # | Thay đổi | Lý do |

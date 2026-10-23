@@ -9,6 +9,13 @@ export function dbUrl(): string {
   return process.env.SUPABASE_DB_URL?.trim() || LOCAL_DB_URL;
 }
 
+/** The cloud prod database through the Supabase pooler (ref, password and pooler host from .env), or null when not configured. */
+export function prodDbUrl(): string | null {
+  loadEnv();
+  const { SUPABASE_PROD_REF: ref, SUPABASE_PROD_DB_PASSWORD: password, SUPABASE_PROD_POOLER_HOST: host } = process.env;
+  return ref && password && host ? `postgresql://postgres.${ref}:${encodeURIComponent(password)}@${host}:5432/postgres` : null;
+}
+
 export async function connect(url = dbUrl()): Promise<pg.Client> {
   const client = new pg.Client({ connectionString: url });
   // A dropped connection (the database restarted, Docker stopped) must not crash a long run with an

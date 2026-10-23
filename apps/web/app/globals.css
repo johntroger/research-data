@@ -665,3 +665,12 @@ h1 {
   cursor: pointer;
   font-weight: 600;
 }
+
+/* A PDF that visitors may not see (step 2.2c) */
+.pdf-restricted {
+  padding: 16px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  font-size: 14px;
+}

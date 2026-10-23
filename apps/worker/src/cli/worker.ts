@@ -11,6 +11,7 @@
  *   pnpm worker manual check <packet> [--no-feedback]   validate the answers in a packet's out/ (no database, no keys; step 1b.8b)
  *   pnpm worker manual import <packet>|--all --tool codex --model <name> [--yes] [--no-backup]   publish a packet's answers, replacing the paper's data (step 1b.8c; preview without --yes)
  *   pnpm worker republish [--paper X] [--yes]   publish the saved extractions again with the current checks (no API call)
+ *   pnpm worker oa [--paper X] [--target prod] [--yes]   ask Unpaywall about each paper and set who may download its PDF (step 2.2c)
  *   pnpm worker quality [--top N] [--source TEXT]     ✓ / ⚠ / ◇ / ẩn by study design, field and failed check (step 1b.1)
  *   pnpm worker compare --paper X     Batch result vs synchronous result, field by field (step 1.9c)
  * Uses a READ-ONLY Zotero key (Mục 3.3) and the local Supabase database.
@@ -22,7 +23,8 @@ import { geminiConfig, loadEnv, packetsDir, REPO_ROOT, zoteroConfig } from "../c
 import { checkPacket, formatCheck } from "../manual/check.js";
 import { checkCode, exportPacket, findPaper } from "../manual/export.js";
 import { backupFile, importPacket, manualVersions, once, pgDumpViaDocker } from "../manual/import.js";
-import { connect } from "../db/client.js";
+import { connect, prodDbUrl } from "../db/client.js";
+import { lookupAll, saveOa } from "../db/oa.js";
 import { refreshHighlights } from "../db/highlights.js";
 import { ocrPaper, pagesNeedingOcr } from "../pdf/ocr.js";
 import { geminiBatchClient } from "../extract/batch-client.js";
@@ -455,6 +457,47 @@ async function ocr(args: string[]): Promise<number> {
   }
 }
 
+/**
+ * pnpm worker oa [--paper X] [--target prod] [--yes]: asks Unpaywall (UNPAYWALL_EMAIL) about each paper's DOI and shows what would be
+ * stored: open-access status, licence, and license_source = "oa" only for an open licence (D14). Preview unless --yes.
+ * --target prod writes to the Supabase prod database instead of the local one.
+ */
+async function oa(args: string[]): Promise<number> {
+  loadEnv();
+  const email = process.env.UNPAYWALL_EMAIL?.trim();
+  if (!email) {
+    console.error("Set UNPAYWALL_EMAIL in .env (the contact address Unpaywall asks every client for).");
+    return 1;
+  }
+  const only = option(args, "--paper");
+  const yes = args.includes("--yes");
+  const prod = option(args, "--target") === "prod";
+  const url = prod ? prodDbUrl() : undefined;
+  if (prod && !url) {
+    console.error("Prod is not configured: SUPABASE_PROD_REF, SUPABASE_PROD_DB_PASSWORD and SUPABASE_PROD_POOLER_HOST are needed in .env.");
+    return 1;
+  }
+  const db = await connect(url ?? undefined);
+  try {
+    const { rows } = await db.query<{ id: string; title: string | null; doi: string | null; license_source: string | null }>(
+      "select id, title, doi, license_source from papers where ($1::text is null or id::text like $1 || '%' or file_hash like $1 || '%' or title ilike '%' || $1 || '%') order by title",
+      [only ?? null],
+    );
+    console.log(`${prod ? "PROD" : "local"} database, ${rows.length} papers\n`);
+    const decisions = await lookupAll(rows, email, console.log);
+    const open = decisions.filter((d) => d.open).length;
+    console.log(`\nGiấy phép mở: ${open}/${decisions.length}. Không mở: ${decisions.length - open} (khách chỉ thấy liên kết, không xem hay tải PDF).`);
+    if (!yes) {
+      console.log("Nothing written. Add --yes to store this.");
+      return 0;
+    }
+    console.log(`Stored for ${await saveOa(db, decisions)} papers.`);
+    return 0;
+  } finally {
+    await db.end();
+  }
+}
+
 /** pnpm worker highlights [--paper X]: recompute where each quote sits on its PDF page (step 3a.3). No API call. */
 async function highlights(args: string[]): Promise<number> {
   const only = option(args, "--paper");
@@ -648,9 +691,10 @@ async function main(): Promise<number> {
   if (command === "quality") return quality(args);
   if (command === "manual") return manual(args);
   if (command === "highlights") return highlights(args);
+  if (command === "oa") return oa(args);
   if (command === "ocr") return ocr(args);
   if (command === "republish") return republish(args);
-  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | ocr --paper X | republish [--paper X] [--yes] | manual export --paper X");
+  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | oa [--paper X] [--target prod] [--yes] | ocr --paper X | republish [--paper X] [--yes] | manual export --paper X");
   return 1;
 }
 
