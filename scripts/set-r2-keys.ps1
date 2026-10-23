@@ -1,12 +1,13 @@
 # Stores an R2 credential in the right .env file without showing it on screen or in the chat.
 #   .\scripts\set-r2-keys.ps1 -Role read  -FromToken   -> apps\web\.env.local  (read-only token for the web)
 #   .\scripts\set-r2-keys.ps1 -Role write -FromToken   -> .env                  (read/write token for the worker)
+#   .\scripts\set-r2-keys.ps1 -Role backup  -> .env  (token limited to the backups bucket: R2_BACKUP_ACCESS_KEY_ID, R2_BACKUP_SECRET_ACCESS_KEY)
 # -FromToken: paste the single token value that Cloudflare shows once after "Create Token" (an Account API token with the
 #   "Workers R2 Storage Bucket Item" permission). The S3 credentials are derived as Cloudflare documents: Access Key ID is the
 #   token's id (asked from Cloudflare with the token itself), Secret Access Key is the SHA-256 of the token value.
 # Without -FromToken: paste the Access Key ID and the Secret Access Key from the R2 token page (two values).
 param(
-  [Parameter(Mandatory = $true)][ValidateSet("read", "write")][string]$Role,
+  [Parameter(Mandatory = $true)][ValidateSet("read", "write", "backup")][string]$Role,
   [switch]$FromToken
 )
 
@@ -14,6 +15,9 @@ $root = Split-Path -Parent $PSScriptRoot
 $envFile = Join-Path $root ".env"
 if ($Role -eq "read") {
   $file = Join-Path $root "apps\web\.env.local"; $idName = "R2_ACCESS_KEY_ID"; $secretName = "R2_SECRET_ACCESS_KEY"
+} elseif ($Role -eq "backup") {
+  # A token limited to the backups bucket; it never touches the PDFs.
+  $file = $envFile; $idName = "R2_BACKUP_ACCESS_KEY_ID"; $secretName = "R2_BACKUP_SECRET_ACCESS_KEY"
 } else {
   $file = $envFile; $idName = "R2_WRITE_ACCESS_KEY_ID"; $secretName = "R2_WRITE_SECRET_ACCESS_KEY"
 }

@@ -1,0 +1,38 @@
+name: backup
+
+# Nightly pg_dump of the Supabase prod database to the private R2 backups bucket; keeps the newest 30 (scripts/backup-prod.sh).
+# Opening the database every night also keeps the free Supabase project from being paused for inactivity.
+on:
+  schedule:
+    - cron: "17 19 * * *" # 02:17 in Vietnam (UTC+7)
+  workflow_dispatch:
+    inputs:
+      keep:
+        description: "How many backups to keep (at least 2)"
+        required: false
+        default: "30"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dump prod and upload to R2
+        env:
+          SUPABASE_PROD_REF: ${{ secrets.SUPABASE_PROD_REF }}
+          SUPABASE_PROD_DB_PASSWORD: ${{ secrets.SUPABASE_PROD_DB_PASSWORD }}
+          SUPABASE_PROD_POOLER_HOST: ${{ secrets.SUPABASE_PROD_POOLER_HOST }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BACKUP_BUCKET: ${{ secrets.R2_BACKUP_BUCKET }}
+          R2_BACKUP_ACCESS_KEY_ID: ${{ secrets.R2_BACKUP_ACCESS_KEY_ID }}
+          R2_BACKUP_SECRET_ACCESS_KEY: ${{ secrets.R2_BACKUP_SECRET_ACCESS_KEY }}
+          BACKUP_KEEP: ${{ github.event.inputs.keep || '30' }}
+        run: bash scripts/backup-prod.sh
