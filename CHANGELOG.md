@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.65 (so với 3.9.64)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 2.2b:** route PDF cấp presigned URL R2 5 phút (`lib/r2.ts`, thêm `@aws-sdk/client-s3` và `s3-request-presigner` vào `apps/web`), có dự phòng đọc tệp local; `scripts/set-r2-keys.ps1` nhập khóa ẩn; 5 test đơn vị mới (503 đơn vị, 45 e2e xanh); đã thử với token thật (token chỉ đọc, không ghi được, không đọc bucket khác) | Chủ dự án duyệt 23/10/2026 |
+
 ### Version 3.9.64 (so với 3.9.63)
 
 | # | Thay đổi | Lý do |

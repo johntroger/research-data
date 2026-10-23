@@ -1,12 +1,14 @@
 /**
- * Serves a paper's PDF from the local repository (bộ khung, chỉ chạy trên máy).
- * In Giai đoạn 2 this becomes a short-lived R2 presigned URL with the Open Access rules of Mục 7.
+ * A paper's PDF. With the read-only R2 token configured (step 2.2b) the browser is sent to a 5-minute presigned R2 link, so the
+ * file never passes through this server; without it (development) the file is read from the local raw_papers folder.
+ * Viewing is open; saving a copy follows the licence rule of lib/pdf-access (Mục 7, D14).
  */
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { adminDbUrl } from "@/lib/admin-db";
 import { getPaper } from "@/lib/data";
 import { canDownloadPdf, pdfFileName } from "@/lib/pdf-access";
+import { pdfKey, presignPdf, r2Config } from "@/lib/r2";
 
 const REPO_ROOT = path.resolve(process.cwd(), "../..");
 const RAW_PAPERS = path.join(REPO_ROOT, "raw_papers");
@@ -19,6 +21,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   // Viewing is open; saving a copy (?download=1) follows the licence rule of lib/pdf-access.
   const download = new URL(request.url).searchParams.get("download") === "1";
   if (download && !canDownloadPdf(adminDbUrl() !== null, paper)) return new Response("Forbidden: this PDF may only be downloaded by the project owner", { status: 403 });
+
+  const r2 = r2Config();
+  if (r2 && pdfKey(paper.file_hash)) {
+    const link = await presignPdf(r2, paper.file_hash!, { download, fileName: pdfFileName(paper.title) });
+    if (link) return new Response(null, { status: 302, headers: { Location: link, "Cache-Control": "no-store" } });
+  }
 
   // Only files inside raw_papers/ may be served, whatever the database says.
   const file = path.resolve(REPO_ROOT, paper.pdf_path);

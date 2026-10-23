@@ -13,6 +13,8 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1155.0",
+    "@aws-sdk/s3-request-presigner": "^3.1155.0",
     "@research-data/schema": "workspace:*",
     "docx": "^9.13.0",
     "exceljs": "^4.4.0",
