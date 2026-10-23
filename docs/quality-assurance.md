@@ -264,6 +264,8 @@ Kiểm lại: cả 7 ca sai dòng trong phạm vi của mẫu 30 nay trỏ đún
 
 **Lỗi hệ thống tìm thấy trong lô:** nhiều PDF lưu dấu trừ trong phông ký hiệu thành ký tự NUL (U+0000), làm cơ sở dữ liệu từ chối nhập (lỗi UTF8) và làm hỏng kiểm tra số âm. Đã sửa: lớp chữ, khung tô sáng và bước nhập đều đọc NUL thành dấu trừ (`fixNul`); beyond-info từ ẩn 21 còn 5.
 
+**OCR cho bài scan (22–23/10/2026):** `pnpm worker ocr --paper X` (tesseract.js + @napi-rs/canvas + pdfjs-dist cho ảnh JBIG2; chạy trên máy) nhận dạng chữ các trang không có chữ và lưu `<hash16>.ocr.json` cạnh bản trích xuất; `loadTextLayer` áp văn bản đó nên gói, kiểm tra và nhập đều dùng chung. Văn bản OCR không có tọa độ nên bài scan không có khung tô sáng. Thử trên Dodds 1991 (13 trang, khoảng 2 phút, độ tin cậy 88 đến 94%): tác tử Claude trích 1002 trường nhưng **✓ 677 · ⚠ 271 · ◇ 21 · ẩn 33 (tỷ lệ vấn đề 31%)** vì OCR làm nhiễu số trong bảng; bài đang **giữ lại**, chưa nhập.
+
 ## 12. TÀI LIỆU THAM KHẢO PHƯƠNG PHÁP LUẬN (dùng cho Codebook)
 
 * Alvesson, M., & Sandberg, J. (2011). Generating research questions through problematization. *Academy of Management Review, 36*(2), 247–271.

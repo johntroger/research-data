@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.55 (so với 3.9.54)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **OCR trên máy cho bài scan:** lệnh `pnpm worker ocr`, `pdf/ocr.ts` (tesseract.js, @napi-rs/canvas, pdfjs-dist), `loadTextLayer` áp văn bản OCR trong publish, export gói và import; thêm 4 thư viện npm vào worker (không cài gì vào Windows). 3 test mới (469 đơn vị xanh) | Bài Dodds 1991 là bản scan không có lớp chữ nên trước đây không kiểm chứng được; chủ dự án đồng ý cài OCR |
+| 2 | Nhập complaining và gratitude-model (tỷ lệ vấn đề 40,6% và 26,4% nhưng phần lớn là trường ẩn); price-brand (OCR, 31%) giữ lại chờ chủ dự án. Sửa test bảng sau khi thêm view `paper_badge_counts` (85 DB xanh) | Hoàn tất hàng đợi |
+
 ### Version 3.9.54 (so với 3.9.53)
 
 | # | Thay đổi | Lý do |
