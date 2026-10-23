@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.69 (so với 3.9.68)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước A.1:** cấu hình Supabase Auth cho prod bằng `supabase config push` (tắt tự đăng ký, chuyển hướng `localhost:3000`, link hết hạn 15 phút; giá trị khác của prod giữ nguyên); tạo tài khoản chủ `tranthanhtung37@gmail.com` (`role = owner`); đã thử: đăng ký và gửi link cho email lạ bị từ chối. Ghi danh sách A.1 đến A.6 vào kế hoạch Giai đoạn 2 | Chủ dự án duyệt 23/10/2026 (D2: đăng nhập quản trị, tắt tự đăng ký) |
+
 ### Version 3.9.68 (so với 3.9.67)
 
 | # | Thay đổi | Lý do |
