@@ -106,6 +106,19 @@ Mọi tác vụ định kỳ đặt tập trung ở GitHub Actions để dễ th
 
 Các khóa bí mật (Supabase, R2, Gemini) lưu trong **GitHub Actions Secrets**, không bao giờ in ra log.
 
+### 9.3b. Phân chia lưu trữ giữa Supabase và Cloudflare R2 (chủ dự án yêu cầu 23/10/2026)
+Cloudflare R2 (Free 10 GB) còn nhiều chỗ hơn Supabase (Free 500 MB cho database), nên **Supabase chỉ giữ dữ liệu cần truy vấn**, mọi thứ nặng đưa sang R2:
+
+| Dữ liệu | Nơi lưu | Ghi chú |
+| :--- | :--- | :--- |
+| Bảng tra cứu (bài, Study, đường dẫn, trường, bằng chứng, ma trận, khái niệm) | **Supabase** | Hiện khoảng 34 MB cho 36 bài (extracted_fields chiếm 12 MB) |
+| PDF gốc | **R2** (private) | Bước 2.2 |
+| Bản trích xuất đã lưu (`<hash>.full.json`, `.gemini.json`, `.ocr.json`) và phản hồi thô của model | **R2** (private) | Hiện nằm ở `extracted_data/` trên máy, khoảng 400 MB gồm cả sao lưu và mẫu kiểm; không đưa lên Supabase |
+| Sao lưu `pg_dump` hằng đêm và các bản dump dữ liệu | **R2** | Giữ 30 bản; không lưu sao lưu trong database |
+| `extraction_runs.raw_text` (văn bản thô mỗi lượt trích xuất) | Supabase trong MVP (1,2 MB cho 36 bài); **chuyển sang R2 khi database vượt khoảng 300 MB** | Ngưỡng cảnh báo để còn dư địa dưới 500 MB |
+
+Quy tắc: không thêm cột blob, PDF hay JSON lớn vào Supabase; khi cần lưu tệp thì lưu ở R2 và chỉ giữ khóa đối tượng trong database. Theo dõi dung lượng database ở Supabase Dashboard > Database trước mỗi lần nhập nhiều bài.
+
 ### 9.4. Chiến lược kiểm thử (MỚI)
 
 | Loại | Phạm vi | Công cụ |

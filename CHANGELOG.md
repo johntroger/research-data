@@ -2,6 +2,13 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.63 (so với 3.9.62)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 2.3:** nạp 36 bài (24 bảng) từ local lên Supabase prod có sao lưu; đối chiếu số dòng và huy hiệu bằng nhau; web đọc từ prod hiện đúng 36 bài, 10.294 giá trị | Chủ dự án duyệt 23/10/2026 |
+| 2 | Thêm Mục 9.3b (docs/architecture.md): phân chia lưu trữ, Supabase chỉ giữ dữ liệu truy vấn, PDF, bản trích xuất đã lưu và sao lưu sang R2; ngưỡng chuyển `extraction_runs.raw_text` khi database vượt 300 MB | Chủ dự án yêu cầu cân đối vì R2 còn nhiều dung lượng hơn |
+
 ### Version 3.9.62 (so với 3.9.61)
 
 | # | Thay đổi | Lý do |
