@@ -36,3 +36,4 @@
 | Experimentally distinguishing elevation from gratitude (2014) (tác tử Claude, lô hàng đợi 22/10) | không đo | 0 | 352 | 40 | 13 | ẩn 3, tỷ lệ vấn đề 10.9%; Tổng: 405/405 câu trích được định vị (100%). |
 | Complaining to the Masses: Protest Framing (2006) (tác tử Claude, nhập theo đề nghị) | không đo | 0 | 19 | 0 | 24 | ẩn 13 (mục đo lường thiếu bằng chứng), tỷ lệ vấn đề 40,6% > 20% nhưng trường ẩn không hiện cho khách |
 | A social-cognitive model of trait and state levels of gratitude (2008) (tác tử Claude, nhập theo đề nghị) | không đo | 0 | 153 | 17 | 19 | ẩn 38 (số trong hình), tỷ lệ vấn đề 26,4% > 20% nhưng trường ẩn không hiện cho khách |
+| Effects of Price, Brand, and Store Information on Buyers' Product Evaluations (1991, bản scan OCR; tác tử Claude, nhập theo quyết định) | không đo | 0 | 677 | 271 | 21 | ẩn 33, tỷ lệ vấn đề 31% > 20%; không có khung tô sáng vì văn bản OCR không có tọa độ |
