@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.64 (so với 3.9.63)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 2.2a:** tạo bucket R2 private `research-data-pdfs`, đặt CORS cho pdf.js (localhost:3000), tải 36/36 PDF theo khóa `pdf/<sha256>.pdf` (đã kiểm hash, bucket không truy cập công khai được) | Chủ dự án duyệt 23/10/2026; Cloudflare còn nhiều dung lượng hơn Supabase |
+
 ### Version 3.9.63 (so với 3.9.62)
 
 | # | Thay đổi | Lý do |
