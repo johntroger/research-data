@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.76 (so với 3.9.75)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 4.2:** dự án Vercel `research-data` (nhóm VNEconomics, Hobby) nối GitHub, Root Directory `apps/web`, Node 24, `ENABLE_EXPERIMENTAL_COREPACK`; Upstash for Redis qua Marketplace nối vào dự án; test Lua thật trên Upstash thật qua (5/5); chưa deploy (chờ biến môi trường ở 4.3); dọn tệp thừa do `vercel link` và lệnh cài Upstash tạo ra | Chủ dự án duyệt 23/10/2026 (Giai đoạn 4) |
+
 ### Version 3.9.75 (so với 3.9.74)
 
 | # | Thay đổi | Lý do |
