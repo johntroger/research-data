@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.77 (so với 3.9.76)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 4.3:** `scripts/set-vercel-env.mjs` đẩy 9 biến môi trường production và preview lên Vercel từ danh sách cố định, giá trị ẩn trong log, có danh sách cấm (không bao giờ đưa mật khẩu database, khóa quản trị, token R2 đọc/ghi và sao lưu, khóa trích xuất); đã đối chiếu bằng `vercel env ls` | Chủ dự án duyệt 23/10/2026 (Giai đoạn 4) |
+
 ### Version 3.9.76 (so với 3.9.75)
 
 | # | Thay đổi | Lý do |
