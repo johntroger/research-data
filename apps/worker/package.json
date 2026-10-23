@@ -21,6 +21,7 @@
     "worker": "tsx src/cli/worker.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1155.0",
     "@google/genai": "^2.30.0",
     "@napi-rs/canvas": "^1.0.13",
     "@research-data/schema": "workspace:*",

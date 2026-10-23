@@ -245,6 +245,9 @@ importers:
 
   apps/worker:
     dependencies:
+      '@aws-sdk/client-s3':
+        specifier: ^3.1155.0
+        version: 3.1155.0
       '@google/genai':
         specifier: ^2.30.0
         version: 2.30.0

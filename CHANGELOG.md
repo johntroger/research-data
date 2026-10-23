@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.68 (so với 3.9.67)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 2.4b:** lệnh `pnpm worker backup-files` sao lưu bản trích xuất đã lưu (`extracted_data/`, bỏ `backups/` và `audit/`) lên R2 bucket sao lưu, kiểm bằng tải lại và so SHA-256, giữ 12 bản; thêm `@aws-sdk/client-s3` vào worker; 4 test đơn vị mới | Chủ dự án duyệt 23/10/2026: sao lưu `extracted_data` lên R2, bỏ mẫu audit và sao lưu cũ |
+
 ### Version 3.9.67 (so với 3.9.66)
 
 | # | Thay đổi | Lý do |

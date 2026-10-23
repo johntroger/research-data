@@ -12,6 +12,7 @@
  *   pnpm worker manual import <packet>|--all --tool codex --model <name> [--yes] [--no-backup]   publish a packet's answers, replacing the paper's data (step 1b.8c; preview without --yes)
  *   pnpm worker republish [--paper X] [--yes]   publish the saved extractions again with the current checks (no API call)
  *   pnpm worker oa [--paper X] [--target prod] [--yes]   ask Unpaywall about each paper and set who may download its PDF (step 2.2c)
+ *   pnpm worker backup-files [--yes] [--keep N]   archive extracted_data/ (saved extractions, OCR) to the R2 backups bucket (step 2.4b)
  *   pnpm worker quality [--top N] [--source TEXT]     ✓ / ⚠ / ◇ / ẩn by study design, field and failed check (step 1b.1)
  *   pnpm worker compare --paper X     Batch result vs synchronous result, field by field (step 1.9c)
  * Uses a READ-ONLY Zotero key (Mục 3.3) and the local Supabase database.
@@ -25,6 +26,7 @@ import { checkCode, exportPacket, findPaper } from "../manual/export.js";
 import { backupFile, importPacket, manualVersions, once, pgDumpViaDocker } from "../manual/import.js";
 import { connect, prodDbUrl } from "../db/client.js";
 import { lookupAll, saveOa } from "../db/oa.js";
+import { backupFiles } from "../backup/run.js";
 import { refreshHighlights } from "../db/highlights.js";
 import { ocrPaper, pagesNeedingOcr } from "../pdf/ocr.js";
 import { geminiBatchClient } from "../extract/batch-client.js";
@@ -692,9 +694,10 @@ async function main(): Promise<number> {
   if (command === "manual") return manual(args);
   if (command === "highlights") return highlights(args);
   if (command === "oa") return oa(args);
+  if (command === "backup-files") return backupFiles(args);
   if (command === "ocr") return ocr(args);
   if (command === "republish") return republish(args);
-  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | oa [--paper X] [--target prod] [--yes] | ocr --paper X | republish [--paper X] [--yes] | manual export --paper X");
+  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | oa [--paper X] [--target prod] [--yes] | backup-files [--yes] [--keep N] | ocr --paper X | republish [--paper X] [--yes] | manual export --paper X");
   return 1;
 }
 
