@@ -156,6 +156,8 @@ Chiều tác động:      ＋ Dương 4    － Âm 27    ∅ Không có ý ngh�
 * **Huy hiệu tin cậy ở cấp phần** (VD: "Kết quả: 18/20 đã kiểm chứng"); bấm vào mới xem chi tiết từng trường. Nút **Báo lỗi** (khách dùng được, có Turnstile chống spam) trên từng trường.
 
 ### 8.4. Ma trận tổng hợp Master-Detail
+
+> **Tình trạng (bước 3b.2, 23/10/2026):** đã làm trang `/matrix` (liên kết "Ma trận" ở đầu trang): mỗi bài một dòng (tác giả và năm, tối đa 3 lý thuyết kèm vai trò, thiết kế và mẫu theo Study, kết quả chính), bấm "Xem kiểm định theo Study" để mở bảng kiểm định (giả thuyết, quan hệ có biến trung gian / điều tiết, β kèm CI 95% và p theo APA 7, R², trạng thái, số trang in, liên kết mở đúng bằng chứng); dùng chung bộ lọc với Thư viện; cột đầu cố định khi cuộn ngang. "Kết quả chính" chỉ đếm kiểm định giả thuyết ✓ / ★, kiểm định ⚠ nêu riêng "không đếm". **Chưa làm:** chọn cột, saved views, chỉnh mật độ, copy câu học thuật, xuất Word và Excel (bước 3b.3), dạng thẻ riêng cho điện thoại (hiện cuộn ngang). Trang nặng khoảng 0,9 MB HTML (0,25 giây ở bản production); khi đưa lên mạng cần nạp chi tiết từng bài theo yêu cầu.
 * Dòng chính: Tác giả & Năm | Lý thuyết | Thiết kế & Mẫu (n, quốc gia) | Kết quả chính.
 * Dòng mở rộng: đường quan hệ theo Study với estimate (kèm `estimate_type`), CI, p, R², trạng thái, câu trích và số trang.
 * Cố định cột đầu; chọn cột; **saved views**; chỉnh mật độ hiển thị.

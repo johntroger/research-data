@@ -559,3 +559,60 @@ h1 {
   padding: 2px 8px;
   cursor: pointer;
 }
+
+/* Summary matrix (step 3b.2) */
+.matrix-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.matrix {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 720px;
+  font-size: 14px;
+}
+
+.matrix th,
+.matrix > tbody > tr > td {
+  text-align: left;
+  vertical-align: top;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.matrix-first {
+  position: sticky;
+  left: 0;
+  background: var(--bg, #fff);
+  min-width: 180px;
+  max-width: 260px;
+}
+
+.matrix-detail > td {
+  padding: 0 10px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.matrix-detail summary {
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.matrix-study {
+  margin: 8px 0;
+}
+
+.matrix-lines {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+
+.matrix-lines th,
+.matrix-lines td {
+  text-align: left;
+  vertical-align: top;
+  padding: 4px 8px;
+  border-top: 1px solid var(--border);
+}

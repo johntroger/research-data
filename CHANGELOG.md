@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.58 (so với 3.9.57)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 3b.2:** trang `/matrix` (ma trận tổng hợp Master-Detail): `lib/matrix.ts`, `app/matrix/page.tsx`, bộ lọc dùng chung `app/library/filters.tsx`, liên kết "Ma trận" ở đầu trang; 5 test đơn vị và 4 test e2e mới | Danh sách bước 3b do chủ dự án duyệt 23/10/2026 |
+
 ### Version 3.9.57 (so với 3.9.56)
 
 | # | Thay đổi | Lý do |

@@ -4,6 +4,7 @@
  */
 import type { Badge } from "@research-data/schema";
 import type { LibraryItem } from "./library";
+import type { MatrixPath, SampleRow, TheoryRow } from "./matrix";
 import type { Concept, PathRow } from "./relations";
 
 export interface Paper {
@@ -159,6 +160,16 @@ const PATH_COLUMNS =
 /** Every test (path) visitors may see, with its study, paper and evidence page. */
 export function listPathRows(): Promise<PathRow[]> {
   return restAll<PathRow>(`path_results?select=${PATH_COLUMNS}&order=paper_id,natural_key`);
+}
+
+/** What the summary matrix (step 3b.2) shows beside each paper: its theories, the sample of each study and every test. */
+export async function listMatrixData(): Promise<{ theories: TheoryRow[]; samples: SampleRow[]; paths: MatrixPath[] }> {
+  const [theories, samples, paths] = await Promise.all([
+    restAll<TheoryRow>("paper_theories?select=paper_id,theory_name_original,application_role"),
+    restAll<SampleRow>("samples?select=paper_id,study_id,n,country_iso,sample_type,studies(study_label,position,research_design)"),
+    restAll<MatrixPath>(`path_results?select=${PATH_COLUMNS},ci_low,ci_high,r2_dv&order=paper_id,natural_key`),
+  ]);
+  return { theories, samples, paths };
 }
 
 /** The canonical concepts with their other names. */

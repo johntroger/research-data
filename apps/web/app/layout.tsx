@@ -19,6 +19,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <nav className="site-nav">
             <a href="/">Tìm theo quan hệ</a>
             <a href="/library">Thư viện</a>
+            <a href="/matrix">Ma trận</a>
           </nav>
           {adminDbUrl() ? (
             <a href="/admin/quality" className="admin-link">
