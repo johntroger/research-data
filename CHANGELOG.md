@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.79 (so với 3.9.78)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Làm rõ web mở cho mọi người, không cần đăng nhập: liên kết "Đăng nhập" dời từ đầu trang xuống chân trang, thêm dòng "Mở cho mọi người..." ở trang chủ và đoạn ở trang Giới thiệu; thêm e2e production cho khách (dùng được tìm kiếm, thư viện, ma trận, xuất không cần đăng nhập; link đăng nhập ở chân trang) | Chủ dự án muốn public cho mọi người, không cần đăng nhập; quy tắc PDF D14 và việc đóng với công cụ tìm kiếm giữ nguyên |
+
 ### Version 3.9.78 (so với 3.9.77)
 
 | # | Thay đổi | Lý do |

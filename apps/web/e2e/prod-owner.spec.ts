@@ -27,8 +27,20 @@ test("a visitor: no PDF without an open licence, no admin page, a link to sign i
   expect((await request.get("/admin/quality")).status()).toBe(404);
   await page.goto(`/papers/${closed!.id}`);
   await expect(page.getByTestId("pdf-restricted")).toBeVisible();
-  await expect(page.getByTestId("login-link")).toBeVisible();
+  // Open to everyone: the sign-in link is a quiet one in the footer for the owner, not a gate at the top, and the site says so.
+  await expect(page.locator("footer").getByTestId("login-link")).toBeVisible();
+  await expect(page.locator("header").getByTestId("login-link")).toHaveCount(0);
   await expect(page.getByTestId("session-box")).toHaveCount(0);
+  await page.goto("/");
+  await expect(page.getByTestId("open-note")).toContainText("không cần tài khoản hay đăng nhập");
+  await page.goto("/about");
+  await expect(page.getByTestId("about-open")).toContainText("Ai cũng dùng được, không cần đăng nhập");
+});
+
+test("a visitor can use the search, the library, the matrix and the exports without signing in", async ({ request }) => {
+  for (const path of ["/", "/?a=trust&b=loyalty&role=all", "/library", "/matrix", "/about", "/export?a=trust&b=loyalty", "/export/word?a=trust&b=loyalty&role=all"]) {
+    expect({ path, status: (await request.get(path, { maxRedirects: 0 })).status() }).toEqual({ path, status: 200 });
+  }
 });
 
 test("a visitor may view and download a paper with an open licence", async ({ request }) => {
@@ -66,7 +78,7 @@ test("the signed-in owner views and downloads a closed PDF and reads the admin p
   await expect(page.getByTestId("quality-total")).toContainText(/ẩn [1-9]\d*/);
 
   await page.getByTestId("logout").click();
-  await expect(page.getByTestId("login-link")).toBeVisible();
+  await expect(page.locator("footer").getByTestId("login-link")).toBeVisible();
   expect((await page.request.get(`/api/papers/${closed!.id}/pdf`, { maxRedirects: 0 })).status()).toBe(403);
   expect((await page.request.get("/admin/quality")).status()).toBe(404);
 });

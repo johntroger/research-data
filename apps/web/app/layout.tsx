@@ -40,17 +40,21 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   Đăng xuất
                 </button>
               </form>
-            ) : !owner ? (
-              <a href="/login" className="login-link" data-testid="login-link">
-                Đăng nhập
-              </a>
             ) : null}
           </div>
         </header>
         <main>{children}</main>
         <footer className="site-footer">
           Dữ liệu do AI trích xuất, chỉ để tham khảo. Người dùng có trách nhiệm đối chiếu với bài gốc trước khi sử dụng
-          trong nghiên cứu.
+          trong nghiên cứu. Ai cũng dùng được, không cần đăng nhập.
+          {!owner ? (
+            <>
+              {" "}
+              <a href="/login" className="login-link" data-testid="login-link">
+                Chủ dự án: đăng nhập
+              </a>
+            </>
+          ) : null}
         </footer>
       </body>
     </html>

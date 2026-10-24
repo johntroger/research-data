@@ -27,6 +27,9 @@ export default async function AboutPage() {
         Một công cụ <strong>tham khảo</strong> phục vụ nghiên cứu của chủ dự án: gom các con số và thiết kế nghiên cứu của bài báo học thuật (marketing, đạo đức, hành vi người tiêu dùng; định lượng, tiếng Anh) vào một ma trận có thể tìm và lọc.
         Công cụ không thay cho việc đọc bài gốc. <strong>Người dùng có trách nhiệm tự đối chiếu với bài gốc</strong> trước khi dùng số liệu trong nghiên cứu.
       </p>
+      <p data-testid="about-open">
+        <strong>Ai cũng dùng được, không cần đăng nhập</strong>: tìm quan hệ, thư viện, ma trận, xem bằng chứng và xuất Excel, Word đều mở. Chỉ chủ dự án đăng nhập, để vào trang quản trị và xem các PDF chưa có giấy phép mở.
+      </p>
 
       <h2>Kho hiện có</h2>
       <p data-testid="about-overview">

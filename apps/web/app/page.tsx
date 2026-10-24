@@ -90,6 +90,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   return (
     <>
       <h1>Mối quan hệ giữa hai biến đã được nghiên cứu thế nào?</h1>
+      <p className="muted open-note" data-testid="open-note">
+        Mở cho mọi người, không cần tài khoản hay đăng nhập: tìm, lọc, xem bằng chứng và xuất bảng đều dùng tự do.
+      </p>
       <form method="get" action="/" className="relation-form" data-testid="relation-form">
         <div className="relation-inputs">
           <label>

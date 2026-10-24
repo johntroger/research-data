@@ -721,3 +721,12 @@ h1 {
 .login-error {
   border-color: var(--warn);
 }
+
+/* "Open to everyone" wording (after the owner's request, 24/10/2026) */
+.open-note {
+  margin: 4px 0 12px;
+}
+
+.site-footer .login-link {
+  margin-left: 6px;
+}
