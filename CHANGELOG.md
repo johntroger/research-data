@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.80 (so với 3.9.79)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 4.5:** bảo vệ nhánh `main` (bắt buộc check `check` cho hợp nhất qua PR, cấm force-push và xóa nhánh; chủ vẫn push thẳng được); secret scanning và push protection đã bật và đã thử chặn một token giả; bản preview bị Vercel chặn với người lạ và Supabase không chuyển hướng đăng nhập về đó | Chủ dự án duyệt 24/10/2026 (Giai đoạn 4) |
+
 ### Version 3.9.79 (so với 3.9.78)
 
 | # | Thay đổi | Lý do |
