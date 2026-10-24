@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { CopyButton } from "@/app/library/copy-button";
-import { listConcepts, listPathRows } from "@/lib/data";
+import { CorpusBlock } from "@/app/corpus-block";
+import { describeCorpus } from "@/lib/corpus";
+import { listConcepts, listLibraryItems, listPathRows } from "@/lib/data";
 import { countUse } from "@/lib/usage";
 import { academicSentence } from "@/lib/sentence";
 import {
@@ -82,7 +84,8 @@ function TestLine({ row, concepts }: { row: PathRow; concepts: Map<string, strin
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const query = parseQuery(await searchParams);
-  const [rows, concepts] = await Promise.all([listPathRows(), listConcepts()]);
+  const [rows, concepts, items] = await Promise.all([listPathRows(), listConcepts(), listLibraryItems()]);
+  const corpus = describeCorpus(items);
   const names = suggestions(rows, concepts);
   const conceptName = new Map(concepts.map((c) => [c.id, c.canonical_name]));
   const result = hasQuestion(query) ? searchRelations(rows, concepts, query) : null;
@@ -196,6 +199,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             ))}
           </ul>
           <p className="muted">Mọi con số là con số trong kho (các bài đã đưa vào hệ thống), không phải của cả lĩnh vực.</p>
+          <CorpusBlock corpus={corpus} open />
         </section>
       )}
 
@@ -205,6 +209,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <p data-testid="summary-coverage">
               Tìm thấy <strong>{s.matchedTests} kiểm định từ {s.matchedPapers} bài</strong> (kho có {s.corpusPapers} bài có dữ liệu quan hệ, chọn theo thư viện của chủ dự án, không phải mẫu hệ thống của y văn).
             </p>
+            <CorpusBlock corpus={corpus} />
             {s.tests === 0 && s.notCounted > 0 ? (
               // Tests exist but none is ✓ / ★: say so, instead of "0 bài" and a row of zeros.
               <p data-testid="summary-counts">

@@ -219,3 +219,13 @@ test("a ✓ test offers a draft sentence to copy; a ⚠ test does not; the first
   await page.goto("/?a=zebra&b=quokka");
   await expect(page.getByTestId("quick-guide")).toHaveCount(0);
 });
+
+test("says what the repository holds: open on the start page, folded under a result, with the not-a-systematic-sample warning", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("corpus")).toHaveAttribute("open", "");
+  await expect(page.getByTestId("corpus-caveat")).toContainText("Không phải mẫu hệ thống");
+  await expect(page.getByTestId("corpus-years")).toContainText("bài từ 2020 trở lại");
+  await page.goto("/?a=zebra&b=quokka");
+  await expect(page.getByTestId("corpus")).not.toHaveAttribute("open", "");
+  await expect(page.getByTestId("corpus").locator("summary")).toContainText("Kho này gồm gì:");
+});

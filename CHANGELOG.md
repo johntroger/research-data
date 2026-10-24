@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.85 (so với 3.9.84)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | P1.3: khối "Kho này gồm gì" (số bài, năm, thiết kế, mẫu, cảnh báo không phải mẫu hệ thống) ở Tìm theo quan hệ | Kết quả tìm kiếm cần nói rõ phạm vi kho nhỏ, chọn theo thư viện cá nhân |
+
 ### Version 3.9.84 (so với 3.9.83)
 
 | # | Thay đổi | Lý do |

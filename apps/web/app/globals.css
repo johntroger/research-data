@@ -730,3 +730,16 @@ h1 {
 .site-footer .login-link {
   margin-left: 6px;
 }
+
+.corpus-block {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+.corpus-block summary {
+  cursor: pointer;
+  color: var(--muted, inherit);
+}
+.corpus-block ul {
+  margin: 0.4rem 0;
+  padding-left: 1.2rem;
+}
