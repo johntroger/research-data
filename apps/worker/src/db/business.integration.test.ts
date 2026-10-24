@@ -155,6 +155,7 @@ describe("business tables (step 1.1)", () => {
         "construct_aliases",
         "matrix_cells",
         "matrix_descriptives",
+        "usage_daily",
       ].sort(),
     );
   });

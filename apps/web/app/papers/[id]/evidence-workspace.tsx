@@ -2,6 +2,7 @@
 
 import { type KeyboardEvent, type PointerEvent, useEffect, useRef, useState } from "react";
 import type { ExtractedField } from "@/lib/data";
+import { trackUse } from "@/lib/track";
 import { PdfViewer } from "./pdf-viewer";
 import {
   clampSplit,
@@ -188,6 +189,7 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
                 aria-pressed={field.id === selectedId}
                 data-testid={`field-${field.natural_key}`}
                 onClick={() => {
+                  trackUse("evidence_open");
                   setSelectedId(field.id);
                   setVisit((v) => v + 1);
                   // On a narrow screen the PDF sits below the values (the panes are stacked): bring it into view.

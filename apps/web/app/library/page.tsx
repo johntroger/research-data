@@ -43,7 +43,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
                       {paper.hasMatrix && <span className="muted"> · có ma trận tương quan</span>}
                     </div>
                     <div className="library-actions">
-                      <CopyButton text={apaReference(paper)} label="Copy APA" testId="copy-apa" />
+                      <CopyButton text={apaReference(paper)} label="Copy APA" testId="copy-apa" track="copy_apa" />
                       {paper.doi && (
                         <a href={`https://doi.org/${paper.doi}`} target="_blank" rel="noreferrer">
                           DOI

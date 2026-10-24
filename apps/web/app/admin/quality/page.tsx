@@ -56,7 +56,7 @@ export default async function QualityPage({ searchParams }: { searchParams: Prom
   return (
     <>
       <h1>Chất lượng trích xuất</h1>
-      <p className="muted">Trang quản trị, chỉ chủ dự án thấy (đã đăng nhập, hoặc máy phát triển). Cùng số liệu với lệnh `pnpm worker quality`.</p>
+      <p className="muted">Trang quản trị, chỉ chủ dự án thấy (đã đăng nhập, hoặc máy phát triển). Cùng số liệu với lệnh `pnpm worker quality`. <Link href="/admin/usage">Lượt dùng web</Link></p>
       <form method="get" className="quality-filter">
         <label>
           Lọc theo nguồn (model của lượt trích xuất, ví dụ <code>manual:codex</code> hoặc <code>gemini</code>){" "}

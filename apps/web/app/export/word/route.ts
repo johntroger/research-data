@@ -3,6 +3,7 @@
  * same order, as the page and the Excel file. GET /export/word?a=…&b=…
  */
 import { listConcepts, listPathRows } from "@/lib/data";
+import { countUse } from "@/lib/usage";
 import { parseQuery, searchRelations } from "@/lib/relations";
 import { apaDocument, relationsWordSpec } from "@/lib/word-export";
 
@@ -19,6 +20,7 @@ export async function GET(request: Request) {
   const result = searchRelations(rows, concepts, parseQuery(params));
   const now = new Date();
   const bytes = await apaDocument(relationsWordSpec(result, now));
+  await countUse("export_word");
   return new Response(bytes, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

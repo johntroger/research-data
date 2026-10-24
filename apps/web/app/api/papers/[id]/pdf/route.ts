@@ -9,6 +9,7 @@ import { getPaper } from "@/lib/data";
 import { getOwner } from "@/lib/supabase-server";
 import { canDownloadPdf, canViewPdf, pdfFileName } from "@/lib/pdf-access";
 import { pdfKey, presignPdf, r2Config } from "@/lib/r2";
+import { countUse } from "@/lib/usage";
 
 const REPO_ROOT = path.resolve(/* turbopackIgnore: true */ process.cwd(), "../..");
 const RAW_PAPERS = path.join(REPO_ROOT, "raw_papers");
@@ -27,7 +28,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const r2 = r2Config();
   if (r2 && pdfKey(paper.file_hash)) {
     const link = await presignPdf(r2, paper.file_hash!, { download, fileName: pdfFileName(paper.title) });
-    if (link) return new Response(null, { status: 302, headers: { Location: link, "Cache-Control": "no-store" } });
+    if (link) {
+      await countUse(download ? "pdf_download" : "pdf_view");
+      return new Response(null, { status: 302, headers: { Location: link, "Cache-Control": "no-store" } });
+    }
   }
 
   // Reading the file from disk is for development only. A deployed site has no raw_papers folder, and tracing this code would pull the whole project into the deployment.

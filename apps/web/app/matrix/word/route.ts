@@ -7,6 +7,7 @@ import { filterLibrary, parseLibraryQuery } from "@/lib/library";
 import { buildMatrix } from "@/lib/matrix";
 import { paperLabel as citation } from "@/lib/relations";
 import { apaDocument, matrixWordSpec } from "@/lib/word-export";
+import { countUse } from "@/lib/usage";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,7 @@ export async function GET(request: Request) {
       filters,
     ),
   );
+  await countUse("export_word_matrix");
   return new Response(bytes, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

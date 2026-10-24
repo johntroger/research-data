@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CopyButton } from "@/app/library/copy-button";
 import { listConcepts, listPathRows } from "@/lib/data";
+import { countUse } from "@/lib/usage";
 import { academicSentence } from "@/lib/sentence";
 import {
   DEFAULT_QUERY,
@@ -64,7 +65,7 @@ function TestLine({ row, concepts }: { row: PathRow; concepts: Map<string, strin
       {sentence && (
         <>
           {" "}
-          <CopyButton text={sentence} label="Copy câu" testId="copy-sentence" />
+          <CopyButton text={sentence} label="Copy câu" testId="copy-sentence" track="copy_sentence" />
         </>
       )}
       <div className="muted">
@@ -85,6 +86,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const names = suggestions(rows, concepts);
   const conceptName = new Map(concepts.map((c) => [c.id, c.canonical_name]));
   const result = hasQuestion(query) ? searchRelations(rows, concepts, query) : null;
+  if (result) await countUse("relation_search");
   const s = result?.summary;
 
   return (

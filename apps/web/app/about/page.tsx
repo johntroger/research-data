@@ -31,6 +31,11 @@ export default async function AboutPage() {
         <strong>Ai cũng dùng được, không cần đăng nhập</strong>: tìm quan hệ, thư viện, ma trận, xem bằng chứng và xuất Excel, Word đều mở. Chỉ chủ dự án đăng nhập, để vào trang quản trị và xem các PDF chưa có giấy phép mở.
       </p>
 
+      <h2>Quyền riêng tư</h2>
+      <p data-testid="about-privacy">
+        Web <strong>không dùng cookie theo dõi</strong>, không yêu cầu tài khoản và không lưu địa chỉ IP. Chỉ có hai thứ được đếm: số lượt dùng mỗi ngày theo loại (tìm quan hệ, mở bằng chứng, xuất bảng, xem hoặc tải PDF...) dưới dạng con số tổng, không gắn với ai; và, khi bật, thống kê lượt xem trang không cookie của nhà cung cấp. Giới hạn tốc độ chống lạm dụng dùng mã băm của địa chỉ trong tối đa một giờ rồi bỏ.
+      </p>
+
       <h2>Kho hiện có</h2>
       <p data-testid="about-overview">
         {o.papers} bài, {o.fields.toLocaleString("vi-VN")} giá trị đang hiển thị: <span className="badge badge-auto_verified">✓ {o.verified.toLocaleString("vi-VN")}</span> ·{" "}

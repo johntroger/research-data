@@ -3,6 +3,7 @@
  * order, as the page lists. GET /export?a=…&b=… (the page's own search parameters).
  */
 import { listConcepts, listPathRows } from "@/lib/data";
+import { countUse } from "@/lib/usage";
 import { parseQuery, searchRelations } from "@/lib/relations";
 import { buildWorkbook, exportTable } from "@/lib/relations-export";
 
@@ -23,6 +24,7 @@ export async function GET(request: Request) {
   });
   const bytes = await buildWorkbook(table);
   const stamp = new Date().toISOString().slice(0, 10);
+  await countUse("export_excel");
   return new Response(bytes, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

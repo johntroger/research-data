@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.81 (so với 3.9.80)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | **Bước 4.6:** đếm lượt dùng theo ngày và theo loại, không lưu IP hay cookie: bảng `usage_daily`, hàm `count_event` (danh sách đóng 9 loại) và `usage_report` (migration `usage_counters`, đã áp lên local và prod); `lib/usage.ts`, `lib/track.ts`, `POST /api/event`, trang `/admin/usage`, mục Quyền riêng tư ở trang Giới thiệu; script Cloudflare Web Analytics tùy chọn theo `NEXT_PUBLIC_CF_BEACON_TOKEN`; không đếm lượt của chủ; 97 test DB, 554 test đơn vị, 14 e2e production, 51 e2e dev xanh | Chủ dự án duyệt 24/10/2026 (Giai đoạn 4) |
+
 ### Version 3.9.80 (so với 3.9.79)
 
 | # | Thay đổi | Lý do |

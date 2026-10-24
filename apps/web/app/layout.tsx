@@ -56,6 +56,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             </>
           ) : null}
         </footer>
+        {/* Page views without cookies, only when a Cloudflare Web Analytics token is configured, and not for the owner's own visits. */}
+        {!owner && process.env.NEXT_PUBLIC_CF_BEACON_TOKEN ? (
+          <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={JSON.stringify({ token: process.env.NEXT_PUBLIC_CF_BEACON_TOKEN })} />
+        ) : null}
       </body>
     </html>
   );
