@@ -72,6 +72,8 @@ test("without a question the home page offers sample questions that lead to resu
 test("counts what is in the repository: only ✓ tests, and says how many were left out and why", async ({ page }) => {
   await page.goto("/?a=zebra&b=quokka");
   await expect(page.getByTestId("summary-counts")).toHaveText("1 bài trong kho · 2 study · 2 kiểm định");
+  await expect(page.getByTestId("summary-coverage")).toContainText("Tìm thấy 3 kiểm định từ 2 bài");
+  await expect(page.getByTestId("summary-method")).toContainText("không phải meta-analysis");
   await expect(page.getByTestId("summary-outcome")).toContainText("✓ Ủng hộ 1 · ✗ Không ủng hộ 1");
   await expect(page.getByTestId("summary-direction")).toContainText("－ Âm 1 · ∅ Không có ý nghĩa 1");
   await expect(page.getByTestId("summary-not-counted")).toContainText("1 kiểm định ⚠ hoặc ◇ chưa kiểm chứng");

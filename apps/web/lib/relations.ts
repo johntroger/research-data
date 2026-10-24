@@ -171,6 +171,11 @@ export function signGroup(row: PathRow): SignGroup | "unknown" {
 export const isVerified = (row: PathRow): boolean => row.badge === "auto_verified" || row.badge === "human_reviewed";
 
 export interface Summary {
+  /** Every matching test and the papers they come from, counted or not (the honest size of the evidence). */
+  matchedTests: number;
+  matchedPapers: number;
+  /** Papers in the corpus that have any relationship data. */
+  corpusPapers: number;
   papers: number;
   studies: number;
   tests: number;
@@ -258,6 +263,9 @@ export function searchRelations(allRows: PathRow[], concepts: Concept[], q: Rela
     rows,
     groups,
     summary: {
+      matchedTests: rows.length,
+      matchedPapers: byPaper.size,
+      corpusPapers: new Set(allRows.map((r) => r.paper_id)).size,
       papers: new Set(counted.map((r) => r.paper_id)).size,
       studies: new Set(counted.map((r) => r.study_id)).size,
       tests: counted.length,

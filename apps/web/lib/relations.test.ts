@@ -165,6 +165,11 @@ describe("the summary counts what is in the repository", () => {
     expect(summary.shareNotCounted).toBeCloseTo(0.4, 10);
   });
 
+  it("reports the full size of the evidence found (counted or not) and of the corpus", () => {
+    const { summary } = searchRelations(data, [], q({ a: "a", b: "b" }));
+    expect(summary).toMatchObject({ matchedTests: 5, matchedPapers: 3, corpusPapers: 3 });
+  });
+
   it("counts the ⚠ tests too when asked, and then leaves nothing out", () => {
     const { summary } = searchRelations(data, [], q({ a: "a", b: "b", includeWarn: true }));
     expect(summary).toMatchObject({ papers: 3, studies: 5, tests: 5, notCounted: 0, shareNotCounted: 0 });

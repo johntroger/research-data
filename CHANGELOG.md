@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.84 (so với 3.9.83)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | P1.2: dòng độ phủ "Tìm thấy X kiểm định từ Y bài (kho Z bài)" và dòng phương pháp vote counting ở Tìm theo quan hệ | Tránh đọc "1 bài, 1 kiểm định" là toàn bộ bằng chứng khi còn kiểm định ⚠ chưa tính |
+
 ### Version 3.9.83 (so với 3.9.82)
 
 | # | Thay đổi | Lý do |

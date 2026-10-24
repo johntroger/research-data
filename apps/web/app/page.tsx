@@ -202,6 +202,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {result && s && (
         <>
           <section className="summary" data-testid="summary">
+            <p data-testid="summary-coverage">
+              Tìm thấy <strong>{s.matchedTests} kiểm định từ {s.matchedPapers} bài</strong> (kho có {s.corpusPapers} bài có dữ liệu quan hệ, chọn theo thư viện của chủ dự án, không phải mẫu hệ thống của y văn).
+            </p>
             {s.tests === 0 && s.notCounted > 0 ? (
               // Tests exist but none is ✓ / ★: say so, instead of "0 bài" and a row of zeros.
               <p data-testid="summary-counts">
@@ -214,6 +217,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                     {s.papers} bài trong kho · {s.studies} study · {s.tests} kiểm định
                   </strong>
                 </p>
+                <p className="muted" data-testid="summary-method">Phương pháp: đếm số kiểm định theo kết quả (vote counting). Không xét cỡ mẫu, cỡ hiệu ứng hay sức mạnh thống kê; không phải meta-analysis.</p>
                 <p data-testid="summary-outcome">
                   Kết quả giả thuyết: {OUTCOME.map((o) => `${o.label} ${s.outcome[o.key]}`).join(" · ")}
                 </p>
