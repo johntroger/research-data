@@ -2,11 +2,12 @@
 
 import { type KeyboardEvent, type PointerEvent, useEffect, useRef, useState } from "react";
 import type { ExtractedField } from "@/lib/data";
+import { readableKey } from "@/lib/paper-header";
 import { trackUse } from "@/lib/track";
 import { PdfViewer } from "./pdf-viewer";
 import {
   clampSplit,
-  firstTabWithFields,
+  defaultTab,
   keyContext,
   parseStoredSplit,
   sectionBadge,
@@ -36,7 +37,7 @@ function formatValue(value: unknown): string {
   if (typeof value === "string" || typeof value === "number") return String(value);
   if (typeof value === "object" && "table_label" in value) {
     const t = value as { table_label: string; kind?: string; study_label?: string | null };
-    return [t.table_label, t.kind, t.study_label].filter(Boolean).join(" · ");
+    return [t.table_label, t.kind === "other" ? null : t.kind, t.study_label].filter(Boolean).join(" · ");
   }
   if (typeof value === "object" && "iv" in value && "dv" in value) {
     const h = value as { iv: string; dv: string; estimate?: number | null; p_reported?: string | null; status?: string };
@@ -98,11 +99,11 @@ export interface PdfAccess {
 
 export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = false, access = { canView: true, oaUrl: null, doiUrl: null } }: { paperId: string; fields: ExtractedField[]; focusKey?: string; canDownload?: boolean; access?: PdfAccess }) {
   const summary = summariseSections(fields);
-  const start = focusedField(fields, focusKey) ?? fields.find((f) => f.pdf_page_index !== null && tabOf(f) === firstTabWithFields(summary)) ?? fields.find((f) => f.pdf_page_index !== null);
+  const start = focusedField(fields, focusKey) ?? fields.find((f) => f.pdf_page_index !== null && tabOf(f) === defaultTab(summary)) ?? fields.find((f) => f.pdf_page_index !== null);
   const [selectedId, setSelectedId] = useState<string | null>(start?.id ?? null);
   // Counts clicks on values, so clicking the selected one again brings the PDF back to its page.
   const [visit, setVisit] = useState(0);
-  const [tab, setTab] = useState<TabId>(start ? tabOf(start) : firstTabWithFields(summary));
+  const [tab, setTab] = useState<TabId>(start ? tabOf(start) : defaultTab(summary));
   const [split, setSplit] = useState(SPLIT_DEFAULT);
   const [dragging, setDragging] = useState(false);
   const container = useRef<HTMLDivElement>(null);
@@ -200,7 +201,7 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
                   <span>{field.field_name}</span>
                   <span className={`badge badge-${field.badge}`}>{BADGE_LABEL[field.badge]}</span>
                 </div>
-                <div className="field-key muted">{keyContext(field.natural_key, field.field_name)}</div>
+                <div className="field-key muted">{readableKey(keyContext(field.natural_key, field.field_name))}</div>
                 <div className="field-value">{formatValue(field.value)}</div>
                 {field.evidence_quote && <div className="field-quote">“{field.evidence_quote}”</div>}
                 <div className="muted">

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   clampSplit,
+  defaultTab,
   firstTabWithFields,
   keyContext,
   parseStoredSplit,
@@ -75,6 +76,11 @@ describe("section summaries", () => {
     expect(firstTabWithFields(summary)).toBe("overview");
     expect(firstTabWithFields(summariseSections([f("limitation:1", "limitation", "ai_interpreted")]))).toBe("contribution");
     expect(firstTabWithFields(summariseSections([]))).toBe("overview");
+  });
+
+  it("opens a paper on its results when it has any, else on the first tab with fields", () => {
+    expect(defaultTab(summary)).toBe("results");
+    expect(defaultTab(summariseSections([f("limitation:1", "limitation", "ai_interpreted")]))).toBe("contribution");
   });
 });
 

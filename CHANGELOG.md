@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.86 (so với 3.9.85)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | P1.4: đầu trang chi tiết bài (tác giả, tạp chí, DOI, thiết kế, N, số kiểm định), mở sẵn tab Kết quả, khóa kỹ thuật đọc được | Trang bài mở vào thẻ ít thông tin nhất và hiện khóa như `table:table_1` | 
+
 ### Version 3.9.85 (so với 3.9.84)
 
 | # | Thay đổi | Lý do |

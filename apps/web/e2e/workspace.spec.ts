@@ -54,18 +54,22 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("has a tab for each part of the paper with its field count, and opens on the first part that has fields", async ({ page }) => {
+test("has a tab for each part of the paper with its field count, and opens on the results", async ({ page }) => {
   await page.goto(`/papers/${paperId}`);
   for (const [id, count] of [["overview", 1], ["theory", 1], ["study", 1], ["measures", 2], ["results", 2], ["tables", 1], ["contribution", 2]] as const) {
     await expect(page.getByTestId(`tab-${id}`)).toContainText(String(count));
   }
-  await expect(page.getByTestId("tab-overview")).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByTestId("field-paper_type")).toBeVisible();
-  await expect(page.getByTestId("field-study_1:sample_size")).toHaveCount(0); // it is in another tab
+  await expect(page.getByTestId("tab-results")).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByTestId("field-study_1:h1:a->b:direct:estimate")).toBeVisible();
+  await expect(page.getByTestId("field-paper_type")).toHaveCount(0); // it is in another tab
+  await expect(page.getByTestId("paper-head")).toBeVisible();
+  await expect(page.getByTestId("paper-facts")).toContainText("kiểm định đường quan hệ");
 });
 
 test("sums up each section in one line: x/y checked, or how many interpretations", async ({ page }) => {
   await page.goto(`/papers/${paperId}`);
+  await expect(page.getByTestId("section-badge")).toHaveText("Kết quả: 1/2 đã kiểm chứng");
+  await page.getByTestId("tab-overview").click();
   await expect(page.getByTestId("section-badge")).toHaveText("Tổng quan: 1/1 đã kiểm chứng");
   await page.getByTestId("tab-results").click();
   await expect(page.getByTestId("section-badge")).toHaveText("Kết quả: 1/2 đã kiểm chứng");

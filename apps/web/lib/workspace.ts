@@ -97,3 +97,8 @@ export function parseStoredSplit(raw: string | null): number {
   const n = Number(raw);
   return Number.isFinite(n) ? clampSplit(n) : SPLIT_DEFAULT;
 }
+
+/** The tab a paper opens on: the results, which is what a reader comes for; else the first tab with fields. */
+export function defaultTab(summary: Record<TabId, SectionSummary>): TabId {
+  return summary.results.total > 0 ? "results" : firstTabWithFields(summary);
+}

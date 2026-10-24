@@ -77,9 +77,9 @@ test("lists the paper in the library and opens its workspace", async ({ page }) 
 });
 
 test("clicking a value opens the PDF on that value's evidence page", async ({ page }) => {
-  await page.goto(`/papers/${paperId}`);
+  await page.goto(`/papers/${paperId}?focus=study_1:sample_size`);
 
-  // The workspace opens on the first part that has fields (Study & Sample); its first field is selected.
+  // A link that names a value (here the sample size) opens its tab with that value selected.
   await expect(page.getByTestId("tab-study")).toHaveAttribute("aria-selected", "true");
   await expect(page.getByTestId("field-study_1:sample_size")).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("pdf-page")).toContainText("trang 1 của file PDF (trang in 501)");
@@ -102,7 +102,7 @@ test("clicking a value opens the PDF on that value's evidence page", async ({ pa
 });
 
 test("a value whose quote was located is framed on the page; one that was not says so", async ({ page }) => {
-  await page.goto(`/papers/${paperId}`);
+  await page.goto(`/papers/${paperId}?focus=study_1:sample_size`);
   await expect(page.getByTestId("pdf-canvas")).toBeVisible();
   await expect(page.getByTestId("pdf-highlight")).toHaveCount(1);
   await expect(page.getByTestId("pdf-locate-note")).toHaveCount(0);
@@ -119,7 +119,7 @@ test("a value whose quote was located is framed on the page; one that was not sa
 });
 
 test("the viewer has page, zoom and highlight controls and a link to the browser's own viewer", async ({ page }) => {
-  await page.goto(`/papers/${paperId}`);
+  await page.goto(`/papers/${paperId}?focus=study_1:sample_size`);
   await expect(page.getByTestId("pdf-canvas")).toBeVisible();
   await expect(page.getByTestId("pdf-viewer")).toContainText("/ 4"); // the file is loaded
   await expect(page.getByTestId("pdf-page-input")).toHaveValue("1");
@@ -167,7 +167,7 @@ test("on a phone the PDF comes into view when a value is tapped", async ({ page 
 });
 
 test("hidden fields are not shown to visitors", async ({ page }) => {
-  await page.goto(`/papers/${paperId}`);
+  await page.goto(`/papers/${paperId}?focus=study_1:sample_size`);
   await expect(page.getByTestId("field-study_1:sample_size")).toBeVisible();
   await page.getByTestId("tab-overview").click();
   await expect(page.getByTestId("field-paper_type")).toHaveCount(0);
