@@ -66,17 +66,32 @@ const decodeEntities = (text: string) =>
 /** Crossref titles may carry JATS / HTML markup such as <i>…</i> and entities such as &amp;. */
 const plain = (text: string | undefined) => (text ? decodeEntities(text.replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim() || null : null);
 
+/**
+ * JSTOR-sourced records sometimes put the page header "Morris B. Holbrook Reviewed work(s):" into the name fields, so the
+ * author comes out as given "Morris B. Holbrook Reviewed", family "work(s):". Restore the name that precedes "Reviewed".
+ */
+export function cleanAuthor(a: BibAuthor): BibAuthor {
+  const artefact = /^work\(s\):?$/i.test(a.family.trim());
+  const given = (a.given ?? "").replace(/\s*\bReviewed\s*$/i, "").trim();
+  if (!artefact) return a;
+  const parts = given.split(/\s+/).filter(Boolean);
+  if (parts.length < 2) return a;
+  return { ...a, family: parts[parts.length - 1]!, given: parts.slice(0, -1).join(" ") };
+}
+
 export function parseCrossrefWork(work: CrossrefWork): BibMetadata {
   const pages = work.page ?? null;
   const first = pages ? Number(/^\d+/.exec(pages)?.[0]) : NaN;
   return {
     doi: work.DOI.toLowerCase(),
     title: plain(work.title?.[0]),
-    authors: (work.author ?? []).map((a) => ({
-      family: a.family ?? a.name ?? "",
-      given: a.given ?? null,
-      orcid: a.ORCID ? a.ORCID.replace(/^https?:\/\/orcid\.org\//, "") : null,
-    })),
+    authors: (work.author ?? []).map((a) =>
+      cleanAuthor({
+        family: a.family ?? a.name ?? "",
+        given: a.given ?? null,
+        orcid: a.ORCID ? a.ORCID.replace(/^https?:\/\/orcid\.org\//, "") : null,
+      }),
+    ),
     // The year of the issue (print) is the citation year; fall back to online publication.
     year: firstYear(work["published-print"], work.issued, work["published-online"]),
     journal: plain(work["container-title"]?.[0]),

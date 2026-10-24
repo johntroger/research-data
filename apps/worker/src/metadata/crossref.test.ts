@@ -40,6 +40,20 @@ describe("parseCrossrefWork", () => {
     expect(parsed).toMatchObject({ title: "A & B é", journal: "Journal of Product & Brand Management" });
   });
 
+  it("repairs the JSTOR 'Reviewed work(s):' artefact in author names", () => {
+    const parsed = parseCrossrefWork({
+      DOI: "10.1/x",
+      author: [
+        { family: "Chaudhuri", given: "Arjun" },
+        { family: "work(s):", given: "Morris B. Holbrook Reviewed" },
+      ],
+    });
+    expect(parsed.authors.map((a) => [a.given, a.family])).toEqual([
+      ["Arjun", "Chaudhuri"],
+      ["Morris B.", "Holbrook"],
+    ]);
+  });
+
   it("copes with missing fields and article numbers", () => {
     const parsed = parseCrossrefWork({ DOI: "10.1/x", page: "e12345", issued: { "date-parts": [[2024]] } });
     expect(parsed).toMatchObject({ title: null, authors: [], year: 2024, journal: null, firstPage: null });

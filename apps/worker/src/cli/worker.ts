@@ -26,6 +26,7 @@ import { checkCode, exportPacket, findPaper } from "../manual/export.js";
 import { backupFile, importPacket, manualVersions, once, pgDumpViaDocker } from "../manual/import.js";
 import { connect, prodDbUrl } from "../db/client.js";
 import { lookupAll, saveOa } from "../db/oa.js";
+import { lookupMetadata, saveMetadata, type MetadataPaper } from "../db/metadata.js";
 import { backupFiles } from "../backup/run.js";
 import { refreshHighlights } from "../db/highlights.js";
 import { ocrPaper, pagesNeedingOcr } from "../pdf/ocr.js";
@@ -500,6 +501,51 @@ async function oa(args: string[]): Promise<number> {
   }
 }
 
+/**
+ * pnpm worker metadata [--paper X] [--doi D] [--target prod] [--yes]: refreshes title, authors, year and journal from Crossref by
+ * each paper's DOI (--doi sets the DOI of the one --paper first). Shows the differences; writes only with --yes.
+ */
+async function metadataCommand(args: string[]): Promise<number> {
+  loadEnv();
+  const only = option(args, "--paper");
+  const doi = option(args, "--doi");
+  const yes = args.includes("--yes");
+  const prod = option(args, "--target") === "prod";
+  if (doi && !only) {
+    console.error("--doi needs --paper X.");
+    return 1;
+  }
+  const url = prod ? prodDbUrl() : undefined;
+  if (prod && !url) {
+    console.error("Prod is not configured: SUPABASE_PROD_REF, SUPABASE_PROD_DB_PASSWORD and SUPABASE_PROD_POOLER_HOST are needed in .env.");
+    return 1;
+  }
+  const db = await connect(url ?? undefined);
+  try {
+    const { rows } = await db.query<MetadataPaper>(
+      "select id, doi, title, year, journal, authors from papers where ($1::text is null or id::text like $1 || '%' or file_hash like $1 || '%') order by title",
+      [only ?? null],
+    );
+    console.log(`${prod ? "PROD" : "local"} database, ${rows.length} papers\n`);
+    const results = await lookupMetadata(rows, doi ?? undefined);
+    for (const r of results) {
+      if (r.changes.length === 0) continue;
+      console.log(`${r.paper.id.slice(0, 8)} ${(r.paper.title ?? "(no title)").slice(0, 60)}`);
+      for (const c of r.changes) console.log(`    ${c}`);
+    }
+    const changed = results.filter((r) => r.changes.length > 0).length;
+    console.log(`\n${changed} of ${results.length} papers would change.`);
+    if (!yes) {
+      console.log("Nothing written. Add --yes to store this.");
+      return 0;
+    }
+    console.log(`Stored for ${await saveMetadata(db, results)} papers.`);
+    return 0;
+  } finally {
+    await db.end();
+  }
+}
+
 /** pnpm worker highlights [--paper X]: recompute where each quote sits on its PDF page (step 3a.3). No API call. */
 async function highlights(args: string[]): Promise<number> {
   const only = option(args, "--paper");
@@ -694,10 +740,11 @@ async function main(): Promise<number> {
   if (command === "manual") return manual(args);
   if (command === "highlights") return highlights(args);
   if (command === "oa") return oa(args);
+  if (command === "metadata") return metadataCommand(args);
   if (command === "backup-files") return backupFiles(args);
   if (command === "ocr") return ocr(args);
   if (command === "republish") return republish(args);
-  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | oa [--paper X] [--target prod] [--yes] | backup-files [--yes] [--keep N] | ocr --paper X | republish [--paper X] [--yes] | manual export --paper X");
+  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | oa [--paper X] [--target prod] [--yes] | metadata [--paper X] [--doi D] [--target prod] [--yes] | backup-files [--yes] [--keep N] | ocr --paper X | republish [--paper X] [--yes] | manual export --paper X");
   return 1;
 }
 

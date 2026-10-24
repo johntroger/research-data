@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.83 (so với 3.9.82)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Nhóm P1 sau đánh giá giao diện: P1.1 sửa metadata (lỗi "Reviewed work(s):", bổ sung DOI/năm/tác giả cho 7 bài, lệnh `pnpm worker metadata`); số bài mở giấy phép từ 7 lên 8 | Nhà nghiên cứu thấy ngay "Chaudhuri & work(s):" và trích dẫn APA sai ở các bài thiếu năm/tác giả |
+
 ### Version 3.9.82 (so với 3.9.81)
 
 | # | Thay đổi | Lý do |
