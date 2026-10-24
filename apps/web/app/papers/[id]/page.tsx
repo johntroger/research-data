@@ -47,7 +47,7 @@ export default async function PaperPage({
             facts.typeLabel,
             facts.designs.length ? `Thiết kế: ${facts.designs.join(", ")}` : null,
             facts.sampleSizes.length ? `N = ${facts.sampleSizes.map((n) => n.toLocaleString("vi-VN")).join("; ")}` : null,
-            `${facts.tests} kiểm định đường quan hệ`,
+            facts.tests ? `${facts.tests} kiểm định đường quan hệ` : null,
             `${facts.verified}/${facts.fields} trường đã kiểm chứng (✓)`,
           ]
             .filter(Boolean)

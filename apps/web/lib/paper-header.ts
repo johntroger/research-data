@@ -45,7 +45,8 @@ const isNumber = (v: unknown): v is number => typeof v === "number" && Number.is
 export function paperFacts(fields: HeaderField[]): PaperFacts {
   const type = fields.find((f) => f.natural_key === "paper_type")?.value;
   const designs = [...new Set(fields.filter((f) => f.field_name === "research_design").map((f) => String(f.value)))].map((d) => DESIGN_LABELS[d] ?? d);
-  const sampleSizes = fields.filter((f) => f.field_name === "sample_size" && isNumber(f.value)).map((f) => f.value as number);
+  // A study's sample is "study_1:n" (full extraction) or field "sample_size" (skeleton); a matrix's or a cell's n has more parts.
+  const sampleSizes = fields.filter((f) => (f.field_name === "sample_size" || /^[^:]+:n$/.test(f.natural_key)) && isNumber(f.value)).map((f) => f.value as number);
   return {
     typeLabel: typeof type === "string" ? (PAPER_TYPE_LABELS[type] ?? type) : null,
     designs,

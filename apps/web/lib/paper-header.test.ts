@@ -40,6 +40,16 @@ describe("paperFacts", () => {
     ]);
     expect(facts.tests).toBe(2);
   });
+
+  it("finds a study's sample as the full extraction stores it, not a matrix's or a cell's n", () => {
+    const facts = paperFacts([
+      f("study_1:n", "n", 107),
+      f("study_2:n", "n", 1250),
+      f("study_1:corr:table_2:n", "n", 107),
+      f("study_1:cell:brand_2:cpe:n", "n", 40),
+    ]);
+    expect(facts.sampleSizes).toEqual([107, 1250]);
+  });
 });
 
 describe("readableKey", () => {
