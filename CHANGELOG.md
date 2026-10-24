@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.82 (so với 3.9.81)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Chốt 4.6: chủ dự án không cần thống kê lượt xem trang nên không dùng Cloudflare Web Analytics; mã tùy chọn vẫn nằm sẵn, tắt khi không có `NEXT_PUBLIC_CF_BEACON_TOKEN` | Chủ dự án quyết định 24/10/2026 |
+
 ### Version 3.9.81 (so với 3.9.80)
 
 | # | Thay đổi | Lý do |
