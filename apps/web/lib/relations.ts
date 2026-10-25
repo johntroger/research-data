@@ -215,6 +215,8 @@ export interface Summary {
   papers: number;
   studies: number;
   tests: number;
+  /** The counted tests that are different relationships: the same relationship reported in several models or tables (keys ending "#2", "#3") counts once. */
+  relations: number;
   /** Matching tests the summary leaves out because they are not ✓ / ★. */
   notCounted: number;
   notCountedByDesign: Record<string, number>;
@@ -287,6 +289,9 @@ export function paperLabel(paper: PaperInfo | null): string {
   return paper.year ? `${who} (${paper.year})` : who;
 }
 
+/** A test's natural key without the "#2", "#3" that tells apart the same relationship reported again in the same study. */
+export const relationKey = (r: Pick<PathRow, "paper_id" | "study_id" | "natural_key">): string => `${r.paper_id}|${r.study_id}|${r.natural_key.replace(/#\d+$/, "")}`;
+
 export function searchRelations(allRows: PathRow[], concepts: Concept[], q: RelationQuery): RelationResult {
   const rows = findRows(allRows, concepts, q);
   const counted = q.includeWarn ? rows : rows.filter(isVerified);
@@ -323,6 +328,7 @@ export function searchRelations(allRows: PathRow[], concepts: Concept[], q: Rela
       papers: new Set(counted.map((r) => r.paper_id)).size,
       studies: new Set(counted.map((r) => r.study_id)).size,
       tests: counted.length,
+      relations: new Set(counted.map(relationKey)).size,
       notCounted: notCountedRows.length,
       notCountedByDesign: byDesign,
       shareNotCounted: rows.length === 0 ? 0 : notCountedRows.length / rows.length,

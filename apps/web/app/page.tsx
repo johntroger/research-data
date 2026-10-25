@@ -238,6 +238,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 <strong>{countsLine(s, query.includeWarn)}</strong>
               </p>
             )}
+            {s.relations < s.tests && (
+              <p className="muted" data-testid="summary-distinct">
+                {s.tests} kiểm định này chỉ gồm <strong>{s.relations} quan hệ khác nhau</strong>: cùng một quan hệ trong cùng study có thể được báo cáo ở nhiều mô hình hoặc bảng và được đếm nhiều lần (các dòng có hậu tố “#2”, “#3” ở khóa kiểm định).
+              </p>
+            )}
             <p className="muted" data-testid="summary-coverage">
               Tìm thấy <strong>{s.matchedTests} kiểm định từ {s.matchedPapers} bài</strong> (kho có {s.corpusPapers} bài có dữ liệu quan hệ, chọn theo thư viện của chủ dự án, không phải mẫu hệ thống của y văn).
             </p>

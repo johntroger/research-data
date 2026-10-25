@@ -14,6 +14,7 @@ import {
   parseQuery,
   type PathRow,
   queryTitle,
+  relationKey,
   queryToSearch,
   rolesInTest,
   type RelationQuery,
@@ -282,5 +283,27 @@ describe("the words of a result: one main number and the page title", () => {
     expect(queryTitle(q({ a: "ethicality", b: "trust", dir: "both" }))).toBe("ethicality ⇄ trust");
     expect(queryTitle(q({ a: "", b: "trust" }))).toBe("trust");
     expect(queryTitle(q({}))).toBe("");
+  });
+});
+
+describe("the same relationship reported more than once", () => {
+  const key = (suffix: string) => ({ natural_key: `study_3::perceived->trust:direct${suffix}` });
+  const data = [
+    row("perceived", "trust", key("")),
+    row("perceived", "trust", key("#2")),
+    row("perceived", "trust", key("#3")),
+    row("authentic", "trust", { natural_key: "study_3::authentic->trust:direct" }),
+    row("perceived", "trust", { ...key("#2"), study_id: "s2" }),
+  ];
+
+  it("counts a relationship once however many models or tables report it, within its paper and study", () => {
+    expect(new Set(data.map(relationKey)).size).toBe(3);
+    expect(relationKey(data[1]!)).toBe(relationKey(data[0]!));
+    expect(relationKey(data[4]!)).not.toBe(relationKey(data[0]!));
+  });
+
+  it("puts the distinct relationships beside the tests in the summary", () => {
+    const { summary } = searchRelations(data, [], q({ a: "perceived", b: "trust", dir: "both" }));
+    expect(summary).toMatchObject({ tests: 4, relations: 2 });
   });
 });
