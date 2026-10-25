@@ -60,6 +60,7 @@ export interface PaperInfo {
   journal: string | null;
   citekey: string | null;
   apa_citation: string | null;
+  doi?: string | null;
 }
 
 /** PostgREST returns a one-to-one embed (one sample per study) as an object, a one-to-many one as a list. */

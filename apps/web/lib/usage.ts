@@ -6,7 +6,7 @@
 import { after } from "next/server";
 import { getOwner } from "./supabase-server";
 
-export const SERVER_EVENTS = ["relation_search", "export_excel", "export_word", "export_word_matrix", "pdf_view", "pdf_download"] as const;
+export const SERVER_EVENTS = ["relation_search", "export_excel", "export_word", "export_word_matrix", "export_csv", "export_ris", "export_bibtex", "pdf_view", "pdf_download"] as const;
 /** What the browser may report about itself; anything else sent to /api/event is refused. */
 export const CLIENT_EVENTS = ["evidence_open", "copy_sentence", "copy_apa"] as const;
 export type UsageEvent = (typeof SERVER_EVENTS)[number] | (typeof CLIENT_EVENTS)[number];
@@ -19,6 +19,9 @@ export const EVENT_LABELS: Record<UsageEvent, string> = {
   export_excel: "Xuất Excel",
   export_word: "Xuất Word (quan hệ)",
   export_word_matrix: "Xuất Word (ma trận)",
+  export_csv: "Xuất CSV",
+  export_ris: "Xuất RIS",
+  export_bibtex: "Xuất BibTeX",
   pdf_view: "Xem PDF",
   pdf_download: "Tải PDF",
   copy_sentence: "Copy câu",

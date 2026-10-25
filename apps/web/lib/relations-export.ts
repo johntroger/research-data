@@ -63,6 +63,48 @@ export const COLUMNS = [
   "Mở bài",
 ] as const;
 
+/** Column names of the CSV file: English and without spaces, so R, Python and Stata read them as variable names. */
+export const CSV_COLUMNS = [
+  "data_release", "paper_id", "citation", "year", "journal", "doi", "study", "iv", "dv", "role", "mediators", "moderators", "hypothesis",
+  "estimate_type", "estimate", "se", "ci_low", "ci_high", "p_value", "p_reported", "n", "result", "effect_direction", "badge",
+  "printed_page", "pdf_page", "url",
+] as const;
+
+/** One row per test, in the order of the page, with the raw values (not the APA text) so the file can be analysed. */
+export function csvRows(result: RelationResult, opts: { release: string; openUrl: (r: PathRow) => string }): (string | number | null)[][] {
+  return result.groups
+    .flatMap((g) => g.rows)
+    .map((r) => [
+      opts.release,
+      r.paper_id,
+      r.papers?.apa_citation ?? paperLabel(r.papers),
+      r.papers?.year ?? null,
+      r.papers?.journal ?? null,
+      r.papers?.doi ?? null,
+      r.studies?.study_label ?? null,
+      r.iv_label_original,
+      r.dv_label_original,
+      r.effect_type,
+      r.mediator_labels.join("; ") || null,
+      r.moderator_labels.join("; ") || null,
+      r.hypothesis_code,
+      r.estimate_type,
+      r.estimate,
+      r.se ?? null,
+      r.ci_low ?? null,
+      r.ci_high ?? null,
+      r.p_value,
+      r.p_reported_as,
+      sampleSize(r),
+      r.status,
+      signGroup(r),
+      r.badge,
+      r.evidence ? (r.evidence.printed_page ?? null) : null,
+      r.evidence ? r.evidence.pdf_page_index + 1 : null,
+      opts.openUrl(r),
+    ]);
+}
+
 export interface ExportTable {
   columns: readonly string[];
   rows: (string | number | null)[][];

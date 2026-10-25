@@ -114,6 +114,11 @@ export default async function AboutPage() {
         <li>Con số tổng hợp chỉ mô tả các bài trong kho; đây không phải kết luận của cả lĩnh vực và không thay cho meta-analysis. Không có ý nghĩa thống kê không có nghĩa là không có tác động.</li>
       </ul>
 
+      <h2>Tệp xuất và các cột của CSV</h2>
+      <p>
+        Kết quả tìm kiếm tải được dưới dạng Excel, Word (bảng APA 7) và <strong>CSV</strong> (UTF-8, mở được bằng Excel, R, Python); danh sách bài ở Thư viện tải được dưới dạng <strong>RIS</strong> và <strong>BibTeX</strong> để đưa vào Zotero, EndNote hay LaTeX. Mọi tệp ghi số hiệu bản dữ liệu. CSV giữ giá trị gốc, không làm tròn và không quy đổi: <code>estimate</code> là hệ số như bài in, <code>estimate_type</code> cho biết là β chuẩn hóa, hệ số đường dẫn, r…, nên đừng gộp các loại khác nhau khi phân tích; <code>se</code>, <code>ci_low</code>, <code>ci_high</code> chỉ có khi bài in; <code>n</code> là cỡ mẫu của study; <code>result</code> là kết quả giả thuyết (<code>supported</code>, <code>not_supported</code>, <code>partially_supported</code>, <code>not_hypothesized</code>); <code>effect_direction</code> là chiều tác động (<code>positive</code>, <code>negative</code>, <code>none</code>, <code>unknown</code>); <code>badge</code> là huy hiệu (<code>auto_verified</code> ✓, <code>needs_attention</code> ⚠, <code>ai_interpreted</code> ◇, <code>human_reviewed</code> ★); <code>printed_page</code> và <code>pdf_page</code> chỉ chỗ bằng chứng trong bài.
+      </p>
+
       <h2 id="cach-trich-dan">Cách trích dẫn công cụ này</h2>
       <p>
         Nếu bạn dùng con số lấy từ web trong bài viết, hãy trích dẫn công cụ <strong>kèm số hiệu bản dữ liệu</strong> (kết quả đổi khi nhập thêm bài) và trích dẫn cả bài gốc mà bạn lấy số; công cụ chỉ là nơi tìm, không thay cho bài gốc. Mẫu APA 7:

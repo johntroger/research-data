@@ -53,6 +53,16 @@ export default async function PaperPage({
             .filter(Boolean)
             .join(" · ")}
         </p>
+        <p className="muted" data-testid="paper-refs">
+          Lấy tài liệu tham khảo:{" "}
+          <a href={`/export/refs?format=ris&paper=${paper.id}`} download>
+            RIS
+          </a>
+          {" · "}
+          <a href={`/export/refs?format=bibtex&paper=${paper.id}`} download>
+            BibTeX
+          </a>
+        </p>
         <p className="muted" data-testid="paper-hint">
           {focusKey ? "" : `Mở sẵn tab ${TABS.find((t) => t.id === openTab)?.label}; `}bấm một giá trị để thấy bằng chứng trong PDF.
         </p>

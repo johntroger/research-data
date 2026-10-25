@@ -288,3 +288,21 @@ test("the concepts page lists each canonical concept with its merged names, and 
   await page.goto("/");
   await expect(page.getByRole("navigation").getByRole("link", { name: "Khái niệm" })).toBeVisible();
 });
+
+test("the CSV has the tests of the list with raw values, a byte order mark and the release column", async ({ page, request }) => {
+  await page.goto("/?a=zebra&b=quokka");
+  const link = page.getByTestId("export-csv");
+  await expect(link).toBeVisible();
+  const href = (await link.getAttribute("href"))!;
+  expect(href).toMatch(/^\/export\/csv\?/);
+  const response = await request.get(href);
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toContain("text/csv");
+  expect(response.headers()["content-disposition"]).toMatch(/attachment; filename="quan-he_ban-.+\.csv"/);
+  const text = (await response.body()).toString("utf8");
+  expect(text.charCodeAt(0)).toBe(0xfeff);
+  const lines = text.slice(1).trim().split("\r\n");
+  expect(lines[0]).toMatch(/^data_release,paper_id,citation,year,journal,doi,study,iv,dv,role,/);
+  expect(lines).toHaveLength(1 + 3); // the page lists 3 tests for zebra and quokka
+  expect(lines[1]).toContain("zebra");
+});

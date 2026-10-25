@@ -371,8 +371,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 {" · "}
                 <a href={`/export/word?${queryToSearch(query)}`} download data-testid="export-word">
                   Tải Word APA 7
+                </a>
+                {" · "}
+                <a href={`/export/csv?${queryToSearch(query)}`} download data-testid="export-csv">
+                  Tải CSV
                 </a>{" "}
-                <span className="muted">đúng danh sách bên dưới, có cột huy hiệu, trang in và tuyên bố trách nhiệm.</span>
+                <span className="muted">đúng danh sách bên dưới, có cột huy hiệu, trang in và tuyên bố trách nhiệm (CSV: giá trị gốc để phân tích, kèm số hiệu bản dữ liệu).</span>
               </p>
               {result.groups.map((g) => (
                 <div key={g.paperId} className="relation-paper" data-testid={`paper-${g.paperId}`}>

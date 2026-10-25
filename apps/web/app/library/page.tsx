@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { listLibraryItems, paperLabel } from "@/lib/data";
 import { apaReference } from "@/lib/apa";
-import { filterLibrary, parseLibraryQuery } from "@/lib/library";
+import { filterLibrary, libraryQueryString, parseLibraryQuery } from "@/lib/library";
 import { paperLabel as citation } from "@/lib/relations";
 import { CopyButton } from "./copy-button";
 import { LibraryFilters } from "./filters";
@@ -13,6 +13,8 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
   const all = await listLibraryItems();
   const papers = filterLibrary(all, query);
   const filtered = papers.length !== all.length;
+  const filterQs = libraryQueryString(query);
+  const refsFilter = filterQs ? `&${filterQs}` : "";
 
   return (
     <>
@@ -25,6 +27,18 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
           <p className="muted" data-testid="library-total">
             {filtered ? `${papers.length} / ${all.length} bài` : `${all.length} bài`}
           </p>
+          {papers.length > 0 && (
+            <p className="muted" data-testid="library-export">
+              Xuất {filtered ? "các bài đang lọc" : "tất cả bài"} sang phần mềm quản lý tài liệu:{" "}
+              <a href={`/export/refs?format=ris${refsFilter}`} download data-testid="export-ris">
+                RIS (Zotero, EndNote, Mendeley)
+              </a>
+              {" · "}
+              <a href={`/export/refs?format=bibtex${refsFilter}`} download data-testid="export-bibtex">
+                BibTeX (LaTeX)
+              </a>
+            </p>
+          )}
           {papers.length === 0 ? (
             <p className="muted">Không có bài nào khớp các bộ lọc. Bỏ bớt một bộ lọc hoặc bấm “Xóa lọc”.</p>
           ) : (

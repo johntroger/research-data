@@ -99,3 +99,30 @@ describe("provenance in the notes of the Excel file", () => {
     expect(without.notes.some(([k]) => k === "Bản dữ liệu và cách trích dẫn")).toBe(false);
   });
 });
+
+describe("csvRows", () => {
+  it("has one row per test with raw values and the release in the first column, as many cells as columns", async () => {
+    const { csvRows, CSV_COLUMNS } = await import("./relations-export");
+    const row = (await import("./relations")).searchRelations;
+    const base = {
+      id: "r1", paper_id: "p1", study_id: "s1", natural_key: "study_1:h1:a->b:direct", hypothesis_code: "H1", iv_label_original: "A", dv_label_original: "B",
+      iv_construct_id: null, dv_construct_id: null, mediator_labels: [], moderator_labels: [], effect_type: "direct" as const, estimate_type: "std_beta", estimate: -0.31,
+      se: 0.05, ci_low: -0.42, ci_high: -0.2, p_value: null, p_reported_as: "< .001", status: "supported" as const, observed_sign: "negative" as const, significant: true,
+      badge: "auto_verified", studies: { study_label: "Study 1", research_design: "survey", samples: { n: 312 } },
+      papers: { title: "T", authors: [{ family: "Nguyen" }], year: 2023, journal: "J", citekey: null, apa_citation: null, doi: "10.1/x" }, evidence: { printed_page: "12", pdf_page_index: 11 },
+    };
+    const result = row([base], [], { ...DEFAULT_QUERY, a: "a" });
+    const [r] = csvRows(result, { release: "2026.10.25", openUrl: () => "http://x/p" });
+    expect(r).toHaveLength(CSV_COLUMNS.length);
+    const at = (name: (typeof CSV_COLUMNS)[number]) => r![CSV_COLUMNS.indexOf(name)];
+    expect(at("data_release")).toBe("2026.10.25");
+    expect(at("estimate")).toBe(-0.31);
+    expect(at("se")).toBe(0.05);
+    expect(at("ci_low")).toBe(-0.42);
+    expect(at("n")).toBe(312);
+    expect(at("doi")).toBe("10.1/x");
+    expect(at("result")).toBe("supported");
+    expect(at("effect_direction")).toBe("negative");
+    expect(at("pdf_page")).toBe(12);
+  });
+});

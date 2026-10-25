@@ -156,6 +156,7 @@ describe("business tables (step 1.1)", () => {
         "matrix_cells",
         "matrix_descriptives",
         "usage_daily",
+        "data_releases",
       ].sort(),
     );
   });

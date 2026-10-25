@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.98 (so với 3.9.97)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | P4.3: xuất CSV (kết quả), RIS và BibTeX (thư viện, trang bài); mở rộng danh sách đóng của count_event | Đưa dữ liệu sang R, Excel, Zotero, LaTeX |
+
 ### Version 3.9.97 (so với 3.9.96)
 
 | # | Thay đổi | Lý do |

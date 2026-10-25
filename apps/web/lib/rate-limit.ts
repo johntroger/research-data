@@ -44,7 +44,7 @@ export function rulesFor(req: RequestInfo): RateRule[] {
   if (req.prefetch) return [];
   const { pathname, method, search } = req;
   if (/^\/api\/papers\/[^/]+\/pdf$/.test(pathname)) return search.get("download") === "1" ? [RULES.pdfDownload, RULES.pdf] : [RULES.pdf];
-  if (pathname === "/export" || pathname === "/export/word" || pathname === "/matrix/word") return [RULES.export];
+  if (pathname === "/export" || pathname === "/export/word" || pathname === "/matrix/word" || pathname === "/export/csv" || pathname === "/export/refs") return [RULES.export];
   if (pathname === "/auth/callback") return [RULES.auth];
   if (pathname === "/auth/logout") return [];
   if (pathname === "/login" && method === "POST") return [RULES.login];

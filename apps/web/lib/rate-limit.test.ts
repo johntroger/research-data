@@ -18,7 +18,7 @@ describe("rulesFor", () => {
     expect(names(rulesFor(req("/api/papers/abc/pdf", "download=1")))).toEqual(["pdf-download", "pdf"]);
   });
   it("limits exports, the sign-in form and the sign-in link; sign-out is free", () => {
-    for (const p of ["/export", "/export/word", "/matrix/word"]) expect(names(rulesFor(req(p, "a=x")))).toEqual(["export"]);
+    for (const p of ["/export", "/export/word", "/matrix/word", "/export/csv", "/export/refs"]) expect(names(rulesFor(req(p, "a=x")))).toEqual(["export"]);
     expect(names(rulesFor(req("/login", "", "POST")))).toEqual(["login"]);
     expect(names(rulesFor(req("/login")))).toEqual(["pages"]);
     expect(names(rulesFor(req("/auth/callback", "code=x")))).toEqual(["auth"]);
