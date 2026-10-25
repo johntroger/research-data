@@ -7,6 +7,7 @@ import { buildMatrix, sampleSummary, THEORY_ROLE_LABELS } from "@/lib/matrix";
 import { paperLabel as citation } from "@/lib/relations";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Ma trận tổng hợp: bài × đặc điểm" };
 
 export default async function MatrixPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const query = parseLibraryQuery(await searchParams);

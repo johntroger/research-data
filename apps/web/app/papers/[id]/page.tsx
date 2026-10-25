@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPaper, listFields, paperLabel } from "@/lib/data";
 import { getOwner } from "@/lib/supabase-server";
@@ -7,6 +8,12 @@ import { defaultTab, summariseSections, TABS } from "@/lib/workspace";
 import { EvidenceWorkspace } from "./evidence-workspace";
 
 export const dynamic = "force-dynamic";
+
+/** The tab and the history name the paper, not just the site. */
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const paper = await getPaper((await params).id);
+  return paper?.title ? { title: paper.title } : {};
+}
 
 export default async function PaperPage({
   params,

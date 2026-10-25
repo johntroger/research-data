@@ -6,7 +6,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   robots: indexingAllowed() ? { index: true, follow: true } : { index: false, follow: false },
-  title: "Research Data",
+  title: { default: "Research Data", template: "%s · Research Data" },
   description: "Công cụ tham khảo: dữ liệu trích xuất từ bài báo khoa học, kèm bằng chứng trong PDF gốc.",
 };
 

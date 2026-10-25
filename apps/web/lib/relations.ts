@@ -123,6 +123,14 @@ export const isSingleConcept = (q: RelationQuery): boolean => (q.a !== "") !== (
 /** The one concept typed in a single-concept search. */
 export const singleTerm = (q: RelationQuery): string => (q.a !== "" ? q.a : q.b);
 
+/** The question in a few words, for the page title: "ethicality → trust", "trust ⇄ loyalty", or the one concept typed. */
+export function queryTitle(q: RelationQuery): string {
+  if (!hasQuestion(q)) return "";
+  if (isSingleConcept(q)) return singleTerm(q);
+  if (q.dir === "both") return `${q.a} ⇄ ${q.b}`;
+  return q.dir === "ba" ? `${q.b} → ${q.a}` : `${q.a} → ${q.b}`;
+}
+
 /** Lower case, no accents, words separated by single spaces. */
 export function normalise(text: string): string {
   return text
@@ -214,6 +222,12 @@ export interface Summary {
   shareNotCounted: number;
   outcome: Record<StatusGroup, number>;
   direction: Record<SignGroup | "unknown", number>;
+}
+
+/** The one main number of a result: the tests counted, and the ✓ rule behind it ("tính cả ⚠" says so when it was switched on). */
+export function countsLine(s: Pick<Summary, "papers" | "studies" | "tests">, includeWarn: boolean): string {
+  const what = includeWarn ? "kiểm định (tính cả ⚠ và ◇)" : "kiểm định đã kiểm chứng ✓";
+  return `${s.tests} ${what} · ${s.papers} bài · ${s.studies} study`;
 }
 
 export interface PaperGroup {
