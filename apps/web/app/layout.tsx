@@ -26,6 +26,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <a href="/library">Thư viện</a>
             <a href="/matrix">Ma trận</a>
             <a href="/concepts">Khái niệm</a>
+            <a href="/map">Bản đồ bằng chứng</a>
             <a href="/about">Giới thiệu</a>
           </nav>
           <div className="header-right">

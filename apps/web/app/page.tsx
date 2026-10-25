@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { CopyButton } from "@/app/library/copy-button";
 import { CorpusBlock } from "@/app/corpus-block";
+import { ForestPlot } from "@/app/forest-plot";
+import { buildForest } from "@/lib/forest";
 import { describeCorpus } from "@/lib/corpus";
 import { countryName, DESIGN_LABELS, SAMPLE_LABELS } from "@/lib/library";
 import { PermalinkButton } from "@/app/permalink-button";
@@ -18,6 +20,7 @@ import {
   formatStats,
   hasQuestion,
   isSingleConcept,
+  isVerified,
   matchedConcepts,
   rolesInTest,
   singleTerm,
@@ -109,6 +112,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   if (result) await countUse("relation_search");
   const s = result?.summary;
   const merged = result ? matchedConcepts(query, concepts) : [];
+  const forest = result ? buildForest(result.rows.filter((r) => query.includeWarn || isVerified(r))) : null;
 
   return (
     <>
@@ -391,6 +395,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 <PermalinkButton path={`/?${queryToSearch(query)}${release ? `&v=${encodeURIComponent(release.id)}` : ""}`} testId="permalink" />{" "}
                 <span className="muted">đúng danh sách bên dưới, có cột huy hiệu, trang in và tuyên bố trách nhiệm (CSV: giá trị gốc để phân tích, kèm số hiệu bản dữ liệu).{release ? ` Kết quả tính trên ${releaseLabel(release)}.` : ""}</span>
               </p>
+              {forest && <ForestPlot forest={forest} />}
               {result.groups.map((g) => (
                 <div key={g.paperId} className="relation-paper" data-testid={`paper-${g.paperId}`}>
                   <h3>

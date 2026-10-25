@@ -747,3 +747,52 @@ h1 {
 .paper-head p {
   margin: 4px 0;
 }
+
+.evidence-grid {
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.evidence-grid th,
+.evidence-grid td {
+  border: 1px solid #d0d4d9;
+  padding: 4px 6px;
+  text-align: center;
+  min-width: 56px;
+}
+.evidence-grid th[scope="row"] {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  background: #fbfbfa;
+  white-space: nowrap;
+}
+.evidence-grid .corner {
+  text-align: left;
+  font-weight: 500;
+}
+.evidence-grid .vlabel {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  font-weight: 500;
+}
+.evidence-grid td.empty {
+  background: transparent;
+}
+.evidence-grid td a {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.evidence-grid .support {
+  display: block;
+  font-size: 11px;
+}
+.forest {
+  margin: 12px 0;
+}
+.forest svg {
+  width: 100%;
+  max-width: 720px;
+  height: auto;
+}

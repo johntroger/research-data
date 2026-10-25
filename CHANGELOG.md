@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.101 (so với 3.9.100)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | P5.4: trang Bản đồ bằng chứng (lưới khái niệm × khái niệm); biểu đồ rừng dựng sẵn, chỉ hiện từ 4 study cùng loại có khoảng tin cậy | Nhìn ra cặp nào đã nghiên cứu, cặp nào còn trống; chưa vẽ biểu đồ khi dữ liệu quá ít |
+
 ### Version 3.9.100 (so với 3.9.99)
 
 | # | Thay đổi | Lý do |
