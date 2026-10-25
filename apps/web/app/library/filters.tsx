@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SearchButton } from "@/app/search-button";
 import { countryName, DESIGN_LABELS, facetOptions, PAPER_TYPE_LABELS, SAMPLE_LABELS, type FacetName, type LibraryItem, type LibraryQuery } from "@/lib/library";
 
 const GROUPS: { facet: FacetName; param: string; title: string; label: (v: string) => string }[] = [
@@ -15,7 +16,7 @@ export function LibraryFilters({ all, query, filtered, action }: { all: LibraryI
     <form method="get" action={action} className="library-filters" data-testid="library-filters">
       <div className="library-search">
         <input type="search" name="q" defaultValue={query.q} placeholder="Tìm theo tên bài, tác giả, tạp chí, DOI" aria-label="Tìm trong thư viện" />
-        <button type="submit">Lọc</button>
+        <SearchButton pendingLabel="Đang lọc…">Lọc</SearchButton>
         {(filtered || query.q) && <Link href={action}>Xóa lọc</Link>}
       </div>
       <div className="library-facets">

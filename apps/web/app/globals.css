@@ -914,3 +914,19 @@ summary {
     min-height: 44px;
   }
 }
+
+/* "← Quay lại kết quả" above the title of a paper opened from a list. */
+.back-link {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
+.back-link a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+}
+
+button:disabled {
+  cursor: progress;
+}

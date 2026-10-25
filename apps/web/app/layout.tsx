@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { type ReactNode, Suspense } from "react";
 import { getOwner } from "@/lib/supabase-server";
 import { indexingAllowed } from "@/lib/seo";
+import { NavTracker } from "./nav-memory";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,6 +16,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="vi">
       <body>
+        <Suspense fallback={null}>
+          <NavTracker />
+        </Suspense>
         <header className="site-header">
           <a href="/" className="brand">
             Research Data
