@@ -99,3 +99,12 @@ describe("rateLimitEnabled", () => {
     expect(rateLimitEnabled({ NODE_ENV: "production", RATE_LIMIT: "OFF" })).toBe(false);
   });
 });
+
+describe("rules that are not shared", () => {
+  it("count in the local store, and shared ones in the shared store", async () => {
+    const calls: string[] = [];
+    const spy = (label: string) => ({ consume: async (key: string) => (calls.push(`${label}:${key}`), { allowed: true, retryAfterMs: 0 }) });
+    await enforce(spy("shared"), [RULES.search, RULES.pages, RULES.export], "v", 1000, spy("local"));
+    expect(calls).toEqual(["local:search:v", "local:pages:v", "shared:export:v"]);
+  });
+});

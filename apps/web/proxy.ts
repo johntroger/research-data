@@ -14,6 +14,8 @@ import { upstashFromEnv, upstashStore } from "./lib/rate-limit-upstash";
 // function instance; without it they live in the memory of this process, which is right for one server and for development.
 const upstash = upstashFromEnv(process.env);
 const store = upstash ? upstashStore(upstash) : memoryStore();
+// Rules marked `shared: false` (pages, searches) are counted here, in this instance's memory, so a visit costs no round trip to the shared store.
+const localStore = upstash ? memoryStore() : store;
 // The salt must be the same in every function instance that shares a store, or one visitor would be counted under a different name in each:
 // RATE_LIMIT_SALT, else (with Upstash) the store's own secret token, else a random one for this process.
 const salt = process.env.RATE_LIMIT_SALT?.trim() || upstash?.token || crypto.randomUUID();
@@ -24,7 +26,7 @@ export async function proxy(request: NextRequest) {
     const rules = rulesFor({ pathname: request.nextUrl.pathname, method: request.method, search: request.nextUrl.searchParams, prefetch });
     if (rules.length > 0) {
       const visitor = await visitorId(clientIp(request.headers, process.env.TRUST_PROXY === "1"), salt);
-      const verdict = await enforce(store, rules, visitor, Date.now());
+      const verdict = await enforce(store, rules, visitor, Date.now(), localStore);
       if (!verdict.allowed) {
         return new NextResponse(`Bạn gửi quá nhiều yêu cầu. Hãy thử lại sau ${verdict.retryAfterSec} giây.`, {
           status: 429,

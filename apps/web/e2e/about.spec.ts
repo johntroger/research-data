@@ -20,3 +20,8 @@ test("states how many papers and values the repository shows", async ({ page }) 
   await page.goto("/about");
   await expect(page.getByTestId("about-overview")).toContainText(/\d+ bài, [\d.]+ giá trị đang hiển thị/);
 });
+
+test("gives a contact address for takedown and correction requests", async ({ page }) => {
+  await page.goto("/about");
+  await expect(page.getByTestId("takedown-contact")).toHaveAttribute("href", /^mailto:tranthanhtung37@gmail.com/);
+});
