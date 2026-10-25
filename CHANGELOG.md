@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.91 (so với 3.9.90)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Chốt P2 (P2.5): kiểm trên web thật, đối chiếu một dòng CI và N với PDF | Chắc số hiển thị đúng trước khi dùng |
+
 ### Version 3.9.90 (so với 3.9.89)
 
 | # | Thay đổi | Lý do |
