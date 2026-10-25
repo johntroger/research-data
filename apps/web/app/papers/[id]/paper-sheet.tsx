@@ -33,13 +33,47 @@ function Statements({ items, limit = 3, t }: { items: string[]; limit?: number; 
  * The top of a paper page: what it contributes, how each study was run, how each hypothesis came out, the limits the authors state.
  * Everything here is a short, reworded view of the fields below it; each hypothesis row links to its evidence.
  */
-export function PaperSheet({ sheet, paperId, t, tn, lang }: { sheet: Sheet; paperId: string; t: Translate; tn: TranslatePlural; lang: "vi" | "en" }) {
+export function PaperSheet({ sheet, paperId, t, tn, lang, canView = false }: { sheet: Sheet; paperId: string; t: Translate; tn: TranslatePlural; lang: "vi" | "en"; canView?: boolean }) {
   const numbers = new Intl.NumberFormat(lang === "vi" ? "vi-VN" : "en-US");
   const { statements } = sheet;
   const hasContribution = statements.theoretical.length > 0 || sheet.gap !== null;
   return (
     <section className="sheet" data-testid="paper-sheet" aria-label={t("sheet.title")}>
       <h2>{t("sheet.title")}</h2>
+
+      {(sheet.question || sheet.conclusions.length > 0) && (
+        <div className="sheet-block" data-testid="sheet-question">
+          {sheet.question && (
+            <>
+              <h3>{t("sheet.question.h")}</h3>
+              <p>{sheet.question.text}</p>
+              <p className="muted sheet-ai">{canView ? <a href={`/api/papers/${paperId}/pdf#page=${sheet.question.page}`} target="_blank" rel="noreferrer">{t("sheet.ai.page", { p: sheet.question.page })}</a> : t("sheet.ai.page", { p: sheet.question.page })}</p>
+            </>
+          )}
+          {sheet.conclusions.length > 0 && (
+            <>
+              <h3>{t("sheet.conclusions.h")}</h3>
+              <ul>
+                {sheet.conclusions.map((c, i) => (
+                  <li key={i}>
+                    {c.text}{" "}
+                    <span className="muted sheet-ai">{canView ? <a href={`/api/papers/${paperId}/pdf#page=${c.page}`} target="_blank" rel="noreferrer">{t("sheet.ai.page", { p: c.page })}</a> : t("sheet.ai.page", { p: c.page })}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+      )}
+
+      {sheet.abstract && (
+        <details className="sheet-block" data-testid="sheet-abstract">
+          <summary>{t("sheet.abstract.h", { source: sheet.abstract.source })}</summary>
+          {sheet.abstract.text.split("\n\n").map((p, i) => (
+            <p key={i}>{p}</p>
+          ))}
+        </details>
+      )}
 
       {hasContribution && (
         <div className="sheet-block" data-testid="sheet-what">

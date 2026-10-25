@@ -952,3 +952,10 @@ h1 {
   color: #a3262a;
   font-weight: 600;
 }
+.sheet-ai {
+  font-size: 12px;
+}
+.sheet details.sheet-block summary {
+  cursor: pointer;
+  font-size: 14px;
+}

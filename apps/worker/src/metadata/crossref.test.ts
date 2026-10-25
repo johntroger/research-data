@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fetchCrossref, parseCrossrefWork } from "./crossref.js";
+import { fetchCrossref, parseCrossrefWork, plainAbstract } from "./crossref.js";
 
 const work = {
   DOI: "10.1234/ABC.5",
@@ -16,6 +16,17 @@ const work = {
   "published-online": { "date-parts": [[2025, 11, 2]] },
   "published-print": { "date-parts": [[2026, 1]] },
 };
+
+describe("plainAbstract", () => {
+  it("keeps paragraphs, drops the heading, tags and entities", () => {
+    const raw = "<jats:title>Abstract</jats:title><jats:p>Brands that <jats:italic>disclose</jats:italic> &amp; explain earn trust in many markets.</jats:p><jats:p>Second paragraph that is long enough to keep.</jats:p>";
+    expect(plainAbstract(raw)).toBe("Brands that disclose & explain earn trust in many markets.\n\nSecond paragraph that is long enough to keep.");
+  });
+  it("returns null for a missing or trivial abstract", () => {
+    expect(plainAbstract(undefined)).toBeNull();
+    expect(plainAbstract("<jats:p>None.</jats:p>")).toBeNull();
+  });
+});
 
 describe("parseCrossrefWork", () => {
   it("maps Crossref fields to bibliographic metadata", () => {

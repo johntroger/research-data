@@ -24,6 +24,8 @@ export interface BibMetadata {
   pages: string | null;
   /** First printed page, used to place printed page numbers (S3). */
   firstPage: number | null;
+  /** The publisher's abstract when Crossref has one (about half of the works), as plain paragraphs. */
+  abstract?: string;
 }
 
 export interface CrossrefOptions {
@@ -43,6 +45,7 @@ interface CrossrefWork {
   issued?: { "date-parts"?: (number | null)[][] };
   "published-print"?: { "date-parts"?: (number | null)[][] };
   "published-online"?: { "date-parts"?: (number | null)[][] };
+  abstract?: string;
 }
 
 const firstYear = (...dates: (CrossrefWork["issued"] | undefined)[]) => {
@@ -79,9 +82,26 @@ export function cleanAuthor(a: BibAuthor): BibAuthor {
   return { ...a, family: parts[parts.length - 1]!, given: parts.slice(0, -1).join(" ") };
 }
 
+/**
+ * Crossref abstracts are JATS: <jats:title>Abstract</jats:title><jats:p>…</jats:p>, sometimes with <i>, <sup> and entities. Paragraphs are kept
+ * (a blank line between them); the "Abstract" heading and any other tags go.
+ */
+export function plainAbstract(raw: string | undefined): string | null {
+  if (!raw) return null;
+  const paragraphs = raw
+    .replace(/<(jats:)?title>[\s\S]*?<\/(jats:)?title>/gi, "")
+    .replace(/<\/(jats:)?p>|<br\s*\/?>/gi, "\n\n")
+    .split(/\n\n/)
+    .map((p) => decodeEntities(p.replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  const text = paragraphs.join("\n\n").replace(/^abstract[:.\s]+/i, "").trim();
+  return text.length >= 40 ? text : null;
+}
+
 export function parseCrossrefWork(work: CrossrefWork): BibMetadata {
   const pages = work.page ?? null;
   const first = pages ? Number(/^\d+/.exec(pages)?.[0]) : NaN;
+  const abstract = plainAbstract(work.abstract);
   return {
     doi: work.DOI.toLowerCase(),
     title: plain(work.title?.[0]),
@@ -99,6 +119,7 @@ export function parseCrossrefWork(work: CrossrefWork): BibMetadata {
     issue: work.issue ?? null,
     pages,
     firstPage: Number.isFinite(first) ? first : null,
+    ...(abstract ? { abstract } : {}),
   };
 }
 

@@ -28,6 +28,8 @@ import { connect, prodDbUrl } from "../db/client.js";
 import { lookupAll, saveOa } from "../db/oa.js";
 import { planRelease, saveRelease } from "../db/release.js";
 import { findCaption } from "../pdf/captions.js";
+import { checkSummary, readAnswer, saveSummary, shown, writeSummaryJob } from "../db/summaries.js";
+import { loadTextLayer } from "../pdf/ocr.js";
 import { applyRemap, planRemap } from "../db/map-labels.js";
 import { renderCanonicalSeedSql } from "@research-data/schema";
 import { lookupMetadata, saveMetadata, type MetadataPaper } from "../db/metadata.js";
@@ -527,7 +529,7 @@ async function metadataCommand(args: string[]): Promise<number> {
   const db = await connect(url ?? undefined);
   try {
     const { rows } = await db.query<MetadataPaper>(
-      "select id, doi, title, year, journal, authors from papers where ($1::text is null or id::text like $1 || '%' or file_hash like $1 || '%') order by title",
+      "select id, doi, title, year, journal, authors, abstract from papers where ($1::text is null or id::text like $1 || '%' or file_hash like $1 || '%') order by title",
       [only ?? null],
     );
     console.log(`${prod ? "PROD" : "local"} database, ${rows.length} papers\n`);
@@ -673,6 +675,79 @@ ${found}/${total} bảng có chú thích.`);
     }
     for (const u of updates) await db.query("update paper_tables set caption = $3 where paper_id = $1 and table_label = $2", [u.paperId, u.label, u.caption]);
     console.log(`Stored ${updates.length} captions.`);
+    return 0;
+  } finally {
+    await db.end();
+  }
+}
+
+/**
+ * pnpm worker summaries export [--paper X] | import [--paper X] [--target prod] [--yes]: the research question and main conclusions of each
+ * paper, written by an AI agent from the first PDF pages. export writes one job folder per paper (page texts and TASK.md) into
+ * extracted_data/summary-jobs/<file hash>; an agent working in that folder writes answer.json; import checks every quote against the PDF
+ * text and stores the result (preview unless --yes). Papers are matched by file hash, so one export serves local and prod.
+ */
+async function summariesCommand(args: string[]): Promise<number> {
+  loadEnv();
+  const sub = args[0];
+  const only = option(args, "--paper");
+  const yes = args.includes("--yes");
+  const prod = option(args, "--target") === "prod";
+  const jobs = path.join(EXTRACTED_DIR, "summary-jobs");
+  if (sub !== "export" && sub !== "import") {
+    console.error("Usage: pnpm worker summaries export [--paper X] | import [--paper X] [--target prod] [--yes]");
+    return 1;
+  }
+  const url = prod ? prodDbUrl() : undefined;
+  if (prod && !url) {
+    console.error("Prod is not configured: SUPABASE_PROD_REF, SUPABASE_PROD_DB_PASSWORD and SUPABASE_PROD_POOLER_HOST are needed in .env.");
+    return 1;
+  }
+  const db = await connect(sub === "import" ? (url ?? undefined) : undefined);
+  try {
+    const papers = await db.query<{ id: string; title: string | null; file_hash: string; pdf_path: string | null }>(
+      "select id, title, file_hash, pdf_path from papers where ($1::text is null or id::text like $1 || '%' or file_hash like $1 || '%' or title ilike '%' || $1 || '%') order by title",
+      [only ?? null],
+    );
+    let done = 0;
+    let missing = 0;
+    for (const paper of papers.rows) {
+      const code = paper.file_hash.slice(0, 12);
+      const label = (paper.title ?? paper.id).slice(0, 56).padEnd(56);
+      if (!paper.pdf_path) {
+        console.log(`${label} bỏ qua: không có PDF`);
+        continue;
+      }
+      let layer;
+      try {
+        layer = await loadTextLayer(new Uint8Array(await readFile(path.resolve(REPO_ROOT, paper.pdf_path))), EXTRACTED_DIR);
+      } catch {
+        console.log(`${label} bỏ qua: không đọc được PDF`);
+        continue;
+      }
+      if (sub === "export") {
+        await writeSummaryJob(jobs, code, layer);
+        done++;
+        console.log(`${label} ${code}`);
+        continue;
+      }
+      const answer = await readAnswer(path.join(jobs, code)).catch((e: unknown) => {
+        console.log(`${label} answer.json lỗi: ${e instanceof Error ? e.message : String(e)}`);
+        return null;
+      });
+      if (!answer) {
+        missing++;
+        continue;
+      }
+      const checked = checkSummary(layer, answer);
+      const ok = checked.findings.filter((f) => shown(f.match)).length;
+      console.log(`${label} câu hỏi: ${checked.questionMatch}; kết luận: ${ok}/${checked.findings.length} khớp`);
+      if (yes) await saveSummary(db, paper.id, checked, "claude-agent", "claude-opus");
+      done++;
+    }
+    console.log(`
+${done} bài ${sub === "export" ? "đã xuất" : yes ? "đã lưu" : "xem trước"}${missing ? `, ${missing} bài chưa có answer.json` : ""}.`);
+    if (sub === "import" && !yes) console.log("Nothing written. Add --yes to store these.");
     return 0;
   } finally {
     await db.end();
@@ -877,10 +952,11 @@ async function main(): Promise<number> {
   if (command === "map-labels") return mapLabelsCommand(args);
   if (command === "release") return releaseCommand(args);
   if (command === "captions") return captionsCommand(args);
+  if (command === "summaries") return summariesCommand(args);
   if (command === "backup-files") return backupFiles(args);
   if (command === "ocr") return ocr(args);
   if (command === "republish") return republish(args);
-  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | oa [--paper X] [--target prod] [--yes] | metadata [--paper X] [--doi D] [--target prod] [--yes] | map-labels [--target prod] [--yes] | release [--note T] [--target prod] [--yes] | captions [--paper X] [--target prod] [--yes] | backup-files [--yes] [--keep N] | ocr --paper X | republish [--paper X] [--yes] | manual export --paper X");
+  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | oa [--paper X] [--target prod] [--yes] | metadata [--paper X] [--doi D] [--target prod] [--yes] | map-labels [--target prod] [--yes] | release [--note T] [--target prod] [--yes] | captions [--paper X] [--target prod] [--yes] | summaries export|import [--paper X] [--target prod] [--yes] | backup-files [--yes] [--keep N] | ocr --paper X | republish [--paper X] [--yes] | manual export --paper X");
   return 1;
 }
 

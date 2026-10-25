@@ -3,6 +3,10 @@ import { defineMessages } from "./define";
 /** The summary sheet at the top of the paper page. */
 export const sheet = defineMessages({
   "sheet.title": { vi: "Tóm tắt nhanh", en: "Quick summary" },
+  "sheet.question.h": { vi: "Câu hỏi nghiên cứu", en: "Research question" },
+  "sheet.conclusions.h": { vi: "Kết luận chính của tác giả", en: "Main conclusions of the authors" },
+  "sheet.ai.page": { vi: "◇ AI diễn đạt lại · câu trích gốc ở trang PDF {p}", en: "◇ Reworded by AI · source quote on PDF page {p}" },
+  "sheet.abstract.h": { vi: "Abstract của nhà xuất bản (nguồn: {source})", en: "Publisher's abstract (source: {source})" },
   "sheet.what.h": { vi: "Bài này đóng góp gì", en: "What the paper contributes" },
   "sheet.what.gap": { vi: "Khoảng trống: {gap}", en: "Gap: {gap}" },
   "gap.evidence": { vi: "thiếu bằng chứng", en: "lack of evidence" },

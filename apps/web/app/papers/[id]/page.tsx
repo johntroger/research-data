@@ -67,7 +67,7 @@ export default async function PaperPage({
           </a>
         </p>
       </div>
-      {sheet && <PaperSheet sheet={sheet} paperId={paper.id} t={t} tn={tn} lang={lang} />}
+      {sheet && <PaperSheet sheet={sheet} paperId={paper.id} t={t} tn={tn} lang={lang} canView={canViewPdf() && Boolean(paper.pdf_path)} />}
       <h2 id="details" className="details-h">
         {t("sheet.details.h")}
       </h2>

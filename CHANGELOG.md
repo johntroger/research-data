@@ -2,6 +2,14 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.109 (so với 3.9.108)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Tóm tắt nhanh thêm **Câu hỏi nghiên cứu** và **Kết luận chính của tác giả** (do tác tử Claude diễn đạt lại từ 6 trang đầu, mỗi ý kèm câu trích gốc; máy kiểm câu trích có nằm trên trang PDF; chỉ hiện ý đã tìm thấy, gắn ◇ và liên kết tới trang PDF). Bảng mới `paper_summaries`; lệnh `pnpm worker summaries export / import` | Crossref chỉ có abstract cho khoảng một nửa số bài; nguồn AI có câu trích kiểm được phủ mọi bài |
+| 2 | `papers.abstract` + `abstract_source`: abstract của nhà xuất bản lấy từ Crossref qua `pnpm worker metadata` (làm sạch JATS), chỉ hiện trong mục gấp "Abstract của nhà xuất bản (nguồn: Crossref)" | Có abstract nguyên văn khi nhà xuất bản cung cấp, nhưng không đặt làm khối chính vì bản quyền |
+| 3 | Kiểm mù độc lập 12 bài (41 phát biểu): 41 đúng, 0 sai, 0 không chắc; 36/36 câu hỏi và 69/69 kết luận có câu trích khớp trang PDF | Đo độ tin cậy trước khi đưa lên web |
+
 ### Version 3.9.108 (so với 3.9.107)
 
 | # | Thay đổi | Lý do |

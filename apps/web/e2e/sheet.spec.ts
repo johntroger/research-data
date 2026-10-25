@@ -23,6 +23,20 @@ test("the sheet comes first: what the paper contributes, each study, each hypoth
   expect(sheetBox.y).toBeLessThan(detailsBox.y);
 });
 
+test("the research question and the main conclusions come first, marked as reworded by AI with the PDF page of the quote", async ({ page }) => {
+  await openAbePaper(page);
+  await expect(page.getByTestId("paper-sheet")).toBeVisible();
+  const block = page.getByTestId("sheet-question");
+  if ((await block.count()) === 0) test.skip(true, "the local database holds no summary for the ABE paper");
+  await expect(block.locator("h3").first()).toBeVisible();
+  await expect(block).toContainText("◇");
+  const sheetBox = (await page.getByTestId("paper-sheet").boundingBox())!;
+  const questionBox = (await block.boundingBox())!;
+  const whatBox = (await page.getByTestId("sheet-what").boundingBox())!;
+  expect(questionBox.y).toBeGreaterThanOrEqual(sheetBox.y);
+  expect(questionBox.y).toBeLessThan(whatBox.y);
+});
+
 test("a hypothesis row links to its evidence: the paper opens at the details with that test selected", async ({ page }) => {
   await openAbePaper(page);
   const link = page.getByTestId("sheet-hypotheses").locator("tbody tr:not(.sheet-study) a").first();

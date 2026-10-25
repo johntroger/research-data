@@ -6,7 +6,7 @@ import type { Badge } from "@research-data/schema";
 import type { ConceptDetail } from "./concepts";
 import type { DataRelease } from "./release";
 import type { LibraryItem } from "./library";
-import { buildSheet, type Sheet } from "./paper-sheet";
+import { buildSheet, type Sheet, type SummaryRow } from "./paper-sheet";
 import { buildMatrix, type MatrixPath, type PathLine, type SampleRow, type TheoryRow } from "./matrix";
 import type { Concept, PathRow } from "./relations";
 
@@ -214,12 +214,14 @@ export async function listMatrixData(): Promise<{ theories: TheoryRow[]; samples
 /** The summary sheet of one paper (what it contributes, each study, each hypothesis, limits), from the tests and samples the visitor may see. */
 export async function getPaperSheet(paperId: string, fields: ExtractedField[], moderatorWord: string): Promise<Sheet | null> {
   if (!/^[0-9a-f-]{36}$/i.test(paperId)) return null;
-  const [theories, samples, paths] = await Promise.all([
+  const [theories, samples, paths, summaries, papers] = await Promise.all([
     restAll<TheoryRow>(`paper_theories?select=paper_id,theory_name_original,application_role&paper_id=eq.${paperId}`),
     restAll<SampleRow>(`samples?select=paper_id,study_id,n,country_iso,sample_type,studies(study_label,position,research_design)&paper_id=eq.${paperId}`),
     restAll<MatrixPath>(`path_results?select=${PATH_COLUMNS},r2_dv&paper_id=eq.${paperId}&order=natural_key`),
+    rest<SummaryRow[]>(`paper_summaries?select=research_question,question_quote,question_page_index,question_match,findings&paper_id=eq.${paperId}`),
+    rest<{ abstract: string | null; abstract_source: string | null }[]>(`papers?select=abstract,abstract_source&id=eq.${paperId}`),
   ]);
-  return buildSheet(paths, samples, theories, fields, moderatorWord);
+  return buildSheet(paths, samples, theories, fields, moderatorWord, { summary: summaries[0] ?? null, abstract: papers[0]?.abstract ? { text: papers[0].abstract, source: papers[0].abstract_source ?? "Crossref" } : null });
 }
 
 /** The tests of one paper, by study, for the matrix row that was opened (step 4.1: the page no longer carries every test of every paper). */

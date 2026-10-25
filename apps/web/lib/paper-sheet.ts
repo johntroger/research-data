@@ -35,7 +35,28 @@ export interface Statements {
   future: string[];
 }
 
+/** A row of paper_summaries as the REST API returns it. */
+export interface SummaryRow {
+  research_question: string | null;
+  question_quote: string | null;
+  question_page_index: number | null;
+  question_match: string | null;
+  findings: { text: string; quote: string; pdf_page_index: number; match: string }[] | null;
+}
+
+/** An AI statement with the PDF page where its quote was found; only statements whose quote the machine found are kept. */
+export interface SummaryStatement {
+  text: string;
+  /** 1-based PDF page. */
+  page: number;
+}
+
 export interface Sheet {
+  /** The research question and the authors' main conclusions, reworded by AI, each tied to a quote found on a PDF page. */
+  question: SummaryStatement | null;
+  conclusions: SummaryStatement[];
+  /** The publisher's abstract (Crossref), shown folded. */
+  abstract: { text: string; source: string } | null;
   studies: SheetStudy[];
   hypotheses: SheetStudyResults[];
   /** Hypothesis tests in the sheet, and the other paths (controls, no hypothesis, indirect effects) left to the Results tab. */
@@ -74,7 +95,23 @@ function statementsOf(fields: FieldLike[]): Statements {
   return { theoretical: pick("theoretical_contribution"), practical: pick("practical_implication"), limitations: pick("limitation"), future: pick("future_direction") };
 }
 
-export function buildSheet(paths: MatrixPath[], samples: SampleRow[], theories: TheoryRow[], fields: FieldLike[], moderatorWord = "moderator"): Sheet {
+const FOUND = new Set(["exact", "fuzzy", "neighbour_page"]);
+
+function summaryOf(row: SummaryRow | null): { question: SummaryStatement | null; conclusions: SummaryStatement[] } {
+  if (!row) return { question: null, conclusions: [] };
+  const question = row.research_question && row.question_match && FOUND.has(row.question_match) && row.question_page_index !== null ? { text: row.research_question, page: row.question_page_index + 1 } : null;
+  const conclusions = (row.findings ?? []).filter((f) => FOUND.has(f.match)).map((f) => ({ text: f.text, page: f.pdf_page_index + 1 }));
+  return { question, conclusions };
+}
+
+export function buildSheet(
+  paths: MatrixPath[],
+  samples: SampleRow[],
+  theories: TheoryRow[],
+  fields: FieldLike[],
+  moderatorWord = "moderator",
+  extra: { summary?: SummaryRow | null; abstract?: { text: string; source: string } | null } = {},
+): Sheet {
   const studies: SheetStudy[] = samples
     .map((s) => ({
       studyId: s.study_id,
@@ -123,6 +160,8 @@ export function buildSheet(paths: MatrixPath[], samples: SampleRow[], theories: 
   const contribution = fields.find((f) => f.field_name === "contribution_type")?.value;
   const c = contribution && typeof contribution === "object" ? (contribution as { utility?: unknown; originality?: unknown }) : null;
   return {
+    ...summaryOf(extra.summary ?? null),
+    abstract: extra.abstract ?? null,
     studies,
     hypotheses,
     hypothesisCount: hypotheses.reduce((n, s) => n + s.rows.length, 0),

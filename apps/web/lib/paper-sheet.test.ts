@@ -48,6 +48,28 @@ describe("buildSheet", () => {
   ];
   const sheet = buildSheet(paths, samples, theories, fields);
 
+  it("shows only the AI statements whose quote the machine found, with the 1-based PDF page", () => {
+    const withSummary = buildSheet(paths, samples, theories, fields, "moderator", {
+      summary: {
+        research_question: "Does X raise Y?",
+        question_quote: "q",
+        question_page_index: 1,
+        question_match: "exact",
+        findings: [
+          { text: "found", quote: "q", pdf_page_index: 0, match: "fuzzy" },
+          { text: "invented", quote: "q", pdf_page_index: 0, match: "not_found" },
+        ],
+      },
+      abstract: { text: "An abstract.", source: "Crossref" },
+    });
+    expect(withSummary.question).toEqual({ text: "Does X raise Y?", page: 2 });
+    expect(withSummary.conclusions).toEqual([{ text: "found", page: 1 }]);
+    expect(withSummary.abstract?.source).toBe("Crossref");
+    const lost = buildSheet(paths, samples, theories, fields, "moderator", { summary: { research_question: "Q", question_quote: null, question_page_index: null, question_match: "not_found", findings: [] } });
+    expect(lost.question).toBeNull();
+    expect(buildSheet(paths, samples, theories, fields).question).toBeNull();
+  });
+
   it("orders the studies and gives design and sample of each", () => {
     expect(sheet.studies.map((s) => [s.label, s.design, s.n])).toEqual([["Study 1", "survey", 392], ["Study 2", "online_experiment", 187]]);
   });
