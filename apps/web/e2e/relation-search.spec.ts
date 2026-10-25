@@ -243,3 +243,13 @@ test("searching one concept lists all its relationships, whatever the case, and 
   await page.goto("/?a=zebra&b=quokka");
   await expect(page.getByTestId("single-note")).toHaveCount(0);
 });
+
+test("says which kinds of effect size are counted and filters by kind", async ({ page }) => {
+  await page.goto("/?a=zebra&b=quokka");
+  await expect(page.getByTestId("summary-estimates")).toContainText("Loại ước lượng:");
+  const all = await page.locator("[data-testid^='test-']").count();
+  await page.goto("/?a=zebra&b=quokka&est=r");
+  const onlyR = await page.locator("[data-testid^='test-']").count();
+  expect(onlyR).toBeLessThanOrEqual(all);
+  await expect(page.getByRole("checkbox", { name: "r (tương quan)" })).toBeChecked();
+});

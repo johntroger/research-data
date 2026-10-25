@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.89 (so với 3.9.88)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | P2.2: đếm và lọc theo loại ước lượng (β chuẩn hóa, hệ số đường dẫn, r, khác, chưa có số) kèm cảnh báo không so sánh trực tiếp | Các loại hiệu ứng bị trộn lẫn dễ gây đọc nhầm |
+
 ### Version 3.9.88 (so với 3.9.87)
 
 | # | Thay đổi | Lý do |

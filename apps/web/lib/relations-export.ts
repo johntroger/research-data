@@ -6,6 +6,7 @@
 import ExcelJS from "exceljs";
 import {
   EFFECT_LABEL,
+  ESTIMATE_LABEL,
   formatEstimate,
   formatP,
   formatCi,
@@ -106,6 +107,7 @@ export function describeQuery(q: RelationQuery): string {
   ];
   if (q.status.length) parts.push(`Kết quả giả thuyết: ${q.status.map((s) => STATUS_LABEL[s]).join(", ")}`);
   if (q.sign.length) parts.push(`Chiều tác động: ${q.sign.map((s) => SIGN_LABEL[s]).join(", ")}`);
+  if (q.est.length) parts.push(`Loại ước lượng: ${q.est.map((e) => ESTIMATE_LABEL[e]).join(", ")}`);
   return parts.join(" · ");
 }
 

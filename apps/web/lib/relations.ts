@@ -15,6 +15,16 @@ export const STATUSES = ["supported", "not_supported", "mixed", "not_hypothesize
 export const SIGNS = ["positive", "negative", "none"] as const;
 export type StatusGroup = (typeof STATUSES)[number];
 export type SignGroup = (typeof SIGNS)[number];
+/** Kinds of effect size that cannot be compared with each other (the project never converts β to r). */
+export const ESTIMATES = ["std_beta", "path_coefficient", "r", "other", "none"] as const;
+export type EstimateGroup = (typeof ESTIMATES)[number];
+export const ESTIMATE_LABEL: Record<EstimateGroup, string> = {
+  std_beta: "β chuẩn hóa",
+  path_coefficient: "hệ số đường dẫn",
+  r: "r (tương quan)",
+  other: "khác (b, η², OR…)",
+  none: "chưa có số",
+};
 
 export interface RelationQuery {
   a: string;
@@ -27,6 +37,8 @@ export interface RelationQuery {
   includeWarn: boolean;
   status: StatusGroup[];
   sign: SignGroup[];
+  /** Only these kinds of effect size (empty: all). */
+  est: EstimateGroup[];
 }
 
 export interface PaperInfo {
@@ -77,7 +89,7 @@ export interface Concept {
   aliases: string[];
 }
 
-export const DEFAULT_QUERY: RelationQuery = { a: "", b: "", dir: "ab", role: "direct", equiv: true, includeWarn: false, status: [], sign: [] };
+export const DEFAULT_QUERY: RelationQuery = { a: "", b: "", dir: "ab", role: "direct", equiv: true, includeWarn: false, status: [], sign: [], est: [] };
 
 type Params = Record<string, string | string[] | undefined>;
 const many = (v: string | string[] | undefined): string[] => (Array.isArray(v) ? v : v ? [v] : []);
@@ -98,6 +110,7 @@ export function parseQuery(p: Params): RelationQuery {
     includeWarn: many(p.warn).includes("1"),
     status: many(p.status).filter((s): s is StatusGroup => (STATUSES as readonly string[]).includes(s)),
     sign: many(p.sign).filter((s): s is SignGroup => (SIGNS as readonly string[]).includes(s)),
+    est: many(p.est).filter((s): s is EstimateGroup => (ESTIMATES as readonly string[]).includes(s)),
   };
 }
 
@@ -112,6 +125,7 @@ export function queryToSearch(q: RelationQuery): string {
   if (q.includeWarn) s.set("warn", "1");
   for (const v of q.status) s.append("status", v);
   for (const v of q.sign) s.append("sign", v);
+  for (const v of q.est) s.append("est", v);
   return s.toString();
 }
 
@@ -186,6 +200,12 @@ const roleOf = (row: PathRow, role: Role): boolean => {
   return row.effect_type !== "control";
 };
 
+export function estimateGroup(row: Pick<PathRow, "estimate" | "estimate_type">): EstimateGroup {
+  if (row.estimate === null || row.estimate_type === "none") return "none";
+  const t = row.estimate_type;
+  return t === "std_beta" || t === "path_coefficient" || t === "r" ? t : "other";
+}
+
 export const statusGroup = (row: PathRow): StatusGroup => (row.status === "partially_supported" ? "mixed" : row.status);
 
 export function signGroup(row: PathRow): SignGroup | "unknown" {
@@ -214,6 +234,8 @@ export interface Summary {
   shareNotCounted: number;
   outcome: Record<StatusGroup, number>;
   direction: Record<SignGroup | "unknown", number>;
+  /** Counted tests by kind of effect size. */
+  estimates: Record<EstimateGroup, number>;
 }
 
 export interface PaperGroup {
@@ -233,17 +255,22 @@ export interface RelationResult {
 }
 
 /** The tests that answer the query: after the role, the direction and the extra filters. */
+/** The filters that do not depend on which concepts were typed: result of the hypothesis, direction of the effect, kind of estimate. */
+function passesFilters(r: PathRow, q: RelationQuery): boolean {
+  if (q.status.length && !q.status.includes(statusGroup(r))) return false;
+  if (q.sign.length) {
+    const sg = signGroup(r);
+    if (sg === "unknown" || !q.sign.includes(sg)) return false;
+  }
+  if (q.est.length && !q.est.includes(estimateGroup(r))) return false;
+  return true;
+}
+
 export function findRows(rows: PathRow[], concepts: Concept[], q: RelationQuery): PathRow[] {
   if (isSingleConcept(q)) {
     const side = expand(singleTerm(q), concepts, q.equiv);
     return rows.filter((r) => {
-      if (!roleOf(r, "all") || conceptRoles(r, side).length === 0) return false;
-      if (q.status.length && !q.status.includes(statusGroup(r))) return false;
-      if (q.sign.length) {
-        const sg = signGroup(r);
-        if (sg === "unknown" || !q.sign.includes(sg)) return false;
-      }
-      return true;
+      return roleOf(r, "all") && conceptRoles(r, side).length > 0 && passesFilters(r, q);
     });
   }
   const a = expand(q.a, concepts, q.equiv);
@@ -253,12 +280,7 @@ export function findRows(rows: PathRow[], concepts: Concept[], q: RelationQuery)
     const forward = matches(a, r.iv_label_original, r.iv_construct_id) && matches(b, r.dv_label_original, r.dv_construct_id);
     const backward = matches(b, r.iv_label_original, r.iv_construct_id) && matches(a, r.dv_label_original, r.dv_construct_id);
     if (!(q.dir === "ab" ? forward : q.dir === "ba" ? backward : forward || backward)) return false;
-    if (q.status.length && !q.status.includes(statusGroup(r))) return false;
-    if (q.sign.length) {
-      const s = signGroup(r);
-      if (s === "unknown" || !q.sign.includes(s)) return false;
-    }
-    return true;
+    return passesFilters(r, q);
   });
 }
 
@@ -284,7 +306,9 @@ export function searchRelations(allRows: PathRow[], concepts: Concept[], q: Rela
   }
   const outcome: Summary["outcome"] = { supported: 0, not_supported: 0, mixed: 0, not_hypothesized: 0 };
   const direction: Summary["direction"] = { positive: 0, negative: 0, none: 0, unknown: 0 };
+  const estimates: Summary["estimates"] = { std_beta: 0, path_coefficient: 0, r: 0, other: 0, none: 0 };
   for (const r of counted) {
+    estimates[estimateGroup(r)]++;
     outcome[statusGroup(r)]++;
     direction[signGroup(r)]++;
   }
@@ -314,6 +338,7 @@ export function searchRelations(allRows: PathRow[], concepts: Concept[], q: Rela
       shareNotCounted: rows.length === 0 ? 0 : notCountedRows.length / rows.length,
       outcome,
       direction,
+      estimates,
     },
   };
 }

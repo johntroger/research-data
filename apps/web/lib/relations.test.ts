@@ -5,6 +5,7 @@ import {
   DEFAULT_QUERY,
   findRows,
   formatEstimate,
+  estimateGroup,
   formatStats,
   sampleSize,
   formatP,
@@ -68,6 +69,7 @@ describe("the query in the URL", () => {
       includeWarn: false,
       status: ["supported"],
       sign: ["negative"],
+      est: [],
     });
   });
 
@@ -265,5 +267,32 @@ describe("formatStats: everything the paper gave, in APA order", () => {
     expect(sampleSize(bare)).toBeNull();
     expect(sampleSize({ studies: { study_label: "S", research_design: null, samples: { n: 261 } } })).toBe(261); // a one-to-one embed is an object
     expect(sampleSize({ studies: null })).toBeNull();
+  });
+});
+
+describe("kinds of effect size", () => {
+  const data = [
+    row("A", "B", { estimate_type: "std_beta" }),
+    row("A", "B", { estimate_type: "r" }),
+    row("A", "B", { estimate_type: "odds_ratio" }),
+    row("A", "B", { estimate_type: "none", estimate: null }),
+    row("A", "B", { estimate_type: "path_coefficient" }),
+  ];
+
+  it("groups the estimate types the way they can be compared", () => {
+    expect(data.map(estimateGroup)).toEqual(["std_beta", "r", "other", "none", "path_coefficient"]);
+  });
+
+  it("counts the counted tests by kind, and filters by kind (also with one concept)", () => {
+    const { summary } = searchRelations(data, [], q({ a: "a", b: "b" }));
+    expect(summary.estimates).toEqual({ std_beta: 1, path_coefficient: 1, r: 1, other: 1, none: 1 });
+    expect(findRows(data, [], q({ a: "a", b: "b", est: ["r", "std_beta"] }))).toHaveLength(2);
+    expect(findRows(data, [], q({ a: "a", est: ["none"] }))).toHaveLength(1);
+  });
+
+  it("keeps the kinds in the URL", () => {
+    const query = parseQuery({ a: "a", est: ["r", "bogus", "none"] });
+    expect(query.est).toEqual(["r", "none"]);
+    expect(queryToSearch(query)).toBe("a=a&est=r&est=none");
   });
 });

@@ -8,6 +8,8 @@ import { academicSentence } from "@/lib/sentence";
 import {
   DEFAULT_QUERY,
   EFFECT_LABEL,
+  ESTIMATE_LABEL,
+  ESTIMATES,
   formatStats,
   hasQuestion,
   isSingleConcept,
@@ -148,6 +150,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </label>
           ))}
           <br />
+          <span className="muted">Loại ước lượng:</span>
+          {ESTIMATES.map((e) => (
+            <label key={e}>
+              <input type="checkbox" name="est" value={e} defaultChecked={query.est.includes(e)} /> {ESTIMATE_LABEL[e]}
+            </label>
+          ))}
+          <br />
           <span className="muted">Chiều tác động:</span>
           {(
             [
@@ -231,6 +240,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   </strong>
                 </p>
                 <p className="muted" data-testid="summary-method">Phương pháp: đếm số kiểm định theo kết quả (vote counting). Không xét cỡ mẫu, cỡ hiệu ứng hay sức mạnh thống kê; không phải meta-analysis.</p>
+                <p data-testid="summary-estimates">
+                  Loại ước lượng: {ESTIMATES.filter((e) => s.estimates[e] > 0).map((e) => `${ESTIMATE_LABEL[e]} ${s.estimates[e]}`).join(" · ")}
+                  {ESTIMATES.filter((e) => e !== "none" && s.estimates[e] > 0).length > 1 ? " — các loại này không so sánh trực tiếp được (không quy đổi β thành r)." : ""}
+                </p>
                 <p data-testid="summary-outcome">
                   Kết quả giả thuyết: {OUTCOME.map((o) => `${o.label} ${s.outcome[o.key]}`).join(" · ")}
                 </p>
