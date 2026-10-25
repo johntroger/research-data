@@ -138,7 +138,7 @@ test("the divider follows the mouse", async ({ page }) => {
   const splitter = page.getByTestId("splitter");
   const box = (await splitter.boundingBox())!;
   const workspace = (await page.locator(".workspace").boundingBox())!;
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.move(box.x + box.width / 2, box.y + 40); // near the top: the divider is as tall as the list of cards
   await page.mouse.down();
   await page.mouse.move(workspace.x + workspace.width * 0.6, box.y + 40, { steps: 5 });
   await page.mouse.up();

@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.108 (so với 3.9.107)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Trang bài: thêm Tóm tắt nhanh (đóng góp, lý thuyết, thiết kế và mẫu từng study, bảng giả thuyết và kết quả, giới hạn, hướng tiếp theo, hàm ý) trên đầu; phần chi tiết và bằng chứng xuống dưới | Người đọc nắm nhanh bài mà không phải mở từng trường |
+
 ### Version 3.9.107 (so với 3.9.106)
 
 | # | Thay đổi | Lý do |
