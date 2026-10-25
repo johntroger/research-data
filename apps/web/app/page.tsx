@@ -287,6 +287,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {result && s && (
         <>
           <section className="summary" data-testid="summary">
+            <h2 className="sr-only">Tổng hợp</h2>
             {isSingleConcept(query) && (
               <p data-testid="single-note">
                 <strong>Tìm theo một khái niệm:</strong> mọi quan hệ có “{singleTerm(query)}” là biến độc lập, biến phụ thuộc, trung gian hoặc điều tiết, theo cả hai chiều và mọi vai trò (không gồm biến kiểm soát); không phân biệt chữ hoa, chữ thường. Ô “Chiều” và “Vai trò” không áp dụng. Nhập thêm khái niệm thứ hai để xem riêng quan hệ giữa hai khái niệm.
@@ -300,6 +301,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             ) : (
               <p data-testid="summary-counts">
                 <strong>{countsLine(s, query.includeWarn)}</strong>
+              </p>
+            )}
+            {s.relations < s.tests && (
+              <p className="muted" data-testid="summary-distinct">
+                {s.tests} kiểm định này chỉ gồm <strong>{s.relations} quan hệ khác nhau</strong>: cùng một quan hệ trong cùng study có thể được báo cáo ở nhiều mô hình hoặc bảng và được đếm nhiều lần (các dòng có hậu tố “#2”, “#3” ở khóa kiểm định).
               </p>
             )}
             <p className="muted" data-testid="summary-coverage">
@@ -370,6 +376,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </section>
           ) : (
             <section data-testid="results">
+              <h2 className="sr-only">Danh sách kiểm định</h2>
               <p>
                 <a href={`/export?${queryToSearch(query)}`} download data-testid="export-excel">
                   Tải Excel ({result.rows.length} kiểm định)

@@ -66,7 +66,7 @@ function Why({ paperId, field, page, canView }: { paperId: string; field: Extrac
   const passed = checks.filter((c) => c.passed);
   return (
     <section className="why" data-testid={`why-${field.natural_key}`} aria-label="Vì sao có huy hiệu này">
-      <h4>Vì sao {BADGE_LABEL[field.badge]}</h4>
+      <h3>Vì sao {BADGE_LABEL[field.badge]}</h3>
       {checks.length === 0 ? (
         <p className="muted">
           {field.badge === "ai_interpreted"
@@ -161,6 +161,7 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
   return (
     <div ref={container} className={`workspace${dragging ? " dragging" : ""}`} style={{ ["--left" as string]: `${split}%` }}>
       <section className="fields-pane" aria-label="Dữ liệu trích xuất">
+        <h2 className="sr-only">Dữ liệu trích xuất</h2>
         <div role="tablist" aria-label="Phần của bài" className="tabs">
           {TABS.map((t) => (
             <button
