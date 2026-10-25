@@ -7,6 +7,7 @@ import { CopyButton } from "./copy-button";
 import { LibraryFilters } from "./filters";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Thư viện: bài báo trong kho" };
 
 export default async function LibraryPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const query = parseLibraryQuery(await searchParams);

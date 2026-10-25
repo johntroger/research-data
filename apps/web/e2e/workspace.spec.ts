@@ -61,6 +61,11 @@ test("has a tab for each part of the paper with its field count, and opens on th
   }
   await expect(page.getByTestId("tab-results")).toHaveAttribute("aria-selected", "true");
   await expect(page.getByTestId("field-study_1:h1:a->b:direct:estimate")).toBeVisible();
+  // The fields of one test sit under one heading that says which test, with the weakest badge of the group, and carry words, not codes.
+  const group = page.getByTestId("group-study_1:h1:a->b:direct");
+  await expect(group).toContainText("Study 1 · H1 · a → b · direct");
+  await expect(group).toContainText("⚠ nên xem kỹ");
+  await expect(page.getByTestId("field-study_1:h1:a->b:direct:status")).toContainText("Kết quả giả thuyết");
   await expect(page.getByTestId("field-paper_type")).toHaveCount(0); // it is in another tab
   await expect(page.getByTestId("paper-head")).toBeVisible();
   await expect(page.getByTestId("paper-facts")).toContainText("kiểm định đường quan hệ");

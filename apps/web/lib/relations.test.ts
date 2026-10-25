@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   apaNumber,
   type Concept,
+  countsLine,
   DEFAULT_QUERY,
   findRows,
   formatEstimate,
@@ -13,6 +14,7 @@ import {
   paperLabel,
   parseQuery,
   type PathRow,
+  queryTitle,
   queryToSearch,
   rolesInTest,
   type RelationQuery,
@@ -273,6 +275,21 @@ describe("formatStats: everything the paper gave, in APA order", () => {
     expect(sampleSize(bare)).toBeNull();
     expect(sampleSize({ studies: { study_label: "S", research_design: null, samples: { n: 261 } } })).toBe(261); // a one-to-one embed is an object
     expect(sampleSize({ studies: null })).toBeNull();
+  });
+});
+
+describe("the words of a result: one main number and the page title", () => {
+  it("names the ✓ rule behind the count, and says when ⚠ and ◇ were switched on", () => {
+    expect(countsLine({ papers: 1, studies: 2, tests: 2 }, false)).toBe("2 kiểm định đã kiểm chứng ✓ · 1 bài · 2 study");
+    expect(countsLine({ papers: 2, studies: 3, tests: 3 }, true)).toBe("3 kiểm định (tính cả ⚠ và ◇) · 2 bài · 3 study");
+  });
+
+  it("titles the page with the question: both boxes in the chosen direction, or the one concept", () => {
+    expect(queryTitle(q({ a: "ethicality", b: "trust" }))).toBe("ethicality → trust");
+    expect(queryTitle(q({ a: "ethicality", b: "trust", dir: "ba" }))).toBe("trust → ethicality");
+    expect(queryTitle(q({ a: "ethicality", b: "trust", dir: "both" }))).toBe("ethicality ⇄ trust");
+    expect(queryTitle(q({ a: "", b: "trust" }))).toBe("trust");
+    expect(queryTitle(q({}))).toBe("");
   });
 });
 

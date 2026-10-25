@@ -71,7 +71,7 @@ test("without a question the home page offers sample questions that lead to resu
 
 test("counts what is in the repository: only ✓ tests, and says how many were left out and why", async ({ page }) => {
   await page.goto("/?a=zebra&b=quokka");
-  await expect(page.getByTestId("summary-counts")).toHaveText("1 bài trong kho · 2 study · 2 kiểm định");
+  await expect(page.getByTestId("summary-counts")).toHaveText("2 kiểm định đã kiểm chứng ✓ · 1 bài · 2 study");
   await expect(page.getByTestId("summary-coverage")).toContainText("Tìm thấy 3 kiểm định từ 2 bài");
   await expect(page.getByTestId("summary-method")).toContainText("không phải meta-analysis");
   await expect(page.getByTestId("summary-outcome")).toContainText("✓ Ủng hộ 1 · ✗ Không ủng hộ 1");
@@ -87,7 +87,7 @@ test("counts what is in the repository: only ✓ tests, and says how many were l
   // "Count the ⚠ tests too" includes the second paper.
   await page.getByRole("link", { name: "Tính cả ⚠ để xem số liệu sơ bộ" }).click();
   await expect(page).toHaveURL(/warn=1/);
-  await expect(page.getByTestId("summary-counts")).toHaveText("2 bài trong kho · 3 study · 3 kiểm định");
+  await expect(page.getByTestId("summary-counts")).toHaveText("3 kiểm định (tính cả ⚠ và ◇) · 2 bài · 3 study");
   await expect(page.getByTestId("summary-not-counted")).toHaveCount(0);
 });
 
@@ -100,7 +100,7 @@ test("when no test is ✓ yet, it says so instead of '0 bài' and a row of zeros
   // The test is still listed, and counting ⚠ brings the usual summary back.
   await expect(page.getByTestId("results")).toContainText("Mongoose Calm → Quokka Loyalty");
   await page.getByRole("link", { name: "Tính cả ⚠ để xem số liệu sơ bộ" }).click();
-  await expect(page.getByTestId("summary-counts")).toHaveText("1 bài trong kho · 1 study · 1 kiểm định");
+  await expect(page.getByTestId("summary-counts")).toHaveText("1 kiểm định (tính cả ⚠ và ◇) · 1 bài · 1 study");
 });
 
 test("the direction matters; an empty answer says it may be a research gap and offers the way back", async ({ page }) => {
@@ -108,12 +108,12 @@ test("the direction matters; an empty answer says it may be a research gap and o
   await expect(page.getByTestId("empty")).toContainText("có thể là khoảng trống nghiên cứu");
   await page.getByRole("link", { name: "Thử cả hai chiều" }).click();
   await expect(page).toHaveURL(/dir=both/);
-  await expect(page.getByTestId("summary-counts")).toHaveText("1 bài trong kho · 2 study · 2 kiểm định");
+  await expect(page.getByTestId("summary-counts")).toHaveText("2 kiểm định đã kiểm chứng ✓ · 1 bài · 2 study");
 });
 
 test("the role picks direct, mediated or moderated tests and names the mediator", async ({ page }) => {
   await page.goto("/?a=zebra&b=quokka&role=mediated");
-  await expect(page.getByTestId("summary-counts")).toHaveText("1 bài trong kho · 1 study · 1 kiểm định");
+  await expect(page.getByTestId("summary-counts")).toHaveText("1 kiểm định đã kiểm chứng ✓ · 1 bài · 1 study");
   await expect(page.getByTestId("results")).toContainText("qua trung gian: Mongoose Calm");
   await page.goto("/?a=zebra&b=quokka&role=moderated");
   await expect(page.getByTestId("empty")).toBeVisible();
@@ -121,15 +121,16 @@ test("the role picks direct, mediated or moderated tests and names the mediator"
 
 test("filters by the result of the hypothesis and by the direction of the effect", async ({ page }) => {
   await page.goto("/?a=zebra&b=quokka&status=not_supported");
-  await expect(page.getByTestId("summary-counts")).toHaveText("1 bài trong kho · 1 study · 1 kiểm định");
+  await expect(page.getByTestId("summary-counts")).toHaveText("1 kiểm định đã kiểm chứng ✓ · 1 bài · 1 study");
   await page.goto("/?a=zebra&b=quokka&sign=negative");
-  await expect(page.getByTestId("summary-counts")).toHaveText("1 bài trong kho · 1 study · 1 kiểm định");
+  await expect(page.getByTestId("summary-counts")).toHaveText("1 kiểm định đã kiểm chứng ✓ · 1 bài · 1 study");
 });
 
 test("the form puts the question in the URL, so it can be shared", async ({ page }) => {
   await page.goto("/");
   await page.locator('input[name="a"]').fill("Zebra");
   await page.locator('input[name="b"]').fill("Quokka");
+  await page.getByTestId("more-filters").locator("summary").click();
   await page.getByRole("radio", { name: "Tất cả" }).check();
   await page.getByRole("button", { name: "Tìm kiếm" }).click();
   await expect(page).toHaveURL(/a=Zebra/);

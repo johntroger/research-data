@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { CopyButton } from "@/app/library/copy-button";
 import { CorpusBlock } from "@/app/corpus-block";
@@ -7,6 +8,7 @@ import { listConcepts, listLibraryItems, listPathRows } from "@/lib/data";
 import { countUse } from "@/lib/usage";
 import { academicSentence } from "@/lib/sentence";
 import {
+  countsLine,
   DEFAULT_QUERY,
   EFFECT_LABEL,
   ESTIMATE_LABEL,
@@ -21,6 +23,7 @@ import {
   paperLabel,
   parseQuery,
   type PathRow,
+  queryTitle,
   queryToSearch,
   sampleOf,
   type RelationQuery,
@@ -59,6 +62,12 @@ const OUTCOME: { key: "supported" | "not_supported" | "mixed" | "not_hypothesize
 ];
 
 const link = (q: RelationQuery) => `/?${queryToSearch(q)}`;
+
+/** The tab says what was asked ("ethicality → trust · Research Data"); the bare home page keeps the site name. */
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }): Promise<Metadata> {
+  const title = queryTitle(parseQuery(await searchParams));
+  return title ? { title } : {};
+}
 
 function TestLine({ row, concepts, roles = [] }: { row: PathRow; concepts: Map<string, string>; roles?: string[] }) {
   const iv = concepts.get(row.iv_construct_id ?? "");
@@ -102,6 +111,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const result = hasQuestion(query) ? searchRelations(rows, concepts, query) : null;
   if (result) await countUse("relation_search");
   const s = result?.summary;
+  // The extra filters stay folded until one of them is in use, so a shared link never hides a filter that is shaping its result.
+  const filtersActive =
+    query.role !== DEFAULT_QUERY.role || query.status.length > 0 || query.sign.length > 0 || query.est.length > 0 || query.includeWarn || query.equiv !== DEFAULT_QUERY.equiv || studyFilterOn;
 
   return (
     <>
@@ -132,6 +144,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <option key={n} value={n} />
           ))}
         </datalist>
+        <details className="more-filters" open={filtersActive} data-testid="more-filters">
+          <summary>Lọc thêm: vai trò, kết quả, loại ước lượng, chiều tác động, năm, thiết kế, mẫu{filtersActive ? " (đang áp dụng)" : ""}</summary>
         <fieldset>
           <legend>Vai trò quan hệ</legend>
           {(
@@ -148,7 +162,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           ))}
         </fieldset>
         <fieldset>
-          <legend>Lọc thêm</legend>
+          <legend>Kết quả và chiều tác động</legend>
           <span className="muted">Kết quả giả thuyết:</span>
           {OUTCOME.map((o) => (
             <label key={o.key}>
@@ -218,6 +232,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <input type="checkbox" name="equiv" value="1" defaultChecked={query.equiv} /> Bao gồm tên gọi tương đương (khái niệm chuẩn và các tên khác)
           </label>{" "}
           <label>
+            <input type="checkbox" name="warn" value="1" defaultChecked={query.includeWarn} /> Tính cả kiểm định ⚠ trong thanh tổng hợp
+          </label>
+        </div>
+        </details>
+        <div>
+          <label>
             Sắp xếp{" "}
             <select name="sort" defaultValue={query.sort} data-testid="sort">
               {SORTS.map((k) => (
@@ -226,9 +246,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 </option>
               ))}
             </select>
-          </label>{" "}
-          <label>
-            <input type="checkbox" name="warn" value="1" defaultChecked={query.includeWarn} /> Tính cả kiểm định ⚠ trong thanh tổng hợp
           </label>
         </div>
       </form>
@@ -275,22 +292,22 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 <strong>Tìm theo một khái niệm:</strong> mọi quan hệ có “{singleTerm(query)}” là biến độc lập, biến phụ thuộc, trung gian hoặc điều tiết, theo cả hai chiều và mọi vai trò (không gồm biến kiểm soát); không phân biệt chữ hoa, chữ thường. Ô “Chiều” và “Vai trò” không áp dụng. Nhập thêm khái niệm thứ hai để xem riêng quan hệ giữa hai khái niệm.
               </p>
             )}
-            <p data-testid="summary-coverage">
-              Tìm thấy <strong>{s.matchedTests} kiểm định từ {s.matchedPapers} bài</strong> (kho có {s.corpusPapers} bài có dữ liệu quan hệ, chọn theo thư viện của chủ dự án, không phải mẫu hệ thống của y văn).
-            </p>
-            <CorpusBlock corpus={corpus} />
             {s.tests === 0 && s.notCounted > 0 ? (
               // Tests exist but none is ✓ / ★: say so, instead of "0 bài" and a row of zeros.
               <p data-testid="summary-counts">
                 <strong>Chưa có kiểm định nào đã kiểm chứng (✓)</strong>
               </p>
             ) : (
+              <p data-testid="summary-counts">
+                <strong>{countsLine(s, query.includeWarn)}</strong>
+              </p>
+            )}
+            <p className="muted" data-testid="summary-coverage">
+              Tìm thấy <strong>{s.matchedTests} kiểm định từ {s.matchedPapers} bài</strong> (kho có {s.corpusPapers} bài có dữ liệu quan hệ, chọn theo thư viện của chủ dự án, không phải mẫu hệ thống của y văn).
+            </p>
+            <CorpusBlock corpus={corpus} />
+            {!(s.tests === 0 && s.notCounted > 0) && (
               <>
-                <p data-testid="summary-counts">
-                  <strong>
-                    {s.papers} bài trong kho · {s.studies} study · {s.tests} kiểm định
-                  </strong>
-                </p>
                 <p className="muted" data-testid="summary-method">Phương pháp: đếm số kiểm định theo kết quả (vote counting). Không xét cỡ mẫu, cỡ hiệu ứng hay sức mạnh thống kê; không phải meta-analysis.</p>
                 <p data-testid="summary-estimates">
                   Loại ước lượng: {ESTIMATES.filter((e) => s.estimates[e] > 0).map((e) => `${ESTIMATE_LABEL[e]} ${s.estimates[e]}`).join(" · ")}

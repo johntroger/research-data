@@ -2,6 +2,7 @@
 
 import { type KeyboardEvent, type PointerEvent, useEffect, useRef, useState } from "react";
 import type { ExtractedField } from "@/lib/data";
+import { fieldLabel, groupBadge, groupFields, testSummary, valueLabel } from "@/lib/field-labels";
 import { readableKey } from "@/lib/paper-header";
 import { trackUse } from "@/lib/track";
 import { PdfViewer } from "./pdf-viewer";
@@ -182,37 +183,73 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
         </p>
         <div role="tabpanel" id="fields-panel" aria-labelledby={`tab-${tab}`} className="fields">
           {inTab.length === 0 && <p className="muted">Phần này chưa có trường nào hiển thị được.</p>}
-          {inTab.map((field) => (
-            <div key={field.id}>
-              <button
-                type="button"
-                className="field"
-                aria-pressed={field.id === selectedId}
-                data-testid={`field-${field.natural_key}`}
-                onClick={() => {
-                  trackUse("evidence_open");
-                  setSelectedId(field.id);
-                  setVisit((v) => v + 1);
-                  // On a narrow screen the PDF sits below the values (the panes are stacked): bring it into view.
-                  if (window.matchMedia("(max-width: 900px)").matches) pdfPane.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-              >
-                <div className="field-head">
-                  <span>{field.field_name}</span>
-                  <span className={`badge badge-${field.badge}`}>{BADGE_LABEL[field.badge]}</span>
+          {groupFields(inTab).map((group) => {
+            const renderField = (field: ExtractedField, previous: ExtractedField | undefined) => {
+              // Inside a group the heading already says which test, construct or cell it is, and fields of one test usually share one quote and page.
+              const grouped = previous !== undefined || group.context !== null;
+              const sameEvidence = previous !== undefined && previous.evidence_quote === field.evidence_quote && previous.pdf_page_index === field.pdf_page_index && previous.printed_page === field.printed_page;
+              return (
+                <div key={field.id}>
+                  <button
+                    type="button"
+                    className="field"
+                    aria-pressed={field.id === selectedId}
+                    data-testid={`field-${field.natural_key}`}
+                    onClick={() => {
+                      trackUse("evidence_open");
+                      setSelectedId(field.id);
+                      setVisit((v) => v + 1);
+                      // On a narrow screen the PDF sits below the values (the panes are stacked): bring it into view.
+                      if (window.matchMedia("(max-width: 900px)").matches) pdfPane.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                  >
+                    {(() => {
+                      const shown = valueLabel(field.field_name, field.value) ?? formatValue(field.value);
+                      // In a group a short value sits on the label's line, and a ✓ is left to the group's heading (a screen reader still hears it).
+                      const inline = group.context !== null && shown.length <= 40;
+                      const quiet = group.context !== null && field.badge === "auto_verified";
+                      const badge = <span className={`badge badge-${field.badge}${quiet ? " sr-only" : ""}`}>{BADGE_LABEL[field.badge]}</span>;
+                      return (
+                        <>
+                          <div className={`field-head${inline ? " field-head-inline" : ""}`}>
+                            <span>{fieldLabel(field.field_name)}</span>
+                            {inline && <span className="field-value">{shown}</span>}
+                            {badge}
+                          </div>
+                          {!grouped && <div className="field-key muted">{readableKey(keyContext(field.natural_key, field.field_name))}</div>}
+                          {!inline && <div className="field-value">{shown}</div>}
+                        </>
+                      );
+                    })()}
+                    {field.evidence_quote && !sameEvidence && <div className="field-quote">“{field.evidence_quote}”</div>}
+                    {!sameEvidence && (
+                      <div className="muted">
+                        {field.pdf_page_index !== null
+                          ? `Trang in ${field.printed_page ?? "?"} · trang ${field.pdf_page_index + 1} của file PDF`
+                          : "Không có trang bằng chứng"}
+                      </div>
+                    )}
+                  </button>
+                  {field.id === selectedId && <Why paperId={paperId} field={field} page={page} canView={access.canView} />}
                 </div>
-                <div className="field-key muted">{readableKey(keyContext(field.natural_key, field.field_name))}</div>
-                <div className="field-value">{formatValue(field.value)}</div>
-                {field.evidence_quote && <div className="field-quote">“{field.evidence_quote}”</div>}
-                <div className="muted">
-                  {field.pdf_page_index !== null
-                    ? `Trang in ${field.printed_page ?? "?"} · trang ${field.pdf_page_index + 1} của file PDF`
-                    : "Không có trang bằng chứng"}
-                </div>
-              </button>
-              {field.id === selectedId && <Why paperId={paperId} field={field} page={page} canView={access.canView} />}
-            </div>
-          ))}
+              );
+            };
+            if (group.context === null) return renderField(group.fields[0]!, undefined);
+            const summaryLine = testSummary(group.fields);
+            const badge = groupBadge(group.fields) as ExtractedField["badge"];
+            return (
+              <section key={group.context} className="test-group" data-testid={`group-${group.context}`} aria-label={readableKey(group.context)}>
+                <header className="test-group-head">
+                  <div className="test-group-title">
+                    <strong>{readableKey(group.context)}</strong>
+                    <span className={`badge badge-${badge}`}>{BADGE_LABEL[badge]}</span>
+                  </div>
+                  {summaryLine && <div className="test-group-summary">{summaryLine}</div>}
+                </header>
+                {group.fields.map((field, i) => renderField(field, group.fields[i - 1]))}
+              </section>
+            );
+          })}
         </div>
       </section>
 
