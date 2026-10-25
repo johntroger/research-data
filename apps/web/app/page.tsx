@@ -103,6 +103,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const result = hasQuestion(query) ? searchRelations(rows, concepts, query) : null;
   if (result) await countUse("relation_search");
   const s = result?.summary;
+  // The extra filters stay folded until one of them is in use, so a shared link never hides a filter that is shaping its result.
+  const filtersActive = query.role !== DEFAULT_QUERY.role || query.status.length > 0 || query.sign.length > 0 || query.includeWarn || query.equiv !== DEFAULT_QUERY.equiv;
 
   return (
     <>
@@ -133,6 +135,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <option key={n} value={n} />
           ))}
         </datalist>
+        <details className="more-filters" open={filtersActive} data-testid="more-filters">
+          <summary>Lọc thêm: vai trò quan hệ, kết quả giả thuyết, chiều tác động{filtersActive ? " (đang áp dụng)" : ""}</summary>
         <fieldset>
           <legend>Vai trò quan hệ</legend>
           {(
@@ -149,7 +153,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           ))}
         </fieldset>
         <fieldset>
-          <legend>Lọc thêm</legend>
+          <legend>Kết quả và chiều tác động</legend>
           <span className="muted">Kết quả giả thuyết:</span>
           {OUTCOME.map((o) => (
             <label key={o.key}>
@@ -179,6 +183,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <input type="checkbox" name="warn" value="1" defaultChecked={query.includeWarn} /> Tính cả kiểm định ⚠ trong thanh tổng hợp
           </label>
         </div>
+        </details>
       </form>
 
       {!result && (

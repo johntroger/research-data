@@ -130,6 +130,7 @@ test("the form puts the question in the URL, so it can be shared", async ({ page
   await page.goto("/");
   await page.locator('input[name="a"]').fill("Zebra");
   await page.locator('input[name="b"]').fill("Quokka");
+  await page.getByTestId("more-filters").locator("summary").click();
   await page.getByRole("radio", { name: "Tất cả" }).check();
   await page.getByRole("button", { name: "Tìm kiếm" }).click();
   await expect(page).toHaveURL(/a=Zebra/);

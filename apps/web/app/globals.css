@@ -797,3 +797,14 @@ h1 {
   font-size: 14px;
   text-align: right;
 }
+
+/* The extra filters of the home page stay folded until one is in use (P0: fewer choices at first sight). */
+.more-filters {
+  margin-top: 10px;
+}
+
+.more-filters > summary {
+  cursor: pointer;
+  font-size: 14px;
+  padding: 6px 0;
+}
