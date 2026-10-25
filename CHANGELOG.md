@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.107 (so với 3.9.106)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Trang bài: thẻ gấp theo bản ghi (kiểm định, thang đo, bảng), kiểm định giả thuyết tách khỏi các đường khác, số tab là số thẻ; sửa lỗi mất phần cuối danh sách trường của bài dài (giới hạn 1.000 dòng) | Giao diện trang bài hiện hàng trăm trường làm rối thay vì đơn giản hóa |
+
 ### Version 3.9.106 (so với 3.9.105)
 
 | # | Thay đổi | Lý do |

@@ -26,6 +26,11 @@ export const paper = defineMessages({
   "c.section.verified": { vi: "{v}/{c} đã kiểm chứng", en: "{v}/{c} verified" },
   "c.section.interpreted": { vi: "◇ {n} mục AI diễn giải", en: "◇ {n} AI interpretations" },
   "c.key.table": { vi: "Bảng {n}", en: "Table {n}" },
+  "c.key.corr": { vi: "tương quan", en: "correlations" },
+  "c.key.cell": { vi: "điều kiện", en: "condition" },
+  "c.rec.hypothesis": { vi: "Kiểm định giả thuyết ({n})", en: "Hypothesis tests ({n})" },
+  "c.rec.others": { vi: "Các đường khác ({n}): biến kiểm soát, không đặt giả thuyết, hiệu ứng gián tiếp…", en: "Other paths ({n}): controls, no hypothesis, indirect effects…" },
+  "c.rec.fields": { vi: "{n} trường", en: "{n} fields" },
   "c.key.measure": { vi: "thang đo", en: "measure" },
 
   // Workspace (client)

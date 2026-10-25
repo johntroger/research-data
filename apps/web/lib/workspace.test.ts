@@ -118,3 +118,38 @@ describe("the divider", () => {
     expect(parseStoredSplit("abc")).toBe(SPLIT_DEFAULT);
   });
 });
+
+import { groupRecords, isHypothesisRecord, recordKey, tallyBadges, testHeadline, valuesHeadline } from "./workspace";
+
+describe("records: one card per test, measure, table or condition", () => {
+  it("puts the fields of a test together, and a correlation table's cells together", () => {
+    expect(recordKey("study_1:h1:a->b:direct:estimate")).toBe("study_1:h1:a->b:direct");
+    expect(recordKey("study_1:h1:a->b:direct:p_reported_as")).toBe("study_1:h1:a->b:direct");
+    expect(recordKey("study_3:corr:table_3_a_abe_full_scale:r:5,4")).toBe("study_3:corr:table_3_a_abe_full_scale");
+    expect(recordKey("study_3:corr:table_3_b:desc:brand_age:mean")).toBe("study_3:corr:table_3_b");
+    expect(recordKey("study_3:cell:mulberry:brand_authenticity:n")).toBe("study_3:cell:mulberry");
+    expect(recordKey("study_2b:m:consumption_behavior:n_items")).toBe("study_2b:m:consumption_behavior");
+    expect(recordKey("study_1:sample_size")).toBe("study_1");
+    expect(recordKey("paper_type")).toBe("paper_type");
+    expect(recordKey("limitation:3")).toBe("limitation:3");
+  });
+
+  it("groups in order of first appearance", () => {
+    const fields = [{ natural_key: "s:h1:a->b:direct:estimate" }, { natural_key: "s:h2:a->c:direct:estimate" }, { natural_key: "s:h1:a->b:direct:status" }];
+    const records = groupRecords(fields);
+    expect(records.map((r) => [r.key, r.fields.length])).toEqual([["s:h1:a->b:direct", 2], ["s:h2:a->c:direct", 1]]);
+  });
+
+  it("tells a hypothesis test from other paths and sums a test up on one line", () => {
+    const fields = [
+      { field_name: "estimate", value: -0.089, badge: "auto_verified" },
+      { field_name: "p_reported_as", value: "< .001", badge: "auto_verified" },
+      { field_name: "status", value: "supported", badge: "needs_attention" },
+    ];
+    expect(isHypothesisRecord(fields)).toBe(true);
+    expect(isHypothesisRecord([{ field_name: "status", value: "not_hypothesized" }])).toBe(false);
+    expect(testHeadline(fields, say)).toBe("−.089 · p < .001 · ✓ Ủng hộ");
+    expect(tallyBadges(fields)).toEqual({ verified: 2, attention: 1, interpreted: 0 });
+    expect(valuesHeadline([{ field_name: "n_items", value: 7 }, { field_name: "alpha", value: 0.91 }, { field_name: "x", value: null }])).toBe("n_items 7 · alpha 0.91");
+  });
+});

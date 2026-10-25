@@ -9,6 +9,8 @@ import { PdfViewer } from "./pdf-viewer";
 import {
   clampSplit,
   defaultTab,
+  groupRecords,
+  isHypothesisRecord,
   keyContext,
   parseStoredSplit,
   sectionBadge,
@@ -19,6 +21,9 @@ import {
   SPLIT_STORAGE_KEY,
   splitFromPointer,
   summariseSections,
+  tallyBadges,
+  testHeadline,
+  valuesHeadline,
   type Say,
   TABS,
   tabOf,
@@ -103,7 +108,16 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
   const { t } = useT();
   const say: Say = (key, vars) => t(key, vars);
   const summary = summariseSections(fields);
-  const start = focusedField(fields, focusKey) ?? fields.find((f) => f.pdf_page_index !== null && tabOf(f) === defaultTab(summary)) ?? fields.find((f) => f.pdf_page_index !== null);
+  // With no test named in the link, open on the first hypothesis test (what a reader comes for), not on the first field of the tab.
+  const firstHypothesis = groupRecords(fields.filter((f) => tabOf(f) === "results"))
+    .filter((r) => isHypothesisRecord(r.fields))
+    .flatMap((r) => r.fields)
+    .find((f) => f.pdf_page_index !== null);
+  const start =
+    focusedField(fields, focusKey) ??
+    (defaultTab(summary) === "results" ? firstHypothesis : undefined) ??
+    fields.find((f) => f.pdf_page_index !== null && tabOf(f) === defaultTab(summary)) ??
+    fields.find((f) => f.pdf_page_index !== null);
   const [selectedId, setSelectedId] = useState<string | null>(start?.id ?? null);
   // Counts clicks on values, so clicking the selected one again brings the PDF back to its page.
   const [visit, setVisit] = useState(0);
@@ -133,6 +147,21 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
   const selected = fields.find((f) => f.id === selectedId) ?? null;
   const page = selected?.pdf_page_index != null ? selected.pdf_page_index + 1 : 1;
   const inTab = fields.filter((f) => tabOf(f) === tab);
+  // A tab lists records (one test, measure, table or study each), not the hundreds of fields they are made of; big tabs start folded.
+  const recordCount = Object.fromEntries(TABS.map((item) => [item.id, groupRecords(fields.filter((f) => tabOf(f) === item.id)).length])) as Record<TabId, number>;
+  const records = groupRecords(inTab);
+  const inResults = tab === "results";
+  const main = inResults ? records.filter((r) => isHypothesisRecord(r.fields)) : records;
+  const others = inResults ? records.filter((r) => !isHypothesisRecord(r.fields)) : [];
+  const foldAll = records.length > 12;
+
+  const selectField = (field: ExtractedField, scrollToPdf = true) => {
+    trackUse("evidence_open");
+    setSelectedId(field.id);
+    setVisit((v) => v + 1);
+    // On a narrow screen the PDF sits below the values (the panes are stacked): bring it into view.
+    if (scrollToPdf && window.matchMedia("(max-width: 900px)").matches) pdfPane.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const openTab = (id: TabId) => {
     setTab(id);
@@ -161,6 +190,46 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
     remember(value);
   };
 
+  const renderField = (field: ExtractedField) => (
+    <div key={field.id}>
+      <button type="button" className="field" aria-pressed={field.id === selectedId} data-testid={`field-${field.natural_key}`} onClick={() => selectField(field)}>
+        <div className="field-head">
+          <span>{field.field_name}</span>
+          <span className={`badge badge-${field.badge}`}>{t(`c.badge.${field.badge}`)}</span>
+        </div>
+        <div className="field-key muted">{readableKey(keyContext(field.natural_key, field.field_name), say)}</div>
+        <div className="field-value">{formatValue(field.value)}</div>
+        {field.evidence_quote && <div className="field-quote">“{field.evidence_quote}”</div>}
+        <div className="muted">
+          {field.pdf_page_index !== null
+            ? t("c.field.pages", { printed: field.printed_page ?? "?", pdf: field.pdf_page_index + 1 })
+            : t("c.field.noPage")}
+        </div>
+      </button>
+      {field.id === selectedId && <Why paperId={paperId} field={field} page={page} canView={access.canView} />}
+    </div>
+  );
+
+  const renderRecord = (rec: { key: string; fields: ExtractedField[] }) => {
+    const tally = tallyBadges(rec.fields);
+    const first = rec.fields.find((x) => x.pdf_page_index !== null) ?? rec.fields[0]!;
+    const headline = inResults ? testHeadline(rec.fields, say) : valuesHeadline(rec.fields);
+    return (
+      <details key={rec.key} className="record" open={rec.fields.some((x) => x.id === selectedId) || !foldAll} data-testid={`record-${rec.key}`}>
+        <summary onClick={() => selectField(first, false)}>
+          <span className="record-title">{readableKey(rec.key, say)}</span>
+          {headline && <span className="record-line">{headline}</span>}
+          <span className="record-badges muted">
+            ✓ {tally.verified}
+            {tally.attention > 0 ? ` · ⚠ ${tally.attention}` : ""}
+            {tally.interpreted > 0 ? ` · ◇ ${tally.interpreted}` : ""} · {t("c.rec.fields", { n: rec.fields.length })}
+          </span>
+        </summary>
+        {rec.fields.map(renderField)}
+      </details>
+    );
+  };
+
   return (
     <div ref={container} className={`workspace${dragging ? " dragging" : ""}`} style={{ ["--left" as string]: `${split}%` }}>
       <section className="fields-pane" aria-label={t("c.pane.fields")}>
@@ -177,7 +246,7 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
               data-testid={`tab-${item.id}`}
               onClick={() => openTab(item.id)}
             >
-              {t(`c.tab.${item.id}`)} <span className="tab-count">{summary[item.id].total}</span>
+              {t(`c.tab.${item.id}`)} <span className="tab-count">{recordCount[item.id]}</span>
             </button>
           ))}
         </div>
@@ -186,37 +255,14 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
         </p>
         <div role="tabpanel" id="fields-panel" aria-labelledby={`tab-${tab}`} className="fields">
           {inTab.length === 0 && <p className="muted">{t("c.pane.emptyTab")}</p>}
-          {inTab.map((field) => (
-            <div key={field.id}>
-              <button
-                type="button"
-                className="field"
-                aria-pressed={field.id === selectedId}
-                data-testid={`field-${field.natural_key}`}
-                onClick={() => {
-                  trackUse("evidence_open");
-                  setSelectedId(field.id);
-                  setVisit((v) => v + 1);
-                  // On a narrow screen the PDF sits below the values (the panes are stacked): bring it into view.
-                  if (window.matchMedia("(max-width: 900px)").matches) pdfPane.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-              >
-                <div className="field-head">
-                  <span>{field.field_name}</span>
-                  <span className={`badge badge-${field.badge}`}>{t(`c.badge.${field.badge}`)}</span>
-                </div>
-                <div className="field-key muted">{readableKey(keyContext(field.natural_key, field.field_name), say)}</div>
-                <div className="field-value">{formatValue(field.value)}</div>
-                {field.evidence_quote && <div className="field-quote">“{field.evidence_quote}”</div>}
-                <div className="muted">
-                  {field.pdf_page_index !== null
-                    ? t("c.field.pages", { printed: field.printed_page ?? "?", pdf: field.pdf_page_index + 1 })
-                    : t("c.field.noPage")}
-                </div>
-              </button>
-              {field.id === selectedId && <Why paperId={paperId} field={field} page={page} canView={access.canView} />}
-            </div>
-          ))}
+          {others.length > 0 && main.length > 0 && <h3 className="record-group">{t("c.rec.hypothesis", { n: main.length })}</h3>}
+          {main.map((rec) => renderRecord(rec))}
+          {others.length > 0 && (
+            <details className="records-other" open={others.some((r) => r.fields.some((x) => x.id === selectedId))} data-testid="records-other">
+              <summary>{t("c.rec.others", { n: others.length })}</summary>
+              {others.map((rec) => renderRecord(rec))}
+            </details>
+          )}
         </div>
       </section>
 

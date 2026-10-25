@@ -98,3 +98,89 @@ export function parseStoredSplit(raw: string | null): number {
 export function defaultTab(summary: Record<TabId, SectionSummary>): TabId {
   return summary.results.total > 0 ? "results" : firstTabWithFields(summary);
 }
+
+// --- records: one card per test, study, measure or table instead of one per field --------------------------------
+
+/**
+ * The key of the card a field belongs to. A paper has hundreds of fields (a test alone has an estimate, an SE, a p, a status...), which as a
+ * flat list buries the few numbers a reader wants; grouping them by what they describe gives one card per test, per measure, per
+ * correlation table, per experimental condition or per study.
+ */
+export function recordKey(naturalKey: string): string {
+  const corr = /^(.+?:corr:[^:]+):/.exec(naturalKey);
+  if (corr) return corr[1]!;
+  const cell = /^(.+?:cell:[^:]+):/.exec(naturalKey);
+  if (cell) return cell[1]!;
+  const measure = /^(.+?:m:[^:]+):/.exec(naturalKey);
+  if (measure) return measure[1]!;
+  const parts = naturalKey.split(":");
+  if (parts.length < 2) return naturalKey;
+  // "limitation:3" and "theory:x" are one field each; "study_1:h1:a->b:direct:estimate" is a field of the test "study_1:h1:a->b:direct".
+  if (/^(theoretical_contribution|practical_implication|limitation|future_direction|theory|table):/.test(naturalKey)) return naturalKey.replace(/:(?:role|[a-z_]+)$/, (m) => (parts.length > 2 ? "" : m));
+  return parts.slice(0, -1).join(":");
+}
+
+export interface RecordFields<T> {
+  key: string;
+  fields: T[];
+}
+
+/** Fields grouped by record, in the order the first field of each record appears. */
+export function groupRecords<T extends { natural_key: string }>(fields: T[]): RecordFields<T>[] {
+  const map = new Map<string, T[]>();
+  for (const f of fields) {
+    const k = recordKey(f.natural_key);
+    map.set(k, [...(map.get(k) ?? []), f]);
+  }
+  return [...map.entries()].map(([key, list]) => ({ key, fields: list }));
+}
+
+const HYPOTHESIS_RESULTS = new Set(["supported", "not_supported", "partially_supported", "mixed"]);
+
+/** A test that puts a stated hypothesis to the test (as opposed to a control, an unhypothesised path or an indirect effect without one). */
+export function isHypothesisRecord(fields: { field_name: string; value: unknown }[]): boolean {
+  const status = fields.find((f) => f.field_name === "status")?.value;
+  return typeof status === "string" && HYPOTHESIS_RESULTS.has(status);
+}
+
+const scalar = (v: unknown): string | null => (typeof v === "string" || typeof v === "number" ? String(v) : null);
+
+/** "−.089 · p < .001 · supported": the numbers of a test on one line (the estimate's kind is on the card's fields). */
+export function testHeadline(fields: { field_name: string; value: unknown }[], say: Say): string {
+  const get = (name: string) => scalar(fields.find((f) => f.field_name === name)?.value);
+  const estimate = get("estimate") ?? get("indirect_effect");
+  const p = get("p_reported_as");
+  const status = get("status");
+  const parts = [
+    estimate !== null ? estimate.replace(/^-/, "−").replace(/^(−?)0\./, "$1.") : null,
+    p !== null ? (/^[<>=]/.test(p) ? `p ${p}` : `p = ${p}`) : null,
+    status !== null ? (HYPOTHESIS_RESULTS.has(status) || status === "not_hypothesized" ? say(`c.status.${status}`) : status) : null,
+  ].filter(Boolean);
+  return parts.join(" · ");
+}
+
+/** For a record that is not a test: its first few values on one line ("n_items 7 · alpha .91"). */
+export function valuesHeadline(fields: { field_name: string; value: unknown }[], limit = 3): string {
+  return fields
+    .map((f) => [f.field_name, scalar(f.value)] as const)
+    .filter(([, v]) => v !== null && v !== "")
+    .slice(0, limit)
+    .map(([k, v]) => `${k} ${v}`)
+    .join(" · ");
+}
+
+export interface BadgeTally {
+  verified: number;
+  attention: number;
+  interpreted: number;
+}
+
+export function tallyBadges(fields: { badge: string }[]): BadgeTally {
+  const t = { verified: 0, attention: 0, interpreted: 0 };
+  for (const f of fields) {
+    if (f.badge === "auto_verified" || f.badge === "human_reviewed") t.verified++;
+    else if (f.badge === "ai_interpreted") t.interpreted++;
+    else t.attention++;
+  }
+  return t;
+}

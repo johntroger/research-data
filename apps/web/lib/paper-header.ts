@@ -70,6 +70,8 @@ export function readableKey(context: string, say?: Say): string {
       const table = /^table_(\w+)$/.exec(part);
       if (table) return say ? say("c.key.table", { n: table[1]! }) : `Bảng ${table[1]}`;
       if (part === "m") return say ? say("c.key.measure") : "thang đo";
+      if (part === "corr") return say ? say("c.key.corr") : "tương quan";
+      if (part === "cell") return say ? say("c.key.cell") : "điều kiện";
       return part.replace(/->/g, " → ").replace(/_/g, " ");
     })
     .filter(Boolean)

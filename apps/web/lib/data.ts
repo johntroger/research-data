@@ -122,10 +122,11 @@ export async function getPaper(id: string): Promise<Paper | null> {
   return rows[0] ?? null;
 }
 
+/** Every field of a paper, page by page: the REST API returns at most 1000 rows per request and a long paper has more (it used to lose the end of the list). */
 export function listFields(paperId: string): Promise<ExtractedField[]> {
-  return rest<ExtractedField[]>(
+  return restAll<ExtractedField>(
     `extracted_fields?select=id,natural_key,field_name,tier,value,evidence_quote,pdf_page_index,printed_page,badge,check_results,highlight` +
-      `&paper_id=eq.${paperId}&order=natural_key`,
+      `&paper_id=eq.${paperId}&order=natural_key,id`,
   );
 }
 

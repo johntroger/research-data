@@ -54,9 +54,9 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("has a tab for each part of the paper with its field count, and opens on the results", async ({ page }) => {
+test("has a tab for each part of the paper with its number of records (a test, a measure, a table or a study each, not one per field), and opens on the results", async ({ page }) => {
   await page.goto(`/papers/${paperId}`);
-  for (const [id, count] of [["overview", 1], ["theory", 1], ["study", 1], ["measures", 2], ["results", 2], ["tables", 1], ["contribution", 2]] as const) {
+  for (const [id, count] of [["overview", 1], ["theory", 1], ["study", 1], ["measures", 1], ["results", 1], ["tables", 1], ["contribution", 2]] as const) {
     await expect(page.getByTestId(`tab-${id}`)).toContainText(String(count));
   }
   await expect(page.getByTestId("tab-results")).toHaveAttribute("aria-selected", "true");
@@ -145,4 +145,12 @@ test("the divider follows the mouse", async ({ page }) => {
   const value = Number(await splitter.getAttribute("aria-valuenow"));
   expect(value).toBeGreaterThanOrEqual(58);
   expect(value).toBeLessThanOrEqual(62);
+});
+
+test("a record is one card with its numbers on a line; a paper with many records starts folded and the selected card is open", async ({ page }) => {
+  await page.goto(`/papers/${paperId}`);
+  const card = page.getByTestId("record-study_1:h1:a->b:direct");
+  await expect(card).toBeVisible();
+  await expect(card.locator("summary .record-line")).toBeVisible();
+  await expect(card.locator("summary .record-badges")).toContainText("trường");
 });
