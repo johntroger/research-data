@@ -29,6 +29,7 @@ import {
   type RelationQuery,
   SAMPLE_QUERIES,
   searchRelations,
+  similarNames,
   STATUS_LABEL,
   suggestions,
 } from "@/lib/relations";
@@ -111,6 +112,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const result = hasQuestion(query) ? searchRelations(rows, concepts, query) : null;
   if (result) await countUse("relation_search");
   const s = result?.summary;
+  // An empty answer may be a misspelt name: offer the names of the repository that look like what was typed (not for a name it already has).
+  const didYouMean =
+    result && result.rows.length === 0
+      ? ([["a", query.a], ["b", query.b]] as const).flatMap(([box, term]) => similarNames(term, names).map((name) => ({ box, name })))
+      : [];
   // The extra filters stay folded until one of them is in use, so a shared link never hides a filter that is shaping its result.
   const filtersActive =
     query.role !== DEFAULT_QUERY.role || query.status.length > 0 || query.sign.length > 0 || query.est.length > 0 || query.includeWarn || query.equiv !== DEFAULT_QUERY.equiv || studyFilterOn;
@@ -356,6 +362,17 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <p>
                 <strong>Chưa có bài nào trong kho kiểm định quan hệ này: có thể là khoảng trống nghiên cứu.</strong> Kho chưa bao phủ toàn bộ tài liệu.
               </p>
+              {didYouMean.length > 0 && (
+                <p data-testid="did-you-mean">
+                  Có phải bạn muốn tìm:{" "}
+                  {didYouMean.map((d, i) => (
+                    <span key={`${d.box}-${d.name}`}>
+                      {i > 0 ? " · " : ""}
+                      <Link href={link({ ...query, [d.box]: d.name })}>{d.name}</Link>
+                    </span>
+                  ))}
+                </p>
+              )}
               <ul>
                 {query.dir !== "both" && (
                   <li>

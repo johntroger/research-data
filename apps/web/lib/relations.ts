@@ -489,6 +489,47 @@ export function suggestions(rows: PathRow[], concepts: Concept[], limit = 300): 
   return [...seen.values()].sort((x, y) => y.n - x.n || x.label.localeCompare(y.label)).slice(0, limit).map((e) => e.label);
 }
 
+/** Edit distance between two short strings (insert, delete, replace), enough to forgive a typo. */
+function editDistance(a: string, b: string): number {
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i];
+    for (let j = 1; j <= b.length; j++) row[j] = Math.min(prev[j]! + 1, row[j - 1]! + 1, prev[j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = row;
+  }
+  return prev[b.length]!;
+}
+
+/** Two words that are the same word for a reader: a typo away, or one the beginning of the other ("loyal" and "loyalty"). */
+function sameWord(a: string, b: string): boolean {
+  if (a === b) return true;
+  if (Math.min(a.length, b.length) >= 4 && (a.startsWith(b) || b.startsWith(a))) return true;
+  const slack = Math.max(a.length, b.length) >= 8 ? 2 : 1;
+  return Math.min(a.length, b.length) >= 4 && editDistance(a, b) <= slack;
+}
+
+/**
+ * Names the reader may have meant, when the term they typed matches nothing: a typo, a plural, one word of a longer name. Nothing is
+ * suggested for a term that is already a name in the repository (then the question is empty, not the spelling). Best match first.
+ */
+export function similarNames(term: string, names: string[], limit = 5): string[] {
+  const t = normalise(term);
+  if (!t || names.some((n) => normalise(n) === t)) return [];
+  const words = t.split(" ");
+  const scored: { name: string; score: number }[] = [];
+  for (const name of names) {
+    const n = normalise(name);
+    const nameWords = n.split(" ");
+    const shared = words.filter((w) => nameWords.some((x) => sameWord(w, x))).length;
+    let score = 0;
+    if (t.length >= 3 && (n.includes(t) || (n.length >= 3 && t.includes(n)))) score = 3;
+    else if (shared > 0) score = 1 + shared / Math.max(words.length, nameWords.length);
+    else if (t.length >= 5 && editDistance(t, n) <= 2) score = 2;
+    if (score > 0) scored.push({ name, score });
+  }
+  return scored.sort((x, y) => y.score - x.score || x.name.length - y.name.length || x.name.localeCompare(y.name)).slice(0, limit).map((e) => e.name);
+}
+
 /** Questions to try; they return results on the current repository. */
 export const SAMPLE_QUERIES: { a: string; b: string }[] = [
   { a: "ethicality", b: "trust" },
