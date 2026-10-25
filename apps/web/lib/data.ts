@@ -3,6 +3,7 @@
  * so the web sees exactly what visitors are allowed to see (RLS: no hidden fields, no runs).
  */
 import type { Badge } from "@research-data/schema";
+import type { ConceptDetail } from "./concepts";
 import type { LibraryItem } from "./library";
 import { buildMatrix, type MatrixPath, type PathLine, type SampleRow, type TheoryRow } from "./matrix";
 import type { Concept, PathRow } from "./relations";
@@ -235,6 +236,14 @@ export async function getOverview(): Promise<Overview> {
   const attention = sum((c) => c.attention);
   const interpreted = sum((c) => c.interpreted);
   return { papers: papers.length, fields: verified + attention + interpreted, verified, attention, interpreted };
+}
+
+/** The canonical concepts with their definitions and other names (the "Khái niệm" page). */
+export async function listConceptDetails(): Promise<ConceptDetail[]> {
+  const rows = await restAll<{ id: string; canonical_name: string; canonical_definition: string; definition_source: string; construct_aliases: { alias: string }[] }>(
+    "constructs?select=id,canonical_name,canonical_definition,definition_source,construct_aliases(alias)&order=id",
+  );
+  return rows.map((r) => ({ id: r.id, canonical_name: r.canonical_name, definition: r.canonical_definition, source: r.definition_source, aliases: r.construct_aliases.map((a) => a.alias) }));
 }
 
 /** The canonical concepts with their other names. */

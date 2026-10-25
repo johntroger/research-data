@@ -16,6 +16,7 @@ import {
   formatStats,
   hasQuestion,
   isSingleConcept,
+  matchedConcepts,
   rolesInTest,
   singleTerm,
   paperLabel,
@@ -102,6 +103,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const result = hasQuestion(query) ? searchRelations(rows, concepts, query) : null;
   if (result) await countUse("relation_search");
   const s = result?.summary;
+  const merged = result ? matchedConcepts(query, concepts) : [];
 
   return (
     <>
@@ -278,6 +280,15 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <p data-testid="summary-coverage">
               Tìm thấy <strong>{s.matchedTests} kiểm định từ {s.matchedPapers} bài</strong> (kho có {s.corpusPapers} bài có dữ liệu quan hệ, chọn theo thư viện của chủ dự án, không phải mẫu hệ thống của y văn).
             </p>
+            {merged.length > 0 && (
+              <p data-testid="summary-merged" className="muted">
+                Đã gộp tên gọi:{" "}
+                {merged
+                  .map((m) => `“${m.term}” khớp ${m.concepts.map((c) => `${c.canonical_name} (cũng gọi là: ${c.aliases.join(", ") || "không có tên khác"})`).join("; ")}`)
+                  .join(" · ")}
+                . <Link href="/concepts">Xem danh sách khái niệm</Link> hoặc tắt “Bao gồm tên gọi tương đương” để chỉ tìm đúng chữ đã gõ.
+              </p>
+            )}
             <CorpusBlock corpus={corpus} />
             {s.tests === 0 && s.notCounted > 0 ? (
               // Tests exist but none is ✓ / ★: say so, instead of "0 bài" and a row of zeros.

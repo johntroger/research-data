@@ -272,3 +272,16 @@ test("sorts the papers by the chosen key and keeps the choice in the URL", async
   await page.getByRole("button", { name: "Tìm kiếm" }).click();
   await expect(page).toHaveURL(/sort=n/);
 });
+
+test("the concepts page lists each canonical concept with its merged names, and a search says which names were merged", async ({ page }) => {
+  await page.goto("/concepts");
+  await expect(page.getByTestId("concepts")).toBeVisible();
+  await expect(page.getByTestId("concept-brand_trust")).toContainText("Customer Trust");
+  await expect(page.getByTestId("concepts-total")).toContainText("khái niệm chuẩn");
+  await page.goto("/?a=customer+trust");
+  await expect(page.getByTestId("summary-merged")).toContainText("Brand Trust");
+  await page.goto("/?a=customer+trust&equiv=0");
+  await expect(page.getByTestId("summary-merged")).toHaveCount(0);
+  await page.goto("/");
+  await expect(page.getByRole("navigation").getByRole("link", { name: "Khái niệm" })).toBeVisible();
+});

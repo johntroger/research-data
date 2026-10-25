@@ -201,6 +201,18 @@ function expand(term: string, concepts: Concept[], equiv: boolean): Side | null 
   return side;
 }
 
+/** The canonical concepts the typed terms stand for (with "equivalent names" on), so the page can say which names were merged. */
+export function matchedConcepts(q: RelationQuery, concepts: Concept[]): { term: string; concepts: Concept[] }[] {
+  if (!q.equiv) return [];
+  return [q.a, q.b]
+    .filter((t) => t !== "")
+    .flatMap((term) => {
+      const side = expand(term, concepts, true);
+      const found = concepts.filter((c) => side?.conceptIds.has(c.id));
+      return found.length ? [{ term, concepts: found }] : [];
+    });
+}
+
 function matches(side: Side | null, label: string, conceptId: string | null): boolean {
   if (side === null) return true;
   if (conceptId !== null && side.conceptIds.has(conceptId)) return true;
@@ -462,6 +474,7 @@ export function suggestions(rows: PathRow[], concepts: Concept[], limit = 300): 
     else seen.set(key, { label, n });
   };
   for (const c of concepts) add(c.canonical_name, 1000);
+  for (const c of concepts) for (const a of c.aliases) add(a, 500);
   for (const r of rows) {
     add(r.iv_label_original, 1);
     add(r.dv_label_original, 1);
