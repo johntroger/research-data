@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.94 (so với 3.9.93)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | P3.1: tài liệu docs/concept-mapping-p3.md đề xuất gom nhóm khái niệm (lô C, lô V, phần giữ tách), kèm mức tăng dự kiến thực tế | Có bảng để chủ dự án duyệt trước khi ghi vào database |
+
 ### Version 3.9.93 (so với 3.9.92)
 
 | # | Thay đổi | Lý do |
