@@ -8,8 +8,7 @@ import { academicSentence } from "@/lib/sentence";
 import {
   DEFAULT_QUERY,
   EFFECT_LABEL,
-  formatEstimate,
-  formatP,
+  formatStats,
   hasQuestion,
   isSingleConcept,
   rolesInTest,
@@ -58,7 +57,7 @@ const link = (q: RelationQuery) => `/?${queryToSearch(q)}`;
 function TestLine({ row, concepts, roles = [] }: { row: PathRow; concepts: Map<string, string>; roles?: string[] }) {
   const iv = concepts.get(row.iv_construct_id ?? "");
   const dv = concepts.get(row.dv_construct_id ?? "");
-  const stats = [formatEstimate(row), formatP(row)].filter(Boolean).join("  ");
+  const stats = formatStats(row);
   const sentence = academicSentence(row);
   return (
     <li data-testid={`test-${row.id}`} className="relation-row">

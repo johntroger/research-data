@@ -38,6 +38,9 @@ export interface PaperInfo {
   apa_citation: string | null;
 }
 
+/** PostgREST returns a one-to-one embed (one sample per study) as an object, a one-to-many one as a list. */
+type SampleN = { n: number | null };
+
 export interface PathRow {
   id: string;
   paper_id: string;
@@ -59,7 +62,11 @@ export interface PathRow {
   observed_sign: "positive" | "negative" | null;
   significant: boolean | null;
   badge: string;
-  studies: { study_label: string; research_design: string | null } | null;
+  /** Standard error and confidence interval, when the paper prints them (about one test in eight). */
+  se?: number | null;
+  ci_low?: number | null;
+  ci_high?: number | null;
+  studies: { study_label: string; research_design: string | null; samples?: SampleN | SampleN[] | null } | null;
   papers: PaperInfo | null;
   evidence: { printed_page: string | null; pdf_page_index: number } | null;
 }
@@ -336,6 +343,28 @@ export function formatP(row: Pick<PathRow, "p_reported_as" | "p_value">): string
     return m ? `p ${m[1] ?? "="} ${apaNumber(Number(`${m[2] || "0"}.${m[3]}`))}` : printed;
   }
   return row.p_value === null ? "" : `p = ${apaNumber(row.p_value)}`;
+}
+
+/** Two decimals, no leading zero (APA 7). */
+function two(n: number): string {
+  const [whole = "0", frac = ""] = Math.abs(n).toFixed(2).split(".");
+  return `${n < 0 ? "−" : ""}${whole === "0" ? "" : whole}.${frac}`;
+}
+
+/** The sample size of the study the test comes from, or null when the paper did not give one. */
+export function sampleSize(row: Pick<PathRow, "studies">): number | null {
+  const samples = row.studies?.samples;
+  const list = Array.isArray(samples) ? samples : samples ? [samples] : [];
+  return list.find((s) => s.n !== null)?.n ?? null;
+}
+
+export const formatSe = (row: Pick<PathRow, "se">): string => (row.se == null ? "" : `SE = ${two(row.se)}`);
+export const formatCi = (row: Pick<PathRow, "ci_low" | "ci_high">): string => (row.ci_low == null || row.ci_high == null ? "" : `CI [${two(row.ci_low)}, ${two(row.ci_high)}]`);
+
+/** "β = −.31, SE = .05, CI [−.42, −.20], p < .001, N = 312": everything the paper gave, in APA order. */
+export function formatStats(row: PathRow): string {
+  const n = sampleSize(row);
+  return [formatEstimate(row), formatSe(row), formatCi(row), formatP(row), n === null ? "" : `N = ${n.toLocaleString("en-US")}`].filter(Boolean).join(", ");
 }
 
 export const STATUS_LABEL: Record<PathRow["status"], string> = {

@@ -157,8 +157,8 @@ async function restAll<T>(pathAndQuery: string): Promise<T[]> {
 
 const PATH_COLUMNS =
   "id,paper_id,study_id,natural_key,hypothesis_code,iv_label_original,dv_label_original,iv_construct_id,dv_construct_id," +
-  "mediator_labels,moderator_labels,effect_type,estimate_type,estimate,p_value,p_reported_as,status,observed_sign,significant,badge," +
-  "studies(study_label,research_design),papers(title,authors,year,journal,citekey,apa_citation),evidence(printed_page,pdf_page_index)";
+  "mediator_labels,moderator_labels,effect_type,estimate_type,estimate,se,ci_low,ci_high,p_value,p_reported_as,status,observed_sign,significant,badge," +
+  "studies(study_label,research_design,samples(n)),papers(title,authors,year,journal,citekey,apa_citation),evidence(printed_page,pdf_page_index)";
 
 /** Every test (path) visitors may see, with its study, paper and evidence page. */
 export function listPathRows(): Promise<PathRow[]> {
@@ -170,7 +170,7 @@ export async function listMatrixData(): Promise<{ theories: TheoryRow[]; samples
   const [theories, samples, paths] = await Promise.all([
     restAll<TheoryRow>("paper_theories?select=paper_id,theory_name_original,application_role"),
     restAll<SampleRow>("samples?select=paper_id,study_id,n,country_iso,sample_type,studies(study_label,position,research_design)"),
-    restAll<MatrixPath>(`path_results?select=${PATH_COLUMNS},ci_low,ci_high,r2_dv&order=paper_id,natural_key`),
+    restAll<MatrixPath>(`path_results?select=${PATH_COLUMNS},r2_dv&order=paper_id,natural_key`),
   ]);
   return { theories, samples, paths };
 }
@@ -180,7 +180,7 @@ export async function listPaperLines(paperId: string): Promise<{ studyId: string
   if (!/^[0-9a-f-]{36}$/i.test(paperId)) return null;
   const [samples, paths] = await Promise.all([
     restAll<SampleRow>(`samples?select=paper_id,study_id,n,country_iso,sample_type,studies(study_label,position,research_design)&paper_id=eq.${paperId}`),
-    restAll<MatrixPath>(`path_results?select=${PATH_COLUMNS},ci_low,ci_high,r2_dv&paper_id=eq.${paperId}&order=natural_key`),
+    restAll<MatrixPath>(`path_results?select=${PATH_COLUMNS},r2_dv&paper_id=eq.${paperId}&order=natural_key`),
   ]);
   const row = buildMatrix([paperId], [], samples, paths).get(paperId);
   return (row?.studies ?? []).filter((s) => s.lines.length > 0).map((s) => ({ studyId: s.studyId, label: s.label, lines: s.lines }));

@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.88 (so với 3.9.87)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | P2.1: dòng kết quả hiện N, SE, CI khi có; Excel thêm cột SE, CI, N; Word thêm cột N | Nhà nghiên cứu cần biết con số dựa trên bao nhiêu người |
+
 ### Version 3.9.87 (so với 3.9.86)
 
 | # | Thay đổi | Lý do |

@@ -5,6 +5,8 @@ import {
   DEFAULT_QUERY,
   findRows,
   formatEstimate,
+  formatStats,
+  sampleSize,
   formatP,
   normalise,
   paperLabel,
@@ -251,5 +253,17 @@ describe("display", () => {
     const data = [row("brand  trust", "Loyalty"), row("Loyalty", "Satisfaction"), row("Satisfaction", "Loyalty")];
     expect(suggestions(data, concepts)).toEqual(["Brand Trust", "Loyalty", "Satisfaction"]);
     expect(normalise("  Brand—Trust! ")).toBe("brand trust");
+  });
+});
+
+describe("formatStats: everything the paper gave, in APA order", () => {
+  it("adds SE, CI and N when known, and nothing invented when not", () => {
+    const full = row("A", "B", { estimate: -0.31, se: 0.05, ci_low: -0.42, ci_high: -0.2, studies: { study_label: "Study 1", research_design: "survey", samples: [{ n: 1312 }] } });
+    expect(formatStats(full)).toBe("β = −.31, SE = .05, CI [−.42, −.20], p < .001, N = 1,312");
+    const bare = row("A", "B", { estimate: 0.3, studies: { study_label: "Study 1", research_design: "survey", samples: [{ n: null }] } });
+    expect(formatStats(bare)).toBe("β = .3, p < .001");
+    expect(sampleSize(bare)).toBeNull();
+    expect(sampleSize({ studies: { study_label: "S", research_design: null, samples: { n: 261 } } })).toBe(261); // a one-to-one embed is an object
+    expect(sampleSize({ studies: null })).toBeNull();
   });
 });
