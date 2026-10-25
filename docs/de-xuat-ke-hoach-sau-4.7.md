@@ -1,5 +1,8 @@
 # Đề xuất rà soát và kế hoạch sau bước 4.7
 
+> **Cập nhật 25/10/2026 (cuối ngày):** chủ dự án đã chốt **bước 4.7** (đo từ Việt Nam, sửa nguyên nhân thật là các lượt gọi Upstash, thêm bộ nhớ đệm 60 giây) và **bước 4.8** (giữ `research-data-five.vercel.app`, thêm email gỡ bài, vẫn `noindex`; Giai đoạn 4 hoàn tất), nên mục A8, B, D và việc C1, C4 (một phần), C7 dưới đây đã **không còn hiệu lực**. Còn nguyên giá trị: A1 đến A7 (các chỗ lệch giữa file kế hoạch, chưa kiểm lại sau thay đổi mới của `main`), C2, C3, C5, C6.
+
+
 > Ngày 25/10/2026, phiên cloud. **Đây là đề xuất để chủ dự án quyết định.** Chưa sửa `PROJECT_PLAN.md`, `docs/*` (ngoài file này), `CHANGELOG.md` hay `CLAUDE.md`. Khi chủ dự án chốt, mới sửa đúng file chứa mục đó, ghi vào `CHANGELOG.md` và chạy `pnpm docs:check` (quy ước của `CLAUDE.md`). Số liệu nền lấy từ [báo cáo 4.7](bao-cao-4.7-hieu-nang-va-bao-mat.md).
 
 ## A. Chỗ các file kế hoạch đang lệch nhau

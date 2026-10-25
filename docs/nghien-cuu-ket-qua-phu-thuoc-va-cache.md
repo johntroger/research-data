@@ -1,5 +1,8 @@
 # Nghiên cứu: kết quả phụ thuộc trong tổng hợp, và cách làm cache
 
+> **Cập nhật 25/10/2026 (cuối ngày): phần B (cache) đã được làm theo cách khác.** `main` đã có bộ nhớ đệm trong từng instance (`lib/data.ts`, `DATA_CACHE_SECONDS`, mặc định 60 giây ở production) và đếm giới hạn trang trong bộ nhớ (xem "Bước 4.7 ✅" trong `PROJECT_PLAN.md`). Hướng "cache dữ liệu công khai" ở mục B3.1 vì vậy đã có; còn lại chỉ là tùy chọn dùng Data Cache của Next (dùng chung giữa các instance, làm mới bằng thẻ) nếu lượt khởi động nguội (0,6 đến 1 s theo ghi chú của chủ dự án) còn gây phiền. **Phần A (phương pháp, kết quả phụ thuộc) không đổi.**
+
+
 > Ngày 25/10/2026, phiên cloud. **Nghiên cứu để chủ dự án quyết định; chưa sửa mã hay kế hoạch.** Hai phần: (A) phương pháp, từ phát hiện "cùng một quan hệ được đếm nhiều lần" (khóa `#2`, `#3`, PR [#3](https://github.com/johntroger/research-data/pull/3)); (B) kỹ thuật, từ phát hiện "không trang nào được cache" ([báo cáo 4.7](bao-cao-4.7-hieu-nang-va-bao-mat.md)).
 
 ## 0. Giới hạn của nghiên cứu này (đọc trước)

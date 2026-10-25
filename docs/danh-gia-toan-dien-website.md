@@ -1,5 +1,8 @@
 # Đánh giá toàn diện website và đề xuất cải thiện
 
+> **Cập nhật 25/10/2026 (cuối ngày):** các mục W2 (không cache) và một phần D8 đã được xử lý ở `main` (bước 4.7 do chủ dự án làm; số liệu đo từ Việt Nam). Đã có PR cho nhóm P0 giao diện ([#2](https://github.com/johntroger/research-data/pull/2)), truy cập và điện thoại ([#3](https://github.com/johntroger/research-data/pull/3)), gợi ý tên gần giống ([#4](https://github.com/johntroger/research-data/pull/4)).
+
+
 > Ngày 25/10/2026, phiên cloud. Đánh giá theo bốn vai trò: nhà nghiên cứu, chuyên gia cấu trúc dữ liệu, chuyên gia thiết kế web, chuyên gia UI/UX. **Chỉ đánh giá và đề xuất; chưa sửa gì.** Các thay đổi đều cần chủ dự án quyết theo quy trình từng bước của `CLAUDE.md`.
 
 ## 0. Cách đánh giá và giới hạn

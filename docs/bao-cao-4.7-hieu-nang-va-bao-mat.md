@@ -1,5 +1,8 @@
 # Báo cáo bước 4.7: đo hiệu năng thật và rà soát bảo mật
 
+> **Cập nhật 25/10/2026 (cuối ngày): báo cáo này đã lỗi thời ở phần hiệu năng và có một chỗ giải thích sai.** Chủ dự án tự chốt bước 4.7 bằng số đo từ máy ở Việt Nam và ghi vào `PROJECT_PLAN.md` (dòng "Bước 4.7 ✅"). Nguyên nhân thật của độ chậm **không phải mạng Mỹ–Singapore như báo cáo này nêu**, mà là mỗi yêu cầu gọi Upstash Redis (giới hạn tốc độ) đặt xa vùng `sin1`, khoảng 230 ms mỗi lần, tìm kiếm gọi hai lần. Sau khi đếm giới hạn trang và tìm kiếm trong bộ nhớ từng instance và nhớ dữ liệu công khai 60 giây, trung vị còn 0,14 đến 0,20 s và p95 của lọc/tìm kiếm là 0,22 s. Các đề xuất "cache" và "đo lại từ Việt Nam" ở dưới **đã được làm**. Phần rà soát bảo mật (mục 2) vẫn còn giá trị. Tôi giữ nguyên bản gốc bên dưới để có vết, không sửa số.
+
+
 > Ngày 25/10/2026, chạy trên phiên cloud. Chỉ đo và đọc mã; không đổi cấu hình, không đăng nhập, không dùng `.env`. Đây là báo cáo để chủ dự án quyết định; chưa sửa gì trong `PROJECT_PLAN.md`.
 
 ## 1. Đo hiệu năng
