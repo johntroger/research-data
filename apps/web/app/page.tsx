@@ -260,35 +260,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 {stale}
               </p>
             )}
-            {isSingleConcept(query) && (
-              <p data-testid="single-note">
-                <strong>{t("result.single.lead")}</strong>
-                {t("result.single.rest", { term: singleTerm(query) })}
-              </p>
-            )}
             <p data-testid="summary-coverage">
               {t("result.coverage.before")}
               <strong>{t("result.coverage.strong", { tests: tn("n.tests", s.matchedTests), papers: tn("n.papers", s.matchedPapers) })}</strong>
               {t("result.coverage.after", { corpus: s.corpusPapers })}
             </p>
-            {merged.length > 0 && (
-              <p data-testid="summary-merged" className="muted">
-                {t("result.merged.lead")}{" "}
-                {merged
-                  .map((m) =>
-                    t("result.merged.item", {
-                      term: m.term,
-                      concepts: m.concepts
-                        .map((c) => t("result.merged.alias", { name: c.canonical_name, aliases: c.aliases.join(", ") || t("result.merged.noAlias") }))
-                        .join("; "),
-                    }),
-                  )
-                  .join(" · ")}
-                . <Link href="/concepts">{t("result.merged.linkBefore")}</Link>
-                {t("result.merged.after")}
-              </p>
-            )}
-            <CorpusBlock corpus={corpus} t={t} tn={tn} />
             {s.tests === 0 && s.notCounted > 0 ? (
               // Tests exist but none is ✓ / ★: say so, instead of "0 papers" and a row of zeros.
               <p data-testid="summary-counts">
@@ -298,13 +274,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <>
                 <p data-testid="summary-counts">
                   <strong>{t("result.counts", { papers: tn("n.papers", s.papers), studies: tn("n.studies", s.studies), tests: tn("n.tests", s.tests) })}</strong>
-                </p>
-                <p className="muted" data-testid="summary-method">
-                  {t("result.method")}
-                </p>
-                <p data-testid="summary-estimates">
-                  {t("result.estimates", { list: ESTIMATES.filter((e) => s.estimates[e] > 0).map((e) => `${label(t, "estimate", e)} ${s.estimates[e]}`).join(" · ") })}
-                  {ESTIMATES.filter((e) => e !== "none" && s.estimates[e] > 0).length > 1 ? t("result.estimates.warn") : ""}
                 </p>
                 <p data-testid="summary-outcome">{t("result.outcome", { list: OUTCOME.map((key) => `${outcomeLabel(t, key)} ${s.outcome[key]}`).join(" · ") })}</p>
                 <p data-testid="summary-direction">
@@ -326,8 +295,43 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 {s.shareNotCounted > 0.2 ? t("result.notCounted.bias") : ""}
               </p>
             )}
-            <details>
-              <summary>{t("result.howTo.summary")}</summary>
+            <details className="summary-more" data-testid="summary-more">
+              <summary>{t("result.more.summary")}</summary>
+              {isSingleConcept(query) && (
+                <p data-testid="single-note">
+                  <strong>{t("result.single.lead")}</strong>
+                  {t("result.single.rest", { term: singleTerm(query) })}
+                </p>
+              )}
+              {merged.length > 0 && (
+                <p data-testid="summary-merged" className="muted">
+                  {t("result.merged.lead")}{" "}
+                  {merged
+                    .map((m) =>
+                      t("result.merged.item", {
+                        term: m.term,
+                        concepts: m.concepts
+                          .map((c) => t("result.merged.alias", { name: c.canonical_name, aliases: c.aliases.join(", ") || t("result.merged.noAlias") }))
+                          .join("; "),
+                      }),
+                    )
+                    .join(" · ")}
+                  . <Link href="/concepts">{t("result.merged.linkBefore")}</Link>
+                  {t("result.merged.after")}
+                </p>
+              )}
+              {!(s.tests === 0 && s.notCounted > 0) && (
+                <>
+                  <p className="muted" data-testid="summary-method">
+                    {t("result.method")}
+                  </p>
+                  <p data-testid="summary-estimates">
+                    {t("result.estimates", { list: ESTIMATES.filter((e) => s.estimates[e] > 0).map((e) => `${label(t, "estimate", e)} ${s.estimates[e]}`).join(" · ") })}
+                    {ESTIMATES.filter((e) => e !== "none" && s.estimates[e] > 0).length > 1 ? t("result.estimates.warn") : ""}
+                  </p>
+                </>
+              )}
+              <CorpusBlock corpus={corpus} t={t} tn={tn} />
               <ul>
                 <li>{t("result.howTo.1")}</li>
                 <li>{t("result.howTo.2")}</li>
@@ -392,11 +396,23 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                       {g.differs ? t("result.paper.differs") : ""}
                     </span>
                   </h3>
-                  <ul>
-                    {g.rows.map((r) => (
-                      <TestLine key={r.id} row={r} concepts={conceptName} roles={rolesInTest(r, concepts, query)} t={t} />
-                    ))}
-                  </ul>
+                  {g.rows.some(isVerified) && (
+                    <ul>
+                      {g.rows.filter(isVerified).map((r) => (
+                        <TestLine key={r.id} row={r} concepts={conceptName} roles={rolesInTest(r, concepts, query)} t={t} />
+                      ))}
+                    </ul>
+                  )}
+                  {g.rows.some((r) => !isVerified(r)) && (
+                    <details className="unverified" data-testid={`unverified-${g.paperId}`}>
+                      <summary>{tn("result.unverified", g.rows.filter((r) => !isVerified(r)).length)}</summary>
+                      <ul>
+                        {g.rows.filter((r) => !isVerified(r)).map((r) => (
+                          <TestLine key={r.id} row={r} concepts={conceptName} roles={rolesInTest(r, concepts, query)} t={t} />
+                        ))}
+                      </ul>
+                    </details>
+                  )}
                 </div>
               ))}
             </section>

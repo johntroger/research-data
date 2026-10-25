@@ -315,3 +315,15 @@ test("copies a permanent link that holds the question and the release of the dat
   expect(copied).toContain("/?a=zebra&b=quokka");
   if ((await page.getByTestId("data-release").count()) > 0) expect(copied).toMatch(/&v=[0-9.-]+$/);
 });
+
+test("shows the certain tests first and gathers the unverified ones of a paper in a fold that is closed until clicked", async ({ page }) => {
+  await page.goto("/?a=zebra&b=quokka");
+  const fold = page.locator("details.unverified").first();
+  await expect(fold).toBeVisible();
+  await expect(fold).not.toHaveAttribute("open", "");
+  await expect(fold.locator("summary")).toContainText("chưa kiểm chứng");
+  await expect(fold.locator("li").first()).toBeHidden();
+  await fold.locator("summary").click();
+  await expect(fold.locator("li").first()).toBeVisible();
+  await expect(page.getByTestId("summary-more")).not.toHaveAttribute("open", "");
+});

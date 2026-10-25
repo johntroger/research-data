@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.103 (so với 3.9.102)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Gọn kết quả tìm kiếm: chi tiết phụ gấp lại, kiểm định chưa kiểm chứng gom trong mục gấp theo từng bài; bản tiếng Anh lên web | Chủ dự án thấy giao diện kết quả rối |
+
 ### Version 3.9.102 (so với 3.9.101)
 
 | # | Thay đổi | Lý do |

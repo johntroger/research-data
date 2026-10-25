@@ -804,3 +804,17 @@ h1 {
   margin-right: 12px;
   white-space: nowrap;
 }
+
+.summary-more,
+.unverified {
+  margin: 8px 0;
+}
+.summary-more > summary,
+.unverified > summary {
+  cursor: pointer;
+  color: var(--muted, #5f6670);
+  font-size: 14px;
+}
+.unverified > ul {
+  opacity: 0.9;
+}
