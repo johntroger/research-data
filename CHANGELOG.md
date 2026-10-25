@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.93 (so với 3.9.92)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Chốt 4.8 và Giai đoạn 4: giữ tên miền vercel.app, email công khai tranthanhtung37@gmail.com cho yêu cầu gỡ bài, vẫn noindex | Chủ dự án chọn không mua tên miền lúc này; cần kênh để tác giả yêu cầu gỡ bài |
+
 ### Version 3.9.92 (so với 3.9.91)
 
 | # | Thay đổi | Lý do |
