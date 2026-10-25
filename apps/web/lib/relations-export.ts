@@ -4,11 +4,9 @@
  * cells (pure, tested); `buildWorkbook` writes them as .xlsx.
  */
 import ExcelJS from "exceljs";
-import { countryName, DESIGN_LABELS, SAMPLE_LABELS } from "./library";
+import { makeT, type MessageKey, type Translate } from "./i18n";
+import { countryLabel, label, tk } from "./labels";
 import {
-  EFFECT_LABEL,
-  ESTIMATE_LABEL,
-  SORT_LABEL,
   formatEstimate,
   formatP,
   formatCi,
@@ -20,48 +18,23 @@ import {
   type RelationQuery,
   type RelationResult,
   signGroup,
-  STATUS_LABEL,
 } from "./relations";
 
-export const BADGE_LABEL: Record<string, string> = {
-  auto_verified: "✓ đã kiểm chứng",
-  needs_attention: "⚠ nên xem kỹ",
-  ai_interpreted: "◇ AI diễn giải",
-  human_reviewed: "★ đã sửa",
-  disputed: "⚑ có báo lỗi",
-};
+const COLUMN_KEYS = [
+  "xl.col.citation", "xl.col.year", "xl.col.journal", "xl.col.study", "xl.col.iv", "xl.col.dv", "xl.col.role", "xl.col.hypothesis", "xl.col.estimate",
+  "xl.col.p", "xl.col.se", "xl.col.ci", "xl.col.n", "xl.col.result", "xl.col.direction", "xl.col.badge", "xl.col.printed", "xl.col.pdfPage", "xl.col.open",
+] as const satisfies readonly MessageKey[];
 
-const SIGN_LABEL = { positive: "Dương", negative: "Âm", none: "Không có ý nghĩa", unknown: "Không rõ" } as const;
-const ROLE_LABEL = { direct: "Trực tiếp", mediated: "Qua trung gian", moderated: "Có điều tiết", all: "Tất cả" } as const;
-const DIR_LABEL = { ab: "A → B", ba: "B → A", both: "Cả hai chiều" } as const;
+/** The column headings in the language of the page. */
+export const columns = (t: Translate): string[] => COLUMN_KEYS.map((k) => t(k));
 
-export const DISCLAIMER =
-  "Công cụ tham khảo: dữ liệu do AI trích xuất từ bài báo và được máy đối chiếu với PDF; không ai đọc bài, mã hóa hay duyệt. " +
-  "Hãy tự đối chiếu với bài gốc trước khi dùng (cột Trang in và Mở bài chỉ đúng chỗ). " +
-  "Con số chỉ mô tả các bài trong kho, không phải kết luận của cả lĩnh vực và không thay cho meta-analysis. " +
-  "Không có ý nghĩa thống kê không có nghĩa là không có tác động.";
+/** The responsibility statement in the language of the page. */
+export const disclaimer = (t: Translate): string => t("xl.disclaimer");
 
-export const COLUMNS = [
-  "Trích dẫn",
-  "Năm",
-  "Tạp chí",
-  "Study",
-  "Biến A (độc lập)",
-  "Biến B (phụ thuộc)",
-  "Vai trò",
-  "Mã giả thuyết",
-  "Ước lượng",
-  "p",
-  "SE",
-  "CI",
-  "N",
-  "Kết quả giả thuyết",
-  "Chiều tác động",
-  "Huy hiệu",
-  "Trang in",
-  "Trang PDF",
-  "Mở bài",
-] as const;
+const vi = makeT("vi");
+/** Vietnamese headings and statement, for callers and tests that do not choose a language. */
+export const COLUMNS = columns(vi);
+export const DISCLAIMER = disclaimer(vi);
 
 /** Column names of the CSV file: English and without spaces, so R, Python and Stata read them as variable names. */
 export const CSV_COLUMNS = [
@@ -106,16 +79,18 @@ export function csvRows(result: RelationResult, opts: { release: string; openUrl
 }
 
 export interface ExportTable {
+  /** Names the workbook needs in its language: the two sheets and the text of the "open" link. */
+  names?: { results: string; notes: string; open: string };
   columns: readonly string[];
   rows: (string | number | null)[][];
   /** [label, value] lines of the notes sheet. */
   notes: [string, string][];
 }
 
-function rowCells(r: PathRow, openUrl: (r: PathRow) => string): (string | number | null)[] {
+function rowCells(r: PathRow, openUrl: (r: PathRow) => string, t: Translate): (string | number | null)[] {
   const roleExtra = [
-    r.mediator_labels.length ? `qua ${r.mediator_labels.join(", ")}` : "",
-    r.moderator_labels.length ? `điều tiết bởi ${r.moderator_labels.join(", ")}` : "",
+    r.mediator_labels.length ? t("xl.via", { list: r.mediator_labels.join(", ") }) : "",
+    r.moderator_labels.length ? t("xl.moderatedBy", { list: r.moderator_labels.join(", ") }) : "",
   ].filter(Boolean);
   return [
     r.papers?.apa_citation ?? paperLabel(r.papers),
@@ -124,16 +99,16 @@ function rowCells(r: PathRow, openUrl: (r: PathRow) => string): (string | number
     r.studies?.study_label ?? null,
     r.iv_label_original,
     r.dv_label_original,
-    [EFFECT_LABEL[r.effect_type], ...roleExtra].join(" · "),
+    [label(t, "effect", r.effect_type), ...roleExtra].join(" · "),
     r.hypothesis_code,
     formatEstimate(r) || null,
     formatP(r) || null,
     formatSe(r).replace(/^SE = /, "") || null,
     formatCi(r).replace(/^CI /, "") || null,
     sampleSize(r),
-    STATUS_LABEL[r.status],
-    SIGN_LABEL[signGroup(r)],
-    BADGE_LABEL[r.badge] ?? r.badge,
+    label(t, "status", r.status),
+    tk(t, `xl.sign.${signGroup(r)}`),
+    label(t, "badge", r.badge),
     r.evidence ? (r.evidence.printed_page ?? null) : null,
     r.evidence ? r.evidence.pdf_page_index + 1 : null,
     openUrl(r),
@@ -141,41 +116,45 @@ function rowCells(r: PathRow, openUrl: (r: PathRow) => string): (string | number
 }
 
 /** The question and filters in words, as typed. */
-export function describeQuery(q: RelationQuery): string {
+export function describeQuery(q: RelationQuery, t: Translate = vi, lang: "vi" | "en" = "vi"): string {
+  const any = t("xl.q.any");
   const parts = [
-    `Biến A: ${q.a || "(bất kỳ)"}`,
-    `Biến B: ${q.b || "(bất kỳ)"}`,
-    `Chiều: ${DIR_LABEL[q.dir]}`,
-    `Vai trò: ${ROLE_LABEL[q.role]}`,
-    `Tên gọi tương đương: ${q.equiv ? "bật" : "tắt"}`,
+    t("xl.q.a", { v: q.a || any }),
+    t("xl.q.b", { v: q.b || any }),
+    t("xl.q.dir", { v: tk(t, `xl.dir.${q.dir}`) }),
+    t("xl.q.role", { v: tk(t, `xl.role.${q.role}`) }),
+    t("xl.q.equiv", { v: q.equiv ? t("xl.q.on") : t("xl.q.off") }),
   ];
-  if (q.status.length) parts.push(`Kết quả giả thuyết: ${q.status.map((s) => STATUS_LABEL[s]).join(", ")}`);
-  if (q.sign.length) parts.push(`Chiều tác động: ${q.sign.map((s) => SIGN_LABEL[s]).join(", ")}`);
-  if (q.est.length) parts.push(`Loại ước lượng: ${q.est.map((e) => ESTIMATE_LABEL[e]).join(", ")}`);
-  if (q.from !== null || q.to !== null) parts.push(`Năm: ${q.from ?? "…"}–${q.to ?? "…"}`);
-  if (q.design.length) parts.push(`Thiết kế: ${q.design.map((d) => DESIGN_LABELS[d] ?? d).join(", ")}`);
-  if (q.sample.length) parts.push(`Mẫu: ${q.sample.map((d) => SAMPLE_LABELS[d] ?? d).join(", ")}`);
-  if (q.country.length) parts.push(`Quốc gia: ${q.country.map(countryName).join(", ")}`);
-  if (q.sort !== "year") parts.push(`Sắp xếp: ${SORT_LABEL[q.sort]}`);
+  if (q.status.length) parts.push(t("xl.q.status", { v: q.status.map((s) => label(t, "status", s)).join(", ") }));
+  if (q.sign.length) parts.push(t("xl.q.sign", { v: q.sign.map((s) => tk(t, `xl.sign.${s}`)).join(", ") }));
+  if (q.est.length) parts.push(t("xl.q.est", { v: q.est.map((e) => label(t, "estimate", e)).join(", ") }));
+  if (q.from !== null || q.to !== null) parts.push(t("xl.q.years", { v: `${q.from ?? "…"}–${q.to ?? "…"}` }));
+  if (q.design.length) parts.push(t("xl.q.design", { v: q.design.map((d) => label(t, "design", d)).join(", ") }));
+  if (q.sample.length) parts.push(t("xl.q.sample", { v: q.sample.map((d) => label(t, "sample", d)).join(", ") }));
+  if (q.country.length) parts.push(t("xl.q.country", { v: q.country.map((c) => countryLabel(c, lang)).join(", ") }));
+  if (q.sort !== "year") parts.push(t("xl.q.sort", { v: label(t, "sort", q.sort) }));
   return parts.join(" · ");
 }
 
-export function exportTable(result: RelationResult, opts: { exportedAt: Date; openUrl: (r: PathRow) => string; provenance?: string }): ExportTable {
+export function exportTable(result: RelationResult, opts: { exportedAt: Date; openUrl: (r: PathRow) => string; provenance?: string; lang?: "vi" | "en" }): ExportTable {
+  const lang = opts.lang ?? "vi";
+  const t = makeT(lang);
   const rows = result.groups.flatMap((g) => g.rows);
   const verified = rows.filter(isVerified).length;
   return {
-    columns: COLUMNS,
-    rows: rows.map((r) => rowCells(r, opts.openUrl)),
+    names: { results: t("xl.sheet.results"), notes: t("xl.sheet.notes"), open: t("xl.col.open") },
+    columns: columns(t),
+    rows: rows.map((r) => rowCells(r, opts.openUrl, t)),
     notes: [
-      ["Câu hỏi tìm kiếm", describeQuery(result.query)],
-      ["Ngày xuất", opts.exportedAt.toISOString().slice(0, 10)],
-      ["Số kiểm định trong file", String(rows.length)],
-      ["Trong đó đã kiểm chứng (✓ hoặc ★)", String(verified)],
-      ["Trong đó chưa kiểm chứng (⚠ hoặc ◇)", String(rows.length - verified)],
-      ["Số bài", String(new Set(rows.map((r) => r.paper_id)).size)],
-      ["Cách đọc cột Huy hiệu", "✓ máy đã đối chiếu giá trị với PDF · ⚠ có kiểm tra chưa qua, nên xem kỹ · ◇ AI diễn giải, máy không kiểm được · ★ đã sửa tay"],
-      ...(opts.provenance ? ([["Bản dữ liệu và cách trích dẫn", opts.provenance]] as [string, string][]) : []),
-      ["Tuyên bố trách nhiệm", DISCLAIMER],
+      [t("xl.note.question"), describeQuery(result.query, t, lang)],
+      [t("xl.note.date"), opts.exportedAt.toISOString().slice(0, 10)],
+      [t("xl.note.tests"), String(rows.length)],
+      [t("xl.note.verified"), String(verified)],
+      [t("xl.note.unverified"), String(rows.length - verified)],
+      [t("xl.note.papers"), String(new Set(rows.map((r) => r.paper_id)).size)],
+      [t("xl.note.badgeHelp"), t("xl.note.badgeHelp.text")],
+      ...(opts.provenance ? ([[t("xl.note.provenance"), opts.provenance]] as [string, string][]) : []),
+      [t("xl.note.disclaimerLabel"), disclaimer(t)],
     ],
   };
 }
@@ -183,7 +162,7 @@ export function exportTable(result: RelationResult, opts: { exportedAt: Date; op
 export async function buildWorkbook(table: ExportTable): Promise<Uint8Array<ArrayBuffer>> {
   const wb = new ExcelJS.Workbook();
   wb.creator = "Research Data";
-  const sheet = wb.addWorksheet("Kết quả", { views: [{ state: "frozen", ySplit: 1 }] });
+  const sheet = wb.addWorksheet(table.names?.results ?? "Kết quả", { views: [{ state: "frozen", ySplit: 1 }] });
   sheet.addRow([...table.columns]);
   for (const row of table.rows) sheet.addRow(row);
   const header = sheet.getRow(1);
@@ -196,12 +175,12 @@ export async function buildWorkbook(table: ExportTable): Promise<Uint8Array<Arra
   const linkColumn = table.columns.length;
   for (let i = 0; i < table.rows.length; i++) {
     const cell = sheet.getCell(i + 2, linkColumn);
-    if (typeof cell.value === "string" && cell.value) cell.value = { text: "Mở bài", hyperlink: cell.value };
+    if (typeof cell.value === "string" && cell.value) cell.value = { text: table.names?.open ?? "Mở bài", hyperlink: cell.value };
   }
   // Wrap the long text columns.
   for (const c of [1, 5, 6, 7]) sheet.getColumn(c).alignment = { vertical: "top", wrapText: true };
 
-  const notes = wb.addWorksheet("Ghi chú");
+  const notes = wb.addWorksheet(table.names?.notes ?? "Ghi chú");
   notes.getColumn(1).width = 38;
   notes.getColumn(2).width = 110;
   for (const [label, value] of table.notes) {

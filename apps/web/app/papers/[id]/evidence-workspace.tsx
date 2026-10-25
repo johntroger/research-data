@@ -1,6 +1,7 @@
 "use client";
 
 import { type KeyboardEvent, type PointerEvent, useEffect, useRef, useState } from "react";
+import { useT } from "@/app/i18n-provider";
 import type { ExtractedField } from "@/lib/data";
 import { readableKey } from "@/lib/paper-header";
 import { trackUse } from "@/lib/track";
@@ -18,19 +19,11 @@ import {
   SPLIT_STORAGE_KEY,
   splitFromPointer,
   summariseSections,
+  type Say,
   TABS,
   tabOf,
   type TabId,
 } from "@/lib/workspace";
-
-const BADGE_LABEL: Record<ExtractedField["badge"], string> = {
-  auto_verified: "✓ đã kiểm chứng",
-  needs_attention: "⚠ nên xem kỹ",
-  ai_interpreted: "◇ AI diễn giải",
-  hidden: "ẩn",
-  human_reviewed: "★ đã sửa",
-  disputed: "⚑ có báo lỗi",
-};
 
 function formatValue(value: unknown): string {
   if (value === null || value === undefined) return "—";
@@ -60,30 +53,29 @@ export function focusedField(fields: ExtractedField[], focusKey: string | undefi
 
 /** The small table "why this badge": the checks that passed and the ones that did not (Mục 8.3). */
 function Why({ paperId, field, page, canView }: { paperId: string; field: ExtractedField; page: number; canView: boolean }) {
+  const { t } = useT();
   const checks = field.check_results.checks ?? [];
   const failed = checks.filter((c) => !c.passed);
   const passed = checks.filter((c) => c.passed);
   return (
-    <section className="why" data-testid={`why-${field.natural_key}`} aria-label="Vì sao có huy hiệu này">
-      <h4>Vì sao {BADGE_LABEL[field.badge]}</h4>
+    <section className="why" data-testid={`why-${field.natural_key}`} aria-label={t("c.why.aria")}>
+      <h4>{t("c.why.title", { badge: t(`c.badge.${field.badge}`) })}</h4>
       {checks.length === 0 ? (
         <p className="muted">
-          {field.badge === "ai_interpreted"
-            ? "Trường diễn giải: AI tự diễn giải từ bài, máy không kiểm tra được. Hãy đối chiếu với câu trích và trang PDF."
-            : "Chưa có kiểm tra nào được ghi cho trường này."}
+          {field.badge === "ai_interpreted" ? t("c.why.interpreted") : t("c.why.noChecks")}
         </p>
       ) : (
         <ul className="checks">
           {[...failed, ...passed].map((check) => (
             <li key={check.name} className={check.passed ? "check-pass" : "check-fail"}>
-              {check.passed ? "✓" : "✗ chưa qua:"} {check.detail}
+              {check.passed ? "✓" : t("c.why.failed")} {check.detail}
             </li>
           ))}
         </ul>
       )}
       {canView && field.pdf_page_index !== null && (
         <a href={`/api/papers/${paperId}/pdf#page=${page}`} target="_blank" rel="noreferrer">
-          Mở trong PDF (trang {page})
+          {t("c.why.openPdf", { page })}
         </a>
       )}
     </section>
@@ -98,6 +90,8 @@ export interface PdfAccess {
 }
 
 export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = false, access = { canView: true, oaUrl: null, doiUrl: null } }: { paperId: string; fields: ExtractedField[]; focusKey?: string; canDownload?: boolean; access?: PdfAccess }) {
+  const { t } = useT();
+  const say: Say = (key, vars) => t(key, vars);
   const summary = summariseSections(fields);
   const start = focusedField(fields, focusKey) ?? fields.find((f) => f.pdf_page_index !== null && tabOf(f) === defaultTab(summary)) ?? fields.find((f) => f.pdf_page_index !== null);
   const [selectedId, setSelectedId] = useState<string | null>(start?.id ?? null);
@@ -159,29 +153,29 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
 
   return (
     <div ref={container} className={`workspace${dragging ? " dragging" : ""}`} style={{ ["--left" as string]: `${split}%` }}>
-      <section className="fields-pane" aria-label="Dữ liệu trích xuất">
-        <div role="tablist" aria-label="Phần của bài" className="tabs">
-          {TABS.map((t) => (
+      <section className="fields-pane" aria-label={t("c.pane.fields")}>
+        <div role="tablist" aria-label={t("c.pane.tabs")} className="tabs">
+          {TABS.map((item) => (
             <button
-              key={t.id}
+              key={item.id}
               type="button"
               role="tab"
-              id={`tab-${t.id}`}
-              aria-selected={t.id === tab}
+              id={`tab-${item.id}`}
+              aria-selected={item.id === tab}
               aria-controls="fields-panel"
               className="tab"
-              data-testid={`tab-${t.id}`}
-              onClick={() => openTab(t.id)}
+              data-testid={`tab-${item.id}`}
+              onClick={() => openTab(item.id)}
             >
-              {t.label} <span className="tab-count">{summary[t.id].total}</span>
+              {t(`c.tab.${item.id}`)} <span className="tab-count">{summary[item.id].total}</span>
             </button>
           ))}
         </div>
         <p className="section-badge" data-testid="section-badge">
-          {sectionBadge(TABS.find((t) => t.id === tab)!.label, summary[tab])}
+          {sectionBadge(t(`c.tab.${tab}`), summary[tab], say)}
         </p>
         <div role="tabpanel" id="fields-panel" aria-labelledby={`tab-${tab}`} className="fields">
-          {inTab.length === 0 && <p className="muted">Phần này chưa có trường nào hiển thị được.</p>}
+          {inTab.length === 0 && <p className="muted">{t("c.pane.emptyTab")}</p>}
           {inTab.map((field) => (
             <div key={field.id}>
               <button
@@ -199,15 +193,15 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
               >
                 <div className="field-head">
                   <span>{field.field_name}</span>
-                  <span className={`badge badge-${field.badge}`}>{BADGE_LABEL[field.badge]}</span>
+                  <span className={`badge badge-${field.badge}`}>{t(`c.badge.${field.badge}`)}</span>
                 </div>
-                <div className="field-key muted">{readableKey(keyContext(field.natural_key, field.field_name))}</div>
+                <div className="field-key muted">{readableKey(keyContext(field.natural_key, field.field_name), say)}</div>
                 <div className="field-value">{formatValue(field.value)}</div>
                 {field.evidence_quote && <div className="field-quote">“{field.evidence_quote}”</div>}
                 <div className="muted">
                   {field.pdf_page_index !== null
-                    ? `Trang in ${field.printed_page ?? "?"} · trang ${field.pdf_page_index + 1} của file PDF`
-                    : "Không có trang bằng chứng"}
+                    ? t("c.field.pages", { printed: field.printed_page ?? "?", pdf: field.pdf_page_index + 1 })
+                    : t("c.field.noPage")}
                 </div>
               </button>
               {field.id === selectedId && <Why paperId={paperId} field={field} page={page} canView={access.canView} />}
@@ -219,7 +213,7 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
       <div
         role="separator"
         aria-orientation="vertical"
-        aria-label="Kéo để đổi độ rộng hai bên (hoặc dùng phím mũi tên trái / phải)"
+        aria-label={t("c.splitter")}
         aria-valuenow={split}
         aria-valuemin={SPLIT_MIN}
         aria-valuemax={SPLIT_MAX}
@@ -233,7 +227,7 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
         onKeyDown={onKeyDown}
       />
 
-      <section ref={pdfPane} className="pdf-pane" aria-label="PDF gốc">
+      <section ref={pdfPane} className="pdf-pane" aria-label={t("c.pane.pdf")}>
         {access.canView ? (
           <PdfViewer
             paperId={paperId}
@@ -247,21 +241,22 @@ export function EvidenceWorkspace({ paperId, fields, focusKey, canDownload = fal
         ) : (
           <div className="pdf-restricted" data-testid="pdf-restricted">
             <p>
-              <strong>PDF của bài này không được đăng công khai.</strong> Bài không có giấy phép mở, nên web chỉ hiện dữ liệu trích xuất và câu trích kèm số trang để bạn đối chiếu với bản gốc.
+              <strong>{t("c.restricted.lead")}</strong>
+              {t("c.restricted.rest")}
             </p>
             <p>
               {access.oaUrl && (
                 <a href={access.oaUrl} target="_blank" rel="noreferrer" data-testid="link-oa">
-                  Bản OA (nhà xuất bản hoặc kho lưu trữ)
+                  {t("c.restricted.oa")}
                 </a>
               )}
               {access.oaUrl && access.doiUrl && " · "}
               {access.doiUrl && (
                 <a href={access.doiUrl} target="_blank" rel="noreferrer" data-testid="link-doi">
-                  Mở DOI
+                  {t("c.restricted.doi")}
                 </a>
               )}
-              {!access.oaUrl && !access.doiUrl && <span className="muted">Chưa có liên kết tới bản gốc.</span>}
+              {!access.oaUrl && !access.doiUrl && <span className="muted">{t("c.restricted.none")}</span>}
             </p>
           </div>
         )}

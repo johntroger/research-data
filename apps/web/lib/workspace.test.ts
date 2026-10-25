@@ -14,6 +14,9 @@ import {
   tabOf,
 } from "./workspace.js";
 
+import { makeT, type MessageKey } from "./i18n";
+
+const say = (key: string, vars?: Record<string, string | number>) => makeT("vi")(key as MessageKey, vars);
 const f = (natural_key: string, field_name: string, badge = "auto_verified") => ({ natural_key, field_name, badge });
 
 describe("tabOf: where each kind of field is shown", () => {
@@ -66,10 +69,10 @@ describe("section summaries", () => {
   });
 
   it("words the badge of a section: x/y checked, only the ◇ count for interpretations, or that nothing is shown", () => {
-    expect(sectionBadge("Kết quả", summary.results)).toBe("Kết quả: 2/4 đã kiểm chứng");
-    expect(sectionBadge("Đóng góp & Khoảng trống", summary.contribution)).toBe("Đóng góp & Khoảng trống: ◇ 2 mục AI diễn giải");
-    expect(sectionBadge("Lý thuyết", summary.theory)).toBe("Lý thuyết: chưa có trường nào hiển thị được");
-    expect(sectionBadge("X", { total: 5, verified: 3, attention: 0, interpreted: 2 })).toBe("X: 3/3 đã kiểm chứng · ◇ 2 mục AI diễn giải");
+    expect(sectionBadge("Kết quả", summary.results, say)).toBe("Kết quả: 2/4 đã kiểm chứng");
+    expect(sectionBadge("Đóng góp & Khoảng trống", summary.contribution, say)).toBe("Đóng góp & Khoảng trống: ◇ 2 mục AI diễn giải");
+    expect(sectionBadge("Lý thuyết", summary.theory, say)).toBe("Lý thuyết: chưa có trường nào hiển thị được");
+    expect(sectionBadge("X", { total: 5, verified: 3, attention: 0, interpreted: 2 }, say)).toBe("X: 3/3 đã kiểm chứng · ◇ 2 mục AI diễn giải");
   });
 
   it("opens on the first tab that has fields, never an empty one", () => {

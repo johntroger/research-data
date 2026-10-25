@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useT } from "@/app/i18n-provider";
 import type { ExtractedField } from "@/lib/data";
 import { type Box, stepZoom, toCanvasBox, ZOOM_MAX, ZOOM_MIN } from "@/lib/pdf-view";
 
 type PdfJs = typeof import("unpdf/pdfjs");
 type Doc = Awaited<ReturnType<PdfJs["getDocument"]>["promise"]>;
 type Highlight = NonNullable<ExtractedField["highlight"]>;
-
-const NOT_LOCATED = "Không xác định được vị trí câu trích trên trang; hãy tự tìm câu trích hiển thị bên trái.";
 
 
 /** The pdf.js bundle of unpdf (it carries its own worker), loaded once and only in the browser. */
@@ -39,6 +38,7 @@ export function PdfViewer({
   /** The visitor may save a copy of the PDF (lib/pdf-access decides). */
   canDownload: boolean;
 }) {
+  const { t } = useT();
   const target = highlight?.page ?? page;
   const [current, setCurrent] = useState(target);
   const [zoom, setZoom] = useState(1);
@@ -65,14 +65,14 @@ export function PdfViewer({
       try {
         const pdfjs = await loadPdfJs();
         const response = await fetch(`/api/papers/${paperId}/pdf`);
-        if (!response.ok) throw new Error(`Không tải được PDF (${response.status})`);
+        if (!response.ok) throw new Error(t("c.pdf.errorLoad", { status: response.status }));
         const data = new Uint8Array(await response.arrayBuffer());
         loaded = await pdfjs.getDocument({ data }).promise;
         if (cancelled) return;
         setDoc(loaded);
         setPageCount(loaded.numPages);
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Không mở được PDF");
+        if (!cancelled) setError(e instanceof Error ? e.message : t("c.pdf.errorOpen"));
       }
     })();
     return () => {
@@ -107,7 +107,7 @@ export function PdfViewer({
         setBoxes(drawn);
       } catch (e) {
         // A render cancelled by a newer one is not an error.
-        if (!cancelled && !(e instanceof Error && e.name === "RenderingCancelledException")) setError(e instanceof Error ? e.message : "Không vẽ được trang PDF");
+        if (!cancelled && !(e instanceof Error && e.name === "RenderingCancelledException")) setError(e instanceof Error ? e.message : t("c.pdf.errorDraw"));
       }
     })();
     return () => {
@@ -128,19 +128,20 @@ export function PdfViewer({
   };
 
   const onThisPage = highlight !== null && highlight.page === current;
-  const note = !hasQuote ? null : highlight === null ? NOT_LOCATED : highlight.page !== current ? `Câu trích nằm ở trang ${highlight.page} của file PDF.` : null;
+  const note = !hasQuote ? null : highlight === null ? t("c.pdf.notLocated") : highlight.page !== current ? t("c.pdf.quoteOnPage", { page: highlight.page }) : null;
 
   return (
     <div className="pdf-viewer" data-testid="pdf-viewer" data-page={current}>
       <div className="pdf-toolbar" data-testid="pdf-page">
-        Đang mở trang {current} của file PDF{current === page && printedPage ? ` (trang in ${printedPage})` : ""}
+        {t("c.pdf.opening", { page: current })}
+        {current === page && printedPage ? t("c.pdf.printed", { printed: printedPage }) : ""}
       </div>
-      <div className="pdf-controls" role="toolbar" aria-label="Điều khiển PDF">
-        <button type="button" onClick={() => go(current - 1)} disabled={current <= 1} aria-label="Trang trước" data-testid="pdf-prev">
+      <div className="pdf-controls" role="toolbar" aria-label={t("c.pdf.toolbar")}>
+        <button type="button" onClick={() => go(current - 1)} disabled={current <= 1} aria-label={t("c.pdf.prev")} data-testid="pdf-prev">
           ‹
         </button>
         <label className="pdf-page-input">
-          <span className="sr-only">Số trang</span>
+          <span className="sr-only">{t("c.pdf.pageNumber")}</span>
           <input
             type="number"
             min={1}
@@ -153,34 +154,34 @@ export function PdfViewer({
           />
         </label>
         <span className="muted">/ {pageCount || "?"}</span>
-        <button type="button" onClick={() => go(current + 1)} disabled={pageCount > 0 && current >= pageCount} aria-label="Trang sau" data-testid="pdf-next">
+        <button type="button" onClick={() => go(current + 1)} disabled={pageCount > 0 && current >= pageCount} aria-label={t("c.pdf.next")} data-testid="pdf-next">
           ›
         </button>
         <span className="pdf-sep" />
-        <button type="button" onClick={() => setZoom((z) => stepZoom(z, -1))} disabled={zoom <= ZOOM_MIN} aria-label="Thu nhỏ" data-testid="pdf-zoom-out">
+        <button type="button" onClick={() => setZoom((z) => stepZoom(z, -1))} disabled={zoom <= ZOOM_MIN} aria-label={t("c.pdf.zoomOut")} data-testid="pdf-zoom-out">
           −
         </button>
         <span className="muted" data-testid="pdf-zoom">
           {Math.round(zoom * 100)}%
         </span>
-        <button type="button" onClick={() => setZoom((z) => stepZoom(z, 1))} disabled={zoom >= ZOOM_MAX} aria-label="Phóng to" data-testid="pdf-zoom-in">
+        <button type="button" onClick={() => setZoom((z) => stepZoom(z, 1))} disabled={zoom >= ZOOM_MAX} aria-label={t("c.pdf.zoomIn")} data-testid="pdf-zoom-in">
           +
         </button>
         <label className="pdf-frame-toggle">
-          <input type="checkbox" checked={showFrame} onChange={(e) => setShowFrame(e.target.checked)} data-testid="pdf-frame-toggle" /> Tô sáng
+          <input type="checkbox" checked={showFrame} onChange={(e) => setShowFrame(e.target.checked)} data-testid="pdf-frame-toggle" /> {t("c.pdf.highlight")}
         </label>
         {canDownload && (
           <a className="pdf-native" href={`/api/papers/${paperId}/pdf?download=1`} download data-testid="pdf-download">
-            Tải PDF
+            {t("c.pdf.download")}
           </a>
         )}
         {canDownload ? (
           <a href={`/api/papers/${paperId}/pdf#page=${current}`} target="_blank" rel="noreferrer">
-            Mở bằng trình xem của trình duyệt
+            {t("c.pdf.native")}
           </a>
         ) : (
           <span className="pdf-native muted" data-testid="pdf-view-only">
-            Chỉ để xem, đối chiếu: bài chưa có giấy phép mở nên không tải được
+            {t("c.pdf.viewOnly")}
           </span>
         )}
       </div>
@@ -191,7 +192,7 @@ export function PdfViewer({
       )}
       {error ? (
         <p className="pdf-note" role="alert" data-testid="pdf-error">
-          {error}.{canDownload ? " Bạn có thể thử «Mở bằng trình xem của trình duyệt»." : " Hãy tải lại trang; nếu vẫn lỗi, mở DOI của bài để đọc bản gốc."}
+          {error}.{canDownload ? t("c.pdf.tryNative") : t("c.pdf.tryReload")}
         </p>
       ) : (
         <div className="pdf-scroller" ref={scroller}>

@@ -1,74 +1,84 @@
 import { getLatestRelease, getOverview } from "@/lib/data";
 import { CopyButton } from "@/app/library/copy-button";
+import { getT } from "@/lib/i18n-server";
 import { releaseDate, releaseLabel, toolCitation } from "@/lib/release";
 
 export const dynamic = "force-dynamic";
 /** The public address for takedown and correction requests (step 4.8). */
 const TAKEDOWN_EMAIL = "tranthanhtung37@gmail.com";
 
-export const metadata = { title: "Giới thiệu và cách đọc dữ liệu" };
-
-const BADGES = [
-  { mark: "✓", name: "Đã kiểm chứng", cls: "badge-auto_verified", text: "Máy tìm thấy câu trích và giá trị trong PDF, đúng trang, đúng dòng hoặc ô; các kiểm tra phụ (dấu, vị trí cột của ma trận, chỉ số) đều đạt. Vẫn có thể sai nếu cả AI và máy cùng đọc nhầm." },
-  { mark: "⚠", name: "Nên xem kỹ", cls: "badge-needs_attention", text: "Có kiểm tra chưa qua hoặc máy không xác nhận được (số chỉ nằm trong hình, câu trích không có trên trang dẫn, bảng khó đọc). Giá trị có thể đúng; hãy mở PDF đối chiếu." },
-  { mark: "◇", name: "AI diễn giải", cls: "badge-ai_interpreted", text: "Phần AI tóm tắt hoặc phân loại (lý thuyết, đóng góp, khoảng trống). Máy không kiểm được, không có \"đúng / sai\" tự động." },
-  { mark: "★", name: "Đã sửa tay", cls: "", text: "Chủ dự án đã sửa hoặc xác nhận; được khóa, trích xuất lại không ghi đè." },
-];
-
-const AUDITS = [
-  ["Lần 1 (20/10/2026)", "30 trường ✓, Codex và Gemini", "30 / 30 đúng giá trị; 30% câu trích sai dòng (đã sửa)", "Claude đọc trang PDF"],
-  ["Lần 2 (21/10/2026)", "30 trường ✓ + 10 ⚠", "20 đúng, 4 gắn nhầm ô (một lỗi hệ thống ở bài ABE, đã sửa), 6 không kết luận được, 0 sai giá trị", "Claude chấm, tác tử khác kiểm chéo 10 trường: trùng 10 / 10"],
-  ["Lần 3 (23/10/2026)", "30 trường ✓ + 10 ⚠ của 13 bài do tác tử Claude trích", "28 đúng, 2 không phán đoán được, 0 sai; ⚠: 6 đúng, 4 không xác nhận được", "4 tác tử Sonnet chấm mù (không thấy câu trích)"],
-];
+export async function generateMetadata() {
+  const { t } = await getT();
+  return { title: t("about.title") };
+}
 
 export default async function AboutPage() {
+  const { lang, t, tn } = await getT();
   const [o, release] = await Promise.all([getOverview(), getLatestRelease()]);
   const citation = toolCitation(release, new Date());
+  const numbers = new Intl.NumberFormat(lang === "vi" ? "vi-VN" : "en-US");
+  const badges = [
+    { mark: "✓", name: t("about.badge.verified.name"), cls: "badge-auto_verified", text: t("about.badge.verified.text") },
+    { mark: "⚠", name: t("about.badge.attention.name"), cls: "badge-needs_attention", text: t("about.badge.attention.text") },
+    { mark: "◇", name: t("about.badge.ai.name"), cls: "badge-ai_interpreted", text: t("about.badge.ai.text") },
+    { mark: "★", name: t("about.badge.edited.name"), cls: "", text: t("about.badge.edited.text") },
+  ];
+  const audits = [1, 2, 3].map((n) => [t(`about.audit.${n}.round` as "about.audit.1.round"), t(`about.audit.${n}.sample` as "about.audit.1.sample"), t(`about.audit.${n}.result` as "about.audit.1.result"), t(`about.audit.${n}.marker` as "about.audit.1.marker")]);
   return (
     <article className="about" data-testid="about">
-      <h1>Giới thiệu và cách đọc dữ liệu</h1>
+      <h1>{t("about.title")}</h1>
 
-      <h2>Đây là gì</h2>
+      <h2>{t("about.what.h")}</h2>
       <p>
-        Một công cụ <strong>tham khảo</strong> phục vụ nghiên cứu của chủ dự án: gom các con số và thiết kế nghiên cứu của bài báo học thuật (marketing, đạo đức, hành vi người tiêu dùng; định lượng, tiếng Anh) vào một ma trận có thể tìm và lọc.
-        Công cụ không thay cho việc đọc bài gốc. <strong>Người dùng có trách nhiệm tự đối chiếu với bài gốc</strong> trước khi dùng số liệu trong nghiên cứu.
+        <strong>{t("about.what.reference")}</strong>
+        {t("about.what.1")}
+        <strong>{t("about.what.responsibility")}</strong>
+        {t("about.what.2")}
       </p>
       <p data-testid="about-open">
-        <strong>Ai cũng dùng được, không cần đăng nhập</strong>: tìm quan hệ, thư viện, ma trận, xem bằng chứng và xuất Excel, Word đều mở. Mọi PDF đều xem được trong trang bài để đối chiếu, nhưng chỉ bài có giấy phép mở mới tải được. Chỉ chủ dự án đăng nhập, để vào trang quản trị và tải các PDF chưa có giấy phép mở.
+        <strong>{t("about.open.lead")}</strong>
+        {t("about.open.rest")}
       </p>
 
-      <h2>Quyền riêng tư</h2>
+      <h2>{t("about.privacy.h")}</h2>
       <p data-testid="about-privacy">
-        Web <strong>không dùng cookie theo dõi</strong>, không yêu cầu tài khoản và không lưu địa chỉ IP. Chỉ có hai thứ được đếm: số lượt dùng mỗi ngày theo loại (tìm quan hệ, mở bằng chứng, xuất bảng, xem hoặc tải PDF...) dưới dạng con số tổng, không gắn với ai; và, khi bật, thống kê lượt xem trang không cookie của nhà cung cấp. Giới hạn tốc độ chống lạm dụng dùng mã băm của địa chỉ trong tối đa một giờ rồi bỏ.
+        {t("about.privacy.lead")}
+        <strong>{t("about.privacy.strong")}</strong>
+        {t("about.privacy.rest")}
       </p>
 
-      <h2>Kho hiện có</h2>
+      <h2>{t("about.repo.h")}</h2>
       <p data-testid="about-overview">
-        {o.papers} bài, {o.fields.toLocaleString("vi-VN")} giá trị đang hiển thị: <span className="badge badge-auto_verified">✓ {o.verified.toLocaleString("vi-VN")}</span> ·{" "}
-        <span className="badge badge-needs_attention">⚠ {o.attention.toLocaleString("vi-VN")}</span> · <span className="badge badge-ai_interpreted">◇ {o.interpreted.toLocaleString("vi-VN")}</span>.
-        Giá trị không khớp PDF bị ẩn với khách, nên số trên chưa gồm chúng.
+        {t("about.repo.lead", { papers: tn("n.papers", o.papers), fields: numbers.format(o.fields) })}
+        <span className="badge badge-auto_verified">✓ {numbers.format(o.verified)}</span> · <span className="badge badge-needs_attention">⚠ {numbers.format(o.attention)}</span> ·{" "}
+        <span className="badge badge-ai_interpreted">◇ {numbers.format(o.interpreted)}</span>. {t("about.repo.rest")}
       </p>
 
       {release && (
         <p data-testid="about-release">
-          <strong>Bản dữ liệu hiện tại:</strong> {releaseLabel(release)}, đóng ngày {releaseDate(release)}, danh sách khái niệm chuẩn phiên bản {release.canonical_version}.
-          {release.note ? ` ${release.note}` : ""} Mỗi lần nhập thêm bài, chủ dự án đóng một bản mới; con số trong kết quả tìm kiếm và tệp xuất là của bản đang hiện, nên hãy ghi số hiệu bản khi trích dẫn.
+          <strong>{t("about.release.lead")}</strong> {t("about.release.rest", { label: releaseLabel(release, lang), date: releaseDate(release, lang), version: release.canonical_version })}
+          {release.note ? ` ${release.note}` : ""}
+          {t("about.release.more")}
         </p>
       )}
 
-      <h2>Dữ liệu từ đâu, được làm thế nào</h2>
+      <h2>{t("about.how.h")}</h2>
       <ol>
-        <li>Bài báo lấy từ thư viện Zotero cá nhân của chủ dự án; thông tin thư mục (tác giả, năm, tạp chí, DOI) lấy từ Crossref, không để AI sinh.</li>
-        <li>Một AI (tác tử Claude, hoặc Codex, hoặc Gemini tùy bài) đọc PDF và điền các trường: thiết kế, mẫu, thang đo, đường quan hệ, ma trận tương quan, kèm <em>câu trích</em> và số trang làm bằng chứng.</li>
-        <li>Máy đối chiếu từng giá trị với PDF: câu trích có trên trang không, số có trong dòng bảng không, dấu có đúng không, ô ma trận có đúng cột không, các thống kê có khớp nhau không (ví dụ t với p).</li>
-        <li>Kết quả được gắn huy hiệu. Bấm một giá trị trong trang bài sẽ mở PDF đúng trang và tô khung chỗ bằng chứng khi định vị được.</li>
+        <li>{t("about.how.1")}</li>
+        <li>
+          {t("about.how.2.before")}
+          <em>{t("about.how.2.quote")}</em>
+          {t("about.how.2.after")}
+        </li>
+        <li>{t("about.how.3")}</li>
+        <li>{t("about.how.4")}</li>
       </ol>
-      <p>Không ai đọc bài, mã hóa hay duyệt từng giá trị. Chất lượng dựa trên một lượt trích xuất, các lớp kiểm tra của máy và huy hiệu bên dưới.</p>
+      <p>{t("about.how.note")}</p>
 
-      <h2>Cách đọc huy hiệu</h2>
+      <h2>{t("about.badges.h")}</h2>
       <table className="about-table">
         <tbody>
-          {BADGES.map((b) => (
+          {badges.map((b) => (
             <tr key={b.mark}>
               <th scope="row">
                 <span className={`badge ${b.cls}`}>{b.mark}</span> {b.name}
@@ -78,22 +88,22 @@ export default async function AboutPage() {
           ))}
         </tbody>
       </table>
-      <p>Tổng hợp trong trang “Tìm theo quan hệ” mặc định chỉ đếm kiểm định ✓ hoặc ★ và luôn nói rõ có bao nhiêu kiểm định ⚠ bị bỏ ra ngoài.</p>
+      <p>{t("about.badges.note")}</p>
 
-      <h2>Độ chính xác đã đo</h2>
-      <p>Ba lần kiểm mẫu ngẫu nhiên, người chấm là AI (không phải người đọc bài):</p>
+      <h2>{t("about.audit.h")}</h2>
+      <p>{t("about.audit.intro")}</p>
       <div className="matrix-scroll">
         <table className="about-table" data-testid="about-audits">
           <thead>
             <tr>
-              <th>Lần</th>
-              <th>Mẫu</th>
-              <th>Kết quả</th>
-              <th>Người chấm</th>
+              <th>{t("about.audit.col.round")}</th>
+              <th>{t("about.audit.col.sample")}</th>
+              <th>{t("about.audit.col.result")}</th>
+              <th>{t("about.audit.col.marker")}</th>
             </tr>
           </thead>
           <tbody>
-            {AUDITS.map((a) => (
+            {audits.map((a) => (
               <tr key={a[0]}>
                 {a.map((c, i) => (i === 0 ? <th scope="row" key={i}>{c}</th> : <td key={i}>{c}</td>))}
               </tr>
@@ -101,39 +111,60 @@ export default async function AboutPage() {
           </tbody>
         </table>
       </div>
-      <p className="muted">
-        Mỗi mẫu 30 trường ✓ không thấy lỗi sai giá trị chỉ cho phép kết luận tỷ lệ sai không quá khoảng 11% (cận trên khoảng tin cậy 95%). Mẫu bắt được lỗi lớn, chưa chứng minh độ chính xác cao.
-      </p>
+      <p className="muted">{t("about.audit.note")}</p>
 
-      <h2>Giới hạn đã biết</h2>
+      <h2>{t("about.limits.h")}</h2>
       <ul>
-        <li>Số chỉ nằm trong hình hoặc ảnh thường là ⚠ hoặc bị ẩn: máy không đọc được.</li>
-        <li>Bài scan được nhận dạng chữ (OCR) trên máy, độ nhiễu cao hơn và không có khung tô sáng trong PDF; nhiều trường ⚠ hơn.</li>
-        <li>Ma trận có hai bảng con cùng nhãn trên một trang đôi khi hiện câu trích của bảng đầu cho ô của bảng sau, dù giá trị đúng.</li>
-        <li>Phần “Lý thuyết”, đóng góp và khoảng trống là AI diễn giải (◇), không kiểm được bằng máy.</li>
-        <li>Con số tổng hợp chỉ mô tả các bài trong kho; đây không phải kết luận của cả lĩnh vực và không thay cho meta-analysis. Không có ý nghĩa thống kê không có nghĩa là không có tác động.</li>
+        <li>{t("about.limits.1")}</li>
+        <li>{t("about.limits.2")}</li>
+        <li>{t("about.limits.3")}</li>
+        <li>{t("about.limits.4")}</li>
+        <li>{t("about.limits.5")}</li>
       </ul>
 
-      <h2>Tệp xuất và các cột của CSV</h2>
-      <p>
-        Kết quả tìm kiếm tải được dưới dạng Excel, Word (bảng APA 7) và <strong>CSV</strong> (UTF-8, mở được bằng Excel, R, Python); danh sách bài ở Thư viện tải được dưới dạng <strong>RIS</strong> và <strong>BibTeX</strong> để đưa vào Zotero, EndNote hay LaTeX. Mọi tệp ghi số hiệu bản dữ liệu. CSV giữ giá trị gốc, không làm tròn và không quy đổi: <code>estimate</code> là hệ số như bài in, <code>estimate_type</code> cho biết là β chuẩn hóa, hệ số đường dẫn, r…, nên đừng gộp các loại khác nhau khi phân tích; <code>se</code>, <code>ci_low</code>, <code>ci_high</code> chỉ có khi bài in; <code>n</code> là cỡ mẫu của study; <code>result</code> là kết quả giả thuyết (<code>supported</code>, <code>not_supported</code>, <code>partially_supported</code>, <code>not_hypothesized</code>); <code>effect_direction</code> là chiều tác động (<code>positive</code>, <code>negative</code>, <code>none</code>, <code>unknown</code>); <code>badge</code> là huy hiệu (<code>auto_verified</code> ✓, <code>needs_attention</code> ⚠, <code>ai_interpreted</code> ◇, <code>human_reviewed</code> ★); <code>printed_page</code> và <code>pdf_page</code> chỉ chỗ bằng chứng trong bài.
-      </p>
+      <h2>{t("about.files.h")}</h2>
+      <p>{t("about.files.intro")}</p>
+      <ul>
+        <li>
+          <code>estimate</code> {t("about.files.estimate")}
+        </li>
+        <li>
+          <code>estimate_type</code> {t("about.files.estimateType")}
+        </li>
+        <li>
+          <code>se</code>, <code>ci_low</code>, <code>ci_high</code> {t("about.files.interval")}
+        </li>
+        <li>
+          <code>n</code> {t("about.files.n")}
+        </li>
+        <li>
+          <code>result</code> {t("about.files.result")} (<code>supported</code>, <code>not_supported</code>, <code>partially_supported</code>, <code>not_hypothesized</code>)
+        </li>
+        <li>
+          <code>effect_direction</code> {t("about.files.direction")} (<code>positive</code>, <code>negative</code>, <code>none</code>, <code>unknown</code>)
+        </li>
+        <li>
+          <code>badge</code> {t("about.files.badge")} (<code>auto_verified</code>, <code>needs_attention</code>, <code>ai_interpreted</code>, <code>human_reviewed</code>)
+        </li>
+        <li>
+          <code>printed_page</code>, <code>pdf_page</code> {t("about.files.pages")}
+        </li>
+      </ul>
 
-      <h2 id="cach-trich-dan">Cách trích dẫn công cụ này</h2>
-      <p>
-        Nếu bạn dùng con số lấy từ web trong bài viết, hãy trích dẫn công cụ <strong>kèm số hiệu bản dữ liệu</strong> (kết quả đổi khi nhập thêm bài) và trích dẫn cả bài gốc mà bạn lấy số; công cụ chỉ là nơi tìm, không thay cho bài gốc. Mẫu APA 7:
-      </p>
+      <h2 id="cach-trich-dan">{t("about.cite.h")}</h2>
+      <p>{t("about.cite.p")}</p>
       <blockquote data-testid="tool-citation">{citation}</blockquote>
       <p>
-        <CopyButton text={citation} label="Sao chép câu trích dẫn" testId="copy-tool-citation" />
+        <CopyButton text={citation} label={t("about.cite.copy")} testId="copy-tool-citation" />
       </p>
+
+      <h2>{t("about.content.h")}</h2>
       <p>
-        Web chỉ hiển thị dữ kiện (con số, thiết kế, thang đo) và các câu trích ngắn kèm số trang để đối chiếu; không đăng lại bài báo. Mọi người xem được PDF của mọi bài ngay trong trang bài, chỉ để đối chiếu số liệu; chỉ bài có giấy phép mở mới có nút tải (chủ dự án tải được mọi bài).
-        Nếu bạn là tác giả hoặc chủ bản quyền và muốn gỡ hoặc sửa một mục, hãy gửi email tới{" "}
-        <a href={`mailto:${TAKEDOWN_EMAIL}?subject=Yêu cầu gỡ hoặc sửa một mục trên Research Data`} data-testid="takedown-contact">
+        {t("about.content.p")}
+        <a href={`mailto:${TAKEDOWN_EMAIL}?subject=${encodeURIComponent(t("about.content.subject"))}`} data-testid="takedown-contact">
           {TAKEDOWN_EMAIL}
-        </a>{" "}
-        kèm đường dẫn của trang bài và nội dung cần gỡ hoặc sửa; chủ dự án sẽ xem xét và trả lời.
+        </a>
+        {t("about.content.after")}
       </p>
     </article>
   );

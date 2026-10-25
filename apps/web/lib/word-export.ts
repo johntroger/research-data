@@ -7,10 +7,14 @@
 import {
   AlignmentType, BorderStyle, Document, Packer, PageOrientation, Paragraph, Table, TableCell, TableRow, TextRun, WidthType,
 } from "docx";
-import { countryName, DESIGN_LABELS } from "./library";
-import { THEORY_ROLE_LABELS, sampleSummary, type MatrixRow } from "./matrix";
-import { BADGE_LABEL, DISCLAIMER, describeQuery } from "./relations-export";
-import { EFFECT_LABEL, formatCi, formatEstimate, formatP, formatSe, sampleSize, isVerified, paperLabel, STATUS_LABEL, type PathRow, type RelationResult } from "./relations";
+import { makeT, makeTn, type Translate, type TranslatePlural } from "./i18n";
+import { countryLabel, label, tk } from "./labels";
+import { sampleSummary, type MatrixRow } from "./matrix";
+import { DISCLAIMER, describeQuery } from "./relations-export";
+import { formatCi, formatEstimate, formatP, formatSe, sampleSize, isVerified, paperLabel, type PathRow, type RelationResult } from "./relations";
+
+type Lang = "vi" | "en";
+const tools = (lang: Lang): { t: Translate; tn: TranslatePlural } => ({ t: makeT(lang), tn: makeTn(lang) });
 
 export interface WordTable {
   title: string;
@@ -24,6 +28,8 @@ export interface WordTable {
 export interface WordSpec {
   tables: WordTable[];
   landscape?: boolean;
+  /** The responsibility statement at the end, in the language of the file (Vietnamese when not given). */
+  disclaimer?: string;
 }
 
 const FONT = "Times New Roman";
@@ -64,7 +70,7 @@ export async function apaDocument(spec: WordSpec): Promise<Uint8Array<ArrayBuffe
       }),
     );
   });
-  children.push(new Paragraph({ children: [new TextRun({ text: DISCLAIMER, font: FONT, size: 18, italics: true })], spacing: { before: 360 }, alignment: AlignmentType.LEFT }));
+  children.push(new Paragraph({ children: [new TextRun({ text: spec.disclaimer ?? DISCLAIMER, font: FONT, size: 18, italics: true })], spacing: { before: 360 }, alignment: AlignmentType.LEFT }));
   const doc = new Document({
     creator: "Research Data",
     styles: { default: { document: { run: { font: FONT, size: 24 } } } },
@@ -73,33 +79,40 @@ export async function apaDocument(spec: WordSpec): Promise<Uint8Array<ArrayBuffe
   return new Uint8Array(await Packer.toArrayBuffer(doc));
 }
 
-const SIGN_NOTE = "Ước lượng β, b hoặc r theo bài gốc (không quy đổi); p theo cách tác giả in. ";
-const BADGE_NOTE = "Huy hiệu: ✓ máy đã đối chiếu với PDF, ⚠ có kiểm tra chưa qua, ◇ AI diễn giải, ★ đã sửa tay. Trang là số trang in của bài gốc.";
-
 /** One table with a row per test of a Relationship Search result, in the order the page shows them. */
-export function relationsWordSpec(result: RelationResult, exportedAt: Date, provenance = ""): WordSpec {
+export function relationsWordSpec(result: RelationResult, exportedAt: Date, provenance = "", lang: Lang = "vi"): WordSpec {
+  const { t, tn } = tools(lang);
   const rows: PathRow[] = result.groups.flatMap((g) => g.rows);
   const verified = rows.filter(isVerified).length;
+  const modWord = t("role.mod");
   return {
     landscape: true,
+    disclaimer: t("xl.disclaimer"),
     tables: [
       {
-        title: "Kết quả kiểm định của mối quan hệ trong kho bài báo",
-        columns: ["Nguồn", "Study", "Quan hệ", "Giả thuyết", "Ước lượng", "p", "N", "Kết quả", "Huy hiệu", "Trang"],
+        title: t("wd.rel.title"),
+        columns: [t("wd.rel.col.source"), t("wd.rel.col.study"), t("wd.rel.col.relationship"), t("wd.rel.col.hypothesis"), t("wd.rel.col.estimate"), t("wd.rel.col.p"), t("wd.rel.col.n"), t("wd.rel.col.result"), t("wd.rel.col.badge"), t("wd.rel.col.page")],
         widths: [3, 1.3, 4, 1.2, 2, 1.3, 0.9, 1.8, 1.8, 0.9],
         rows: rows.map((r) => [
           `${r.papers?.apa_citation ?? paperLabel(r.papers)}`,
           r.studies?.study_label ?? "",
-          `${r.iv_label_original}${r.mediator_labels.length ? ` → ${r.mediator_labels.join(", ")}` : ""} → ${r.dv_label_original}${r.moderator_labels.length ? ` (điều tiết: ${r.moderator_labels.join(", ")})` : ""} [${EFFECT_LABEL[r.effect_type]}]`,
+          `${r.iv_label_original}${r.mediator_labels.length ? ` → ${r.mediator_labels.join(", ")}` : ""} → ${r.dv_label_original}${r.moderator_labels.length ? ` (${modWord}: ${r.moderator_labels.join(", ")})` : ""} [${label(t, "effect", r.effect_type)}]`,
           r.hypothesis_code ?? "",
           [formatEstimate(r), formatSe(r), formatCi(r)].filter(Boolean).join(", "),
           formatP(r),
           sampleSize(r)?.toLocaleString("en-US") ?? "",
-          STATUS_LABEL[r.status],
-          BADGE_LABEL[r.badge] ?? r.badge,
+          label(t, "status", r.status),
+          label(t, "badge", r.badge),
           r.evidence?.printed_page ?? "",
         ]),
-        note: `${describeQuery(result.query)}. Ngày xuất ${exportedAt.toISOString().slice(0, 10)}. ${rows.length} kiểm định từ ${new Set(rows.map((r) => r.paper_id)).size} bài, trong đó ${verified} đã kiểm chứng (✓ hoặc ★) và ${rows.length - verified} chưa. ${SIGN_NOTE}${BADGE_NOTE}${provenance ? ` ${provenance}` : ""}`,
+        note: `${t("wd.rel.note", {
+          query: describeQuery(result.query, t, lang),
+          date: exportedAt.toISOString().slice(0, 10),
+          tests: tn("n.tests", rows.length),
+          papers: tn("n.papers", new Set(rows.map((r) => r.paper_id)).size),
+          verified,
+          unverified: rows.length - verified,
+        })}${t("wd.signNote")}${t("wd.badgeNote")}${provenance ? ` ${provenance}` : ""}`,
       },
     ],
   };
@@ -112,39 +125,45 @@ export interface MatrixPaper {
 }
 
 /** Table 1: one row per paper (as the matrix page). Table 2: every test with badge and printed page. */
-export function matrixWordSpec(papers: MatrixPaper[], exportedAt: Date, filters: string, provenance = ""): WordSpec {
+export function matrixWordSpec(papers: MatrixPaper[], exportedAt: Date, filters: string, provenance = "", lang: Lang = "vi"): WordSpec {
+  const { t, tn } = tools(lang);
   const outcome = (m: MatrixRow) => {
     const o = m.outcome;
     const counted = o.supported + o.notSupported + o.mixed;
-    const parts = [counted > 0 ? `${o.supported} ủng hộ, ${o.notSupported} không ủng hộ${o.mixed > 0 ? `, ${o.mixed} một phần` : ""}` : "", o.unchecked > 0 ? `${o.unchecked} chưa kiểm chứng (không đếm)` : ""].filter(Boolean);
-    return parts.join("\n") || "Không có giả thuyết kiểm định";
+    const parts = [
+      counted > 0 ? `${t("wd.matrix.outcome", { s: o.supported, n: o.notSupported })}${o.mixed > 0 ? t("wd.matrix.outcomeMixed", { m: o.mixed }) : ""}` : "",
+      o.unchecked > 0 ? t("wd.matrix.outcomeUnchecked", { n: o.unchecked }) : "",
+    ].filter(Boolean);
+    return parts.join("\n") || t("wd.matrix.noHypothesis");
   };
-  const stamp = `Ngày xuất ${exportedAt.toISOString().slice(0, 10)}. ${papers.length} bài${filters ? `; bộ lọc: ${filters}` : ""}. `;
+  const country = (c: string) => countryLabel(c, lang);
+  const stamp = t("wd.matrix.stamp", { date: exportedAt.toISOString().slice(0, 10), papers: tn("n.papers", papers.length), filters: filters ? t("wd.matrix.filters", { filters }) : "" });
   return {
     landscape: true,
+    disclaimer: t("xl.disclaimer"),
     tables: [
       {
-        title: "Tổng hợp các nghiên cứu trong kho theo lý thuyết, thiết kế, mẫu và kết quả",
-        columns: ["Nguồn", "Lý thuyết", "Thiết kế và mẫu", "Kết quả chính"],
+        title: t("wd.matrix.title1"),
+        columns: [t("wd.matrix.col.source"), t("wd.matrix.col.theory"), t("wd.matrix.col.design"), t("wd.matrix.col.outcome")],
         widths: [3, 3, 3, 2.5],
         rows: papers.map((p) => [
           `${p.citation}\n${p.title}`,
-          p.row.theories.map((t) => `${t.name} (${THEORY_ROLE_LABELS[t.role] ?? t.role})`).join("\n") || "—",
-          p.row.studies.map((s) => `${p.row.studies.length > 1 ? `${s.label}: ` : ""}${DESIGN_LABELS[s.design ?? ""] ?? s.design ?? "?"}${sampleSummary(s, countryName) ? `, ${sampleSummary(s, countryName)}` : ""}`).join("\n") || "—",
+          p.row.theories.map((th) => `${th.name} (${tk(t, `theoryRole.${th.role}`)})`).join("\n") || "—",
+          p.row.studies.map((s) => `${p.row.studies.length > 1 ? `${s.label}: ` : ""}${s.design ? label(t, "design", s.design) : "?"}${sampleSummary(s, country) ? `, ${sampleSummary(s, country)}` : ""}`).join("\n") || "—",
           outcome(p.row),
         ]),
-        note: `${stamp}“Kết quả chính” chỉ đếm kiểm định giả thuyết đã kiểm chứng (✓ hoặc ★). Lý thuyết do AI diễn giải, máy không kiểm được.`,
+        note: `${stamp}${t("wd.matrix.note1")}`,
       },
       {
-        title: "Chi tiết từng kiểm định theo Study",
-        columns: ["Nguồn", "Study", "Giả thuyết", "Quan hệ", "Thống kê", "Kết quả", "Huy hiệu", "Trang"],
+        title: t("wd.matrix.title2"),
+        columns: [t("wd.matrix.col2.source"), t("wd.matrix.col2.study"), t("wd.matrix.col2.hypothesis"), t("wd.matrix.col2.relationship"), t("wd.matrix.col2.statistic"), t("wd.matrix.col2.result"), t("wd.matrix.col2.badge"), t("wd.matrix.col2.page")],
         widths: [2.4, 1.2, 1.1, 4, 3, 1.8, 1.8, 0.9],
         rows: papers.flatMap((p) =>
           p.row.studies.flatMap((s) =>
-            s.lines.map((l) => [p.citation, s.label, l.hypothesis ?? "", l.relation, [l.statistic, l.r2].filter(Boolean).join("; "), STATUS_LABEL[l.status], l.verified ? "✓ đã kiểm chứng" : "⚠ chưa kiểm chứng", l.printedPage ?? ""]),
+            s.lines.map((l) => [p.citation, s.label, l.hypothesis ?? "", l.relation, [l.statistic, l.r2].filter(Boolean).join("; "), label(t, "status", l.status), l.verified ? t("wd.verified") : t("wd.unverified"), l.printedPage ?? ""]),
           ),
         ),
-        note: `${stamp}${SIGN_NOTE}${BADGE_NOTE}${provenance ? ` ${provenance}` : ""}`,
+        note: `${stamp}${t("wd.signNote")}${t("wd.badgeNote")}${provenance ? ` ${provenance}` : ""}`,
       },
     ],
   };

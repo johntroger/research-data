@@ -63,13 +63,6 @@ export interface MatrixRow {
 }
 
 const ROLE_RANK: Record<string, number> = { tested: 0, extended: 1, hypothesis_derivation: 2, framing: 3, mentioned: 4 };
-export const THEORY_ROLE_LABELS: Record<string, string> = {
-  tested: "được kiểm định",
-  extended: "mở rộng",
-  hypothesis_derivation: "dẫn giả thuyết",
-  framing: "khung",
-  mentioned: "nhắc đến",
-};
 
 const pretty = (name: string) => (name === name.toLowerCase() ? name.charAt(0).toUpperCase() + name.slice(1) : name);
 
@@ -108,8 +101,9 @@ const two = (n: number) => {
 };
 const ci = (p: MatrixPath) => (p.ci_low != null && p.ci_high != null ? `95% CI [${two(p.ci_low)}, ${two(p.ci_high)}]` : "");
 
-export function pathLine(p: MatrixPath): PathLine {
-  const relation = `${p.iv_label_original}${p.mediator_labels.length ? ` → ${p.mediator_labels.join(", ")}` : ""}${p.moderator_labels.length ? ` (điều tiết: ${p.moderator_labels.join(", ")})` : ""} → ${p.dv_label_original}`;
+/** `moderatorWord` is the word for "moderator" in the language of the page (the line is built on the server for a client component). */
+export function pathLine(p: MatrixPath, moderatorWord = "điều tiết"): PathLine {
+  const relation = `${p.iv_label_original}${p.mediator_labels.length ? ` → ${p.mediator_labels.join(", ")}` : ""}${p.moderator_labels.length ? ` (${moderatorWord}: ${p.moderator_labels.join(", ")})` : ""} → ${p.dv_label_original}`;
   return {
     id: p.id,
     naturalKey: p.natural_key,
@@ -124,7 +118,7 @@ export function pathLine(p: MatrixPath): PathLine {
   };
 }
 
-export function buildMatrix(paperIds: string[], theories: TheoryRow[], samples: SampleRow[], paths: MatrixPath[]): Map<string, MatrixRow> {
+export function buildMatrix(paperIds: string[], theories: TheoryRow[], samples: SampleRow[], paths: MatrixPath[], moderatorWord?: string): Map<string, MatrixRow> {
   const group = <T extends { paper_id: string }>(rows: T[]) => {
     const m = new Map<string, T[]>();
     for (const r of rows) (m.get(r.paper_id) ?? m.set(r.paper_id, []).get(r.paper_id)!).push(r);
@@ -146,7 +140,7 @@ export function buildMatrix(paperIds: string[], theories: TheoryRow[], samples: 
     for (const p of myPaths.filter((x) => x.effect_type !== "control")) {
       const s = studies.get(p.study_id) ?? { studyId: p.study_id, label: p.studies?.study_label ?? "Study", position: 99, design: p.studies?.research_design ?? null, n: null, countries: [], sampleType: null, lines: [] };
       studies.set(p.study_id, s);
-      s.lines.push(pathLine(p));
+      s.lines.push(pathLine(p, moderatorWord));
     }
     out.set(id, {
       paperId: id,

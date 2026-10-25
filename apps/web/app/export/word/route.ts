@@ -3,6 +3,7 @@
  * same order, as the page and the Excel file. GET /export/word?a=…&b=…
  */
 import { getLatestRelease, listConcepts, listPathRows } from "@/lib/data";
+import { getLang } from "@/lib/i18n-server";
 import { provenanceNote } from "@/lib/release";
 import { countUse } from "@/lib/usage";
 import { parseQuery, searchRelations } from "@/lib/relations";
@@ -20,7 +21,8 @@ export async function GET(request: Request) {
   const [rows, concepts, release] = await Promise.all([listPathRows(), listConcepts(), getLatestRelease()]);
   const result = searchRelations(rows, concepts, parseQuery(params));
   const now = new Date();
-  const bytes = await apaDocument(relationsWordSpec(result, now, provenanceNote(release, now, url.origin)));
+  const lang = await getLang();
+  const bytes = await apaDocument(relationsWordSpec(result, now, provenanceNote(release, now, url.origin, lang), lang));
   await countUse("export_word");
   return new Response(bytes, {
     headers: {

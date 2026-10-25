@@ -1,49 +1,57 @@
 import Link from "next/link";
-import { countryName, DESIGN_LABELS, facetOptions, PAPER_TYPE_LABELS, SAMPLE_LABELS, type FacetName, type LibraryItem, type LibraryQuery } from "@/lib/library";
+import { getT } from "@/lib/i18n-server";
+import { countryLabel, label, type LabelGroup } from "@/lib/labels";
+import { facetOptions, type FacetName, type LibraryItem, type LibraryQuery } from "@/lib/library";
 
-const GROUPS: { facet: FacetName; param: string; title: string; label: (v: string) => string }[] = [
-  { facet: "years", param: "year", title: "Năm", label: (v) => (v === "unknown" ? "Chưa rõ" : v) },
-  { facet: "types", param: "type", title: "Loại bài", label: (v) => (v === "unknown" ? "Chưa rõ" : (PAPER_TYPE_LABELS[v] ?? v)) },
-  { facet: "designs", param: "design", title: "Thiết kế nghiên cứu", label: (v) => (v === "unknown" ? "Chưa rõ" : (DESIGN_LABELS[v] ?? v)) },
-  { facet: "samples", param: "sample", title: "Loại mẫu", label: (v) => (v === "unknown" ? "Chưa rõ" : (SAMPLE_LABELS[v] ?? v)) },
-  { facet: "countries", param: "country", title: "Quốc gia", label: (v) => (v === "unknown" ? "Chưa rõ" : `${countryName(v)} (${v})`) },
+const GROUPS: { facet: FacetName; param: string; title: "filters.years" | "filters.types" | "filters.designs" | "filters.samples" | "filters.countries"; group: LabelGroup | null }[] = [
+  { facet: "years", param: "year", title: "filters.years", group: null },
+  { facet: "types", param: "type", title: "filters.types", group: "ptype" },
+  { facet: "designs", param: "design", title: "filters.designs", group: "design" },
+  { facet: "samples", param: "sample", title: "filters.samples", group: "sample" },
+  { facet: "countries", param: "country", title: "filters.countries", group: null },
 ];
 
 /** The search box and facets shared by the library and the summary matrix: a GET form, so the filters live in the URL. */
-export function LibraryFilters({ all, query, filtered, action }: { all: LibraryItem[]; query: LibraryQuery; filtered: boolean; action: string }) {
+export async function LibraryFilters({ all, query, filtered, action }: { all: LibraryItem[]; query: LibraryQuery; filtered: boolean; action: string }) {
+  const { lang, t } = await getT();
+  const name = (facet: FacetName, group: LabelGroup | null, v: string): string => {
+    if (v === "unknown") return t("filters.unknown");
+    if (facet === "countries") return `${countryLabel(v, lang)} (${v})`;
+    return group ? label(t, group, v) : v;
+  };
   return (
     <form method="get" action={action} className="library-filters" data-testid="library-filters">
       <div className="library-search">
-        <input type="search" name="q" defaultValue={query.q} placeholder="Tìm theo tên bài, tác giả, tạp chí, DOI" aria-label="Tìm trong thư viện" />
-        <button type="submit">Lọc</button>
-        {(filtered || query.q) && <Link href={action}>Xóa lọc</Link>}
+        <input type="search" name="q" defaultValue={query.q} placeholder={t("filters.placeholder")} aria-label={t("filters.aria")} />
+        <button type="submit">{t("filters.apply")}</button>
+        {(filtered || query.q) && <Link href={action}>{t("filters.clear")}</Link>}
       </div>
       <div className="library-facets">
         {GROUPS.map((g) => (
           <details key={g.facet} open={query[g.facet].length > 0}>
             <summary>
-              {g.title}
+              {t(g.title)}
               {query[g.facet].length > 0 && ` (${query[g.facet].length})`}
             </summary>
             {facetOptions(all, query, g.facet).map((o) => (
               <label key={o.value} className={o.count === 0 && !o.selected ? "muted" : undefined}>
-                <input type="checkbox" name={g.param} value={o.value} defaultChecked={o.selected} /> {g.label(o.value)} <span className="muted">({o.count})</span>
+                <input type="checkbox" name={g.param} value={o.value} defaultChecked={o.selected} /> {name(g.facet, g.group, o.value)} <span className="muted">({o.count})</span>
               </label>
             ))}
           </details>
         ))}
         <details open={query.trust !== "" || query.matrix}>
-          <summary>Mức tin cậy và dữ liệu</summary>
+          <summary>{t("filters.trust.summary")}</summary>
           <label>
-            Tỷ lệ trường ⚠{" "}
+            {t("filters.trust.label")}{" "}
             <select name="trust" defaultValue={query.trust}>
-              <option value="">Tất cả</option>
-              <option value="high">Tối đa 10%</option>
-              <option value="mid">Tối đa 25%</option>
+              <option value="">{t("filters.trust.all")}</option>
+              <option value="high">{t("filters.trust.high")}</option>
+              <option value="mid">{t("filters.trust.mid")}</option>
             </select>
           </label>
           <label>
-            <input type="checkbox" name="matrix" value="1" defaultChecked={query.matrix} /> Có ma trận tương quan
+            <input type="checkbox" name="matrix" value="1" defaultChecked={query.matrix} /> {t("filters.matrix")}
           </label>
         </details>
       </div>

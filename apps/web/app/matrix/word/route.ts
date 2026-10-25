@@ -3,6 +3,8 @@
  * GET /matrix/word?q=…&design=…
  */
 import { getLatestRelease, listLibraryItems, listMatrixData, paperLabel } from "@/lib/data";
+import { makeT } from "@/lib/i18n";
+import { getLang } from "@/lib/i18n-server";
 import { provenanceNote } from "@/lib/release";
 import { filterLibrary, parseLibraryQuery } from "@/lib/library";
 import { buildMatrix } from "@/lib/matrix";
@@ -20,9 +22,10 @@ export async function GET(request: Request) {
     params[key] = values.length === 1 ? values[0]! : values;
   }
   const query = parseLibraryQuery(params);
+  const lang = await getLang();
   const [all, data, release] = await Promise.all([listLibraryItems(), listMatrixData(), getLatestRelease()]);
   const papers = filterLibrary(all, query);
-  const rows = buildMatrix(papers.map((p) => p.id), data.theories, data.samples, data.paths);
+  const rows = buildMatrix(papers.map((p) => p.id), data.theories, data.samples, data.paths, makeT(lang)("role.mod"));
   const now = new Date();
   const filters = [...url.searchParams.entries()].map(([k, v]) => `${k}=${v}`).join(", ");
   const bytes = await apaDocument(
@@ -34,7 +37,8 @@ export async function GET(request: Request) {
       }),
       now,
       filters,
-      provenanceNote(release, now, url.origin),
+      provenanceNote(release, now, url.origin, lang),
+      lang,
     ),
   );
   await countUse("export_word_matrix");

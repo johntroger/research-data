@@ -5,15 +5,11 @@
 
 export type TabId = "overview" | "theory" | "study" | "measures" | "results" | "tables" | "contribution";
 
-export const TABS: { id: TabId; label: string }[] = [
-  { id: "overview", label: "Tổng quan" },
-  { id: "theory", label: "Lý thuyết" },
-  { id: "study", label: "Study & Mẫu" },
-  { id: "measures", label: "Đo lường" },
-  { id: "results", label: "Kết quả" },
-  { id: "tables", label: "Tương quan" },
-  { id: "contribution", label: "Đóng góp & Khoảng trống" },
-];
+/** The tabs in order; the name of tab X is the message `c.tab.X`. */
+export const TABS: { id: TabId }[] = [{ id: "overview" }, { id: "theory" }, { id: "study" }, { id: "measures" }, { id: "results" }, { id: "tables" }, { id: "contribution" }];
+
+/** Anything that turns a message key and values into text (the server's `t` and the client's `useT().t` both fit). */
+export type Say = (key: string, vars?: Record<string, string | number>) => string;
 
 export interface TabField {
   natural_key: string;
@@ -58,12 +54,12 @@ export function summariseSections(fields: TabField[]): Record<TabId, SectionSumm
 }
 
 /** "Kết quả: 18/20 đã kiểm chứng" for a section with checkable fields; only the ◇ count for one made of interpretations. */
-export function sectionBadge(label: string, s: SectionSummary): string {
-  if (s.total === 0) return `${label}: chưa có trường nào hiển thị được`;
+export function sectionBadge(label: string, s: SectionSummary, say: Say): string {
+  if (s.total === 0) return say("c.section.none", { label });
   const checkable = s.verified + s.attention;
   const parts: string[] = [];
-  if (checkable > 0) parts.push(`${s.verified}/${checkable} đã kiểm chứng`);
-  if (s.interpreted > 0) parts.push(`◇ ${s.interpreted} mục AI diễn giải`);
+  if (checkable > 0) parts.push(say("c.section.verified", { v: s.verified, c: checkable }));
+  if (s.interpreted > 0) parts.push(say("c.section.interpreted", { n: s.interpreted }));
   return `${label}: ${parts.join(" · ")}`;
 }
 

@@ -28,7 +28,7 @@ describe("paperFacts", () => {
       f("study_1:h1:a->b:direct:estimate", "estimate", -0.31),
       f("study_1:h1:a->b:direct:status", "status", "supported", "needs_attention"),
     ]);
-    expect(facts).toMatchObject({ typeLabel: "Thực nghiệm định lượng", designs: ["Khảo sát"], sampleSizes: [312], tests: 1, fields: 6, verified: 5 });
+    expect(facts).toMatchObject({ type: "empirical_quant", designs: ["survey"], sampleSizes: [312], tests: 1, fields: 6, verified: 5 });
   });
 
   it("counts a path that reports no estimate, and an indirect effect, as tests", () => {

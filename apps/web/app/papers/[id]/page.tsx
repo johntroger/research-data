@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import { getPaper, listFields, paperLabel } from "@/lib/data";
+import { getT } from "@/lib/i18n-server";
+import { label, tk } from "@/lib/labels";
 import { getOwner } from "@/lib/supabase-server";
 import { canDownloadPdf, canViewPdf, pdfLinks } from "@/lib/pdf-access";
 import { authorLine, paperFacts, sourceLine } from "@/lib/paper-header";
-import { defaultTab, summariseSections, TABS } from "@/lib/workspace";
+import { defaultTab, summariseSections } from "@/lib/workspace";
 import { EvidenceWorkspace } from "./evidence-workspace";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +17,7 @@ export default async function PaperPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const { lang, t, tn } = await getT();
   const { id } = await params;
   const paper = await getPaper(id);
   if (!paper) notFound();
@@ -25,6 +28,7 @@ export default async function PaperPage({
   // A link from the search results names the test (its natural key); its estimate is selected first.
   const raw = (await searchParams).focus;
   const focusKey = (Array.isArray(raw) ? raw[0] : raw) || undefined;
+  const numbers = new Intl.NumberFormat(lang === "vi" ? "vi-VN" : "en-US");
 
   return (
     <>
@@ -32,29 +36,29 @@ export default async function PaperPage({
       <div className="paper-head" data-testid="paper-head">
         {paper.authors.length > 0 && <p data-testid="paper-authors">{authorLine(paper.authors)}</p>}
         <p className="muted" data-testid="paper-source">
-          {sourceLine(paper) || "Chưa có thông tin tạp chí"}
+          {sourceLine(paper) || t("paper.noSource")}
           {paper.doi && (
             <>
               {" · "}
               <a href={`https://doi.org/${paper.doi}`} target="_blank" rel="noreferrer">
-                DOI {paper.doi}
+                {t("paper.doi", { doi: paper.doi })}
               </a>
             </>
           )}
         </p>
         <p data-testid="paper-facts">
           {[
-            facts.typeLabel,
-            facts.designs.length ? `Thiết kế: ${facts.designs.join(", ")}` : null,
-            facts.sampleSizes.length ? `N = ${facts.sampleSizes.map((n) => n.toLocaleString("vi-VN")).join("; ")}` : null,
-            facts.tests ? `${facts.tests} kiểm định đường quan hệ` : null,
-            `${facts.verified}/${facts.fields} trường đã kiểm chứng (✓)`,
+            facts.type ? label(t, "ptype", facts.type) : null,
+            facts.designs.length ? t("paper.facts.designs", { list: facts.designs.map((d) => label(t, "design", d)).join(", ") }) : null,
+            facts.sampleSizes.length ? t("paper.facts.n", { list: facts.sampleSizes.map((n) => numbers.format(n)).join("; ") }) : null,
+            facts.tests ? tn("paper.facts.tests", facts.tests) : null,
+            t("paper.facts.verified", { v: facts.verified, f: facts.fields }),
           ]
             .filter(Boolean)
             .join(" · ")}
         </p>
         <p className="muted" data-testid="paper-refs">
-          Lấy tài liệu tham khảo:{" "}
+          {t("paper.refs")}{" "}
           <a href={`/export/refs?format=ris&paper=${paper.id}`} download>
             RIS
           </a>
@@ -64,7 +68,8 @@ export default async function PaperPage({
           </a>
         </p>
         <p className="muted" data-testid="paper-hint">
-          {focusKey ? "" : `Mở sẵn tab ${TABS.find((t) => t.id === openTab)?.label}; `}bấm một giá trị để thấy bằng chứng trong PDF.
+          {focusKey ? "" : t("paper.hint.tab", { tab: tk(t, `c.tab.${openTab}`) })}
+          {t("paper.hint")}
         </p>
       </div>
       <EvidenceWorkspace paperId={paper.id} fields={fields} canDownload={Boolean(paper.pdf_path) && canDownloadPdf(isOwner, paper)} access={{ canView: canViewPdf(), ...pdfLinks(paper) }} {...(focusKey ? { focusKey } : {})} />

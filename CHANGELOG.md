@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.102 (so với 3.9.101)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | P5.1 đến P5.3 (chưa xong): nền hai ngôn ngữ VI/EN, dịch hầu hết trang và tệp xuất; còn error, login, dọn nhãn cũ, chạy lại e2e | Người dùng nước ngoài dùng được web |
+
 ### Version 3.9.101 (so với 3.9.100)
 
 | # | Thay đổi | Lý do |

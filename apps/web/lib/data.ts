@@ -210,13 +210,13 @@ export async function listMatrixData(): Promise<{ theories: TheoryRow[]; samples
 }
 
 /** The tests of one paper, by study, for the matrix row that was opened (step 4.1: the page no longer carries every test of every paper). */
-export async function listPaperLines(paperId: string): Promise<{ studyId: string; label: string; lines: PathLine[] }[] | null> {
+export async function listPaperLines(paperId: string, moderatorWord?: string): Promise<{ studyId: string; label: string; lines: PathLine[] }[] | null> {
   if (!/^[0-9a-f-]{36}$/i.test(paperId)) return null;
   const [samples, paths] = await Promise.all([
     restAll<SampleRow>(`samples?select=paper_id,study_id,n,country_iso,sample_type,studies(study_label,position,research_design)&paper_id=eq.${paperId}`),
     restAll<MatrixPath>(`path_results?select=${PATH_COLUMNS},r2_dv&paper_id=eq.${paperId}&order=natural_key`),
   ]);
-  const row = buildMatrix([paperId], [], samples, paths).get(paperId);
+  const row = buildMatrix([paperId], [], samples, paths, moderatorWord).get(paperId);
   return (row?.studies ?? []).filter((s) => s.lines.length > 0).map((s) => ({ studyId: s.studyId, label: s.label, lines: s.lines }));
 }
 

@@ -1,5 +1,5 @@
 /** What the top of a paper page says (step P1.4): who wrote it, where it appeared, and what is in it. Pure, no I/O. */
-import { DESIGN_LABELS, PAPER_TYPE_LABELS } from "./library";
+import type { Say } from "./workspace";
 
 interface Named {
   given?: string | null;
@@ -29,7 +29,8 @@ export interface HeaderField {
 }
 
 export interface PaperFacts {
-  typeLabel: string | null;
+  /** Keys (paper type, research design); the page names them in its language. */
+  type: string | null;
   designs: string[];
   /** Sample sizes as the paper reports them, one per study that has one. */
   sampleSizes: number[];
@@ -44,11 +45,11 @@ const isNumber = (v: unknown): v is number => typeof v === "number" && Number.is
 
 export function paperFacts(fields: HeaderField[]): PaperFacts {
   const type = fields.find((f) => f.natural_key === "paper_type")?.value;
-  const designs = [...new Set(fields.filter((f) => f.field_name === "research_design").map((f) => String(f.value)))].map((d) => DESIGN_LABELS[d] ?? d);
+  const designs = [...new Set(fields.filter((f) => f.field_name === "research_design").map((f) => String(f.value)))];
   // A study's sample is "study_1:n" (full extraction) or field "sample_size" (skeleton); a matrix's or a cell's n has more parts.
   const sampleSizes = fields.filter((f) => (f.field_name === "sample_size" || /^[^:]+:n$/.test(f.natural_key)) && isNumber(f.value)).map((f) => f.value as number);
   return {
-    typeLabel: typeof type === "string" ? (PAPER_TYPE_LABELS[type] ?? type) : null,
+    type: typeof type === "string" ? type : null,
     designs,
     sampleSizes,
     // One path per "study:h:iv->dv:effect", whatever it reports (β, p only, or just the conclusion).
@@ -59,7 +60,7 @@ export function paperFacts(fields: HeaderField[]): PaperFacts {
 }
 
 /** A natural key the way a reader would say it: "study_1:h1:a->b:direct" becomes "Study 1 · H1 · a → b · direct". */
-export function readableKey(context: string): string {
+export function readableKey(context: string, say?: Say): string {
   return context
     .split(":")
     .map((part) => {
@@ -67,8 +68,8 @@ export function readableKey(context: string): string {
       if (/^h\d+/i.test(part)) return part.toUpperCase();
       if (part === "table") return "";
       const table = /^table_(\w+)$/.exec(part);
-      if (table) return `Bảng ${table[1]}`;
-      if (part === "m") return "thang đo";
+      if (table) return say ? say("c.key.table", { n: table[1]! }) : `Bảng ${table[1]}`;
+      if (part === "m") return say ? say("c.key.measure") : "thang đo";
       return part.replace(/->/g, " → ").replace(/_/g, " ");
     })
     .filter(Boolean)

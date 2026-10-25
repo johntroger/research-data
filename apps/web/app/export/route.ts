@@ -3,6 +3,7 @@
  * order, as the page lists. GET /export?a=…&b=… (the page's own search parameters).
  */
 import { getLatestRelease, listConcepts, listPathRows } from "@/lib/data";
+import { getLang } from "@/lib/i18n-server";
 import { provenanceNote } from "@/lib/release";
 import { countUse } from "@/lib/usage";
 import { parseQuery, searchRelations } from "@/lib/relations";
@@ -19,9 +20,11 @@ export async function GET(request: Request) {
   }
   const [rows, concepts, release] = await Promise.all([listPathRows(), listConcepts(), getLatestRelease()]);
   const result = searchRelations(rows, concepts, parseQuery(params));
+  const lang = await getLang();
   const table = exportTable(result, {
     exportedAt: new Date(),
-    provenance: provenanceNote(release, new Date(), url.origin),
+    provenance: provenanceNote(release, new Date(), url.origin, lang),
+    lang,
     openUrl: (r) => `${url.origin}/papers/${r.paper_id}?focus=${encodeURIComponent(r.natural_key)}`,
   });
   const bytes = await buildWorkbook(table);
