@@ -19,6 +19,7 @@ import {
   rolesInTest,
   type RelationQuery,
   searchRelations,
+  similarNames,
   suggestions,
 } from "./relations.js";
 
@@ -305,5 +306,30 @@ describe("the same relationship reported more than once", () => {
   it("puts the distinct relationships beside the tests in the summary", () => {
     const { summary } = searchRelations(data, [], q({ a: "perceived", b: "trust", dir: "both" }));
     expect(summary).toMatchObject({ tests: 4, relations: 2 });
+  });
+});
+
+describe("names the reader may have meant", () => {
+  const names = ["Brand Trust", "ethicality", "Brand Loyalty", "Purchase Intention", "customer satisfaction", "trust"];
+
+  it("forgives a typo, a plural and a part of a name", () => {
+    expect(similarNames("ethicalty", names)).toEqual(["ethicality"]);
+    expect(similarNames("loyal", names)).toEqual(["Brand Loyalty"]);
+    expect(similarNames("satisfactions", names)).toEqual(["customer satisfaction"]);
+    expect(similarNames("intention", names)).toEqual(["Purchase Intention"]);
+  });
+
+  it("ranks the whole-name match first and the nearest, shortest name before a longer one", () => {
+    expect(similarNames("brand", names)).toEqual(["Brand Trust", "Brand Loyalty"]);
+  });
+
+  it("suggests nothing for a name that exists (the question is empty, not misspelt), for nothing typed, or for something unrelated", () => {
+    expect(similarNames("Brand trust", names)).toEqual([]);
+    expect(similarNames("  ", names)).toEqual([]);
+    expect(similarNames("zebra quokka", names)).toEqual([]);
+  });
+
+  it("respects the limit", () => {
+    expect(similarNames("brand", names, 1)).toHaveLength(1);
   });
 });
