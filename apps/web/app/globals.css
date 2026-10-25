@@ -796,3 +796,9 @@ h1 {
   max-width: 720px;
   height: auto;
 }
+
+.lang-switch {
+  font-size: 13px;
+  margin-right: 12px;
+  white-space: nowrap;
+}

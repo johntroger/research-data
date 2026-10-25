@@ -9,6 +9,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { clientIp, enforce, memoryStore, rateLimitEnabled, rulesFor, visitorId } from "./lib/rate-limit";
 import { upstashFromEnv, upstashStore } from "./lib/rate-limit-upstash";
+import { isLang, LANG_COOKIE, parseLang, translate } from "./lib/i18n";
 
 // With Upstash configured (UPSTASH_REDIS_REST_URL and _TOKEN, or the KV_REST_API_* names of the Vercel integration) the limits are shared by every
 // function instance; without it they live in the memory of this process, which is right for one server and for development.
@@ -21,6 +22,15 @@ const localStore = upstash ? memoryStore() : store;
 const salt = process.env.RATE_LIMIT_SALT?.trim() || upstash?.token || crypto.randomUUID();
 
 export async function proxy(request: NextRequest) {
+  // ?lang=vi|en: remember the choice in a cookie (a plain preference, nothing that identifies anyone) and go back to the same address without it.
+  const asked = request.nextUrl.searchParams.get("lang");
+  if (isLang(asked)) {
+    const clean = request.nextUrl.clone();
+    clean.searchParams.delete("lang");
+    const response = NextResponse.redirect(clean, 303);
+    response.cookies.set(LANG_COOKIE, asked, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax", secure: request.nextUrl.protocol === "https:" });
+    return response;
+  }
   if (rateLimitEnabled(process.env)) {
     const prefetch = request.headers.get("next-router-prefetch") === "1" || request.headers.get("purpose") === "prefetch" || (request.headers.get("sec-purpose") ?? "").includes("prefetch");
     const rules = rulesFor({ pathname: request.nextUrl.pathname, method: request.method, search: request.nextUrl.searchParams, prefetch });
@@ -28,7 +38,7 @@ export async function proxy(request: NextRequest) {
       const visitor = await visitorId(clientIp(request.headers, process.env.TRUST_PROXY === "1"), salt);
       const verdict = await enforce(store, rules, visitor, Date.now(), localStore);
       if (!verdict.allowed) {
-        return new NextResponse(`Bạn gửi quá nhiều yêu cầu. Hãy thử lại sau ${verdict.retryAfterSec} giây.`, {
+        return new NextResponse(translate(parseLang(request.cookies.get(LANG_COOKIE)?.value), "rate.tooMany", { sec: verdict.retryAfterSec }), {
           status: 429,
           headers: { "Retry-After": String(verdict.retryAfterSec), "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
         });
