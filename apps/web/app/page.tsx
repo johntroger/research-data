@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Fragment } from "react";
 import { CopyButton } from "@/app/library/copy-button";
 import { CorpusBlock } from "@/app/corpus-block";
 import { ForestPlot } from "@/app/forest-plot";
@@ -17,6 +18,7 @@ import {
   ESTIMATES,
   SORTS,
   formatStats,
+  groupRepeats,
   hasQuestion,
   isSingleConcept,
   isVerified,
@@ -398,8 +400,22 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   </h3>
                   {g.rows.some(isVerified) && (
                     <ul>
-                      {g.rows.filter(isVerified).map((r) => (
-                        <TestLine key={r.id} row={r} concepts={conceptName} roles={rolesInTest(r, concepts, query)} t={t} />
+                      {groupRepeats(g.rows.filter(isVerified)).map(({ main, repeats }) => (
+                        <Fragment key={main.id}>
+                          <TestLine row={main} concepts={conceptName} roles={rolesInTest(main, concepts, query)} t={t} />
+                          {repeats.length > 0 && (
+                            <li className="repeats-item">
+                              <details className="repeats" data-testid={`repeats-${main.id}`}>
+                                <summary>{tn("result.repeats", repeats.length)}</summary>
+                                <ul>
+                                  {repeats.map((r) => (
+                                    <TestLine key={r.id} row={r} concepts={conceptName} roles={rolesInTest(r, concepts, query)} t={t} />
+                                  ))}
+                                </ul>
+                              </details>
+                            </li>
+                          )}
+                        </Fragment>
                       ))}
                     </ul>
                   )}

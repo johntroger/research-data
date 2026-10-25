@@ -7,8 +7,9 @@ import {
   formatEstimate,
   estimateGroup,
   formatStats,
-  sampleSize,
+  groupRepeats,
   formatP,
+  sampleSize,
   normalise,
   paperLabel,
   parseQuery,
@@ -354,5 +355,25 @@ describe("sorting the papers of a result", () => {
   it("falls back to the default for an unknown sort and keeps a chosen one in the URL", () => {
     expect(parseQuery({ a: "a", sort: "bogus" }).sort).toBe("year");
     expect(queryToSearch(parseQuery({ a: "a", sort: "n" }))).toBe("a=a&sort=n");
+  });
+});
+
+describe("a printed p of zero, and the same relationship reported twice", () => {
+  it("shows p < .001 for a printed 0.000 or an exact zero, never p = 0", () => {
+    expect(formatP({ p_reported_as: "0.000", p_value: 0 })).toBe("p < .001");
+    expect(formatP({ p_reported_as: null, p_value: 0 })).toBe("p < .001");
+    expect(formatP({ p_reported_as: "< .001", p_value: null })).toBe("p < .001");
+    expect(formatP({ p_reported_as: "0.012", p_value: null })).toBe("p = .012");
+  });
+
+  it("folds repeats of one relationship (same study, hypothesis, variables, effect) under the first line, keeping others apart", () => {
+    const a = row("Opportunism", "Trust", { hypothesis_code: null, study_id: "s5", effect_type: "indirect", mediator_labels: ["ABE"], estimate: -0.089 });
+    const b = row("Opportunism", "Trust", { hypothesis_code: null, study_id: "s5", effect_type: "indirect", mediator_labels: ["ABE"], estimate: -0.096 });
+    const other = row("Participation", "Trust", { hypothesis_code: null, study_id: "s5", effect_type: "indirect", mediator_labels: ["ABE"] });
+    const groups = groupRepeats([a, b, other]);
+    expect(groups).toHaveLength(2);
+    expect(groups[0]!.main).toBe(a);
+    expect(groups[0]!.repeats).toEqual([b]);
+    expect(groups[1]!.repeats).toEqual([]);
   });
 });

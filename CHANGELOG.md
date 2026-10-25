@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.105 (so với 3.9.104)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Gom các dòng cùng quan hệ báo cáo nhiều lần vào mục gấp; p = 0 hiện p < .001 | Danh sách kết quả rối vì nhiều dòng gần giống nhau |
+
 ### Version 3.9.104 (so với 3.9.103)
 
 | # | Thay đổi | Lý do |

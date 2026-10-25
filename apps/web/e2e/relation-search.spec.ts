@@ -327,3 +327,14 @@ test("shows the certain tests first and gathers the unverified ones of a paper i
   await expect(fold.locator("li").first()).toBeVisible();
   await expect(page.getByTestId("summary-more")).not.toHaveAttribute("open", "");
 });
+
+test("a relationship stated twice in a paper shows once, the other statements folded under it", async ({ page }) => {
+  // The local database holds the real Zeugner-Roth data: Study 5 states Brand opportunism → ABE → Brand trust twice.
+  await page.goto("/?a=brand+opportunism&b=brand+trust&role=all");
+  const folds = page.locator("details.repeats");
+  if ((await folds.count()) === 0) test.skip(true, "the local database has no repeated statement of one relationship");
+  await expect(folds.first()).not.toHaveAttribute("open", "");
+  await expect(folds.first().locator("li").first()).toBeHidden();
+  await folds.first().locator("summary").click();
+  await expect(folds.first().locator("li").first()).toBeVisible();
+});

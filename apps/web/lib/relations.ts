@@ -413,9 +413,27 @@ export function formatP(row: Pick<PathRow, "p_reported_as" | "p_value">): string
   const printed = row.p_reported_as?.trim();
   if (printed) {
     const m = /^([<>=≤≥])?\s*(\d*)\.\s*(\d+)$/.exec(printed);
-    return m ? `p ${m[1] ?? "="} ${apaNumber(Number(`${m[2] || "0"}.${m[3]}`))}` : printed;
+    if (!m) return printed;
+    const value = Number(`${m[2] || "0"}.${m[3]}`);
+    // A printed 0.000 means "smaller than .001", never exactly zero (APA 7).
+    return value === 0 ? "p < .001" : `p ${m[1] ?? "="} ${apaNumber(value)}`;
   }
-  return row.p_value === null ? "" : `p = ${apaNumber(row.p_value)}`;
+  if (row.p_value === null) return "";
+  return row.p_value === 0 ? "p < .001" : `p = ${apaNumber(row.p_value)}`;
+}
+
+/**
+ * Tests of one paper that state the same relationship more than once (the same variables, study, hypothesis and effect, reported in
+ * another table or model: the natural key then ends in "#2", "#3"). The first stays as the main line; the others are kept apart so a list
+ * of near-identical lines does not bury the rest. Which of them is "the" result is for the reader to judge from the paper: the data
+ * does not say which model each one comes from.
+ */
+export function groupRepeats(rows: PathRow[]): { main: PathRow; repeats: PathRow[] }[] {
+  const key = (r: PathRow) =>
+    [r.study_id, r.hypothesis_code ?? "", r.iv_label_original, r.dv_label_original, r.effect_type, r.mediator_labels.join("|"), r.moderator_labels.join("|")].join("\u0000");
+  const groups = new Map<string, PathRow[]>();
+  for (const r of rows) groups.set(key(r), [...(groups.get(key(r)) ?? []), r]);
+  return [...groups.values()].map(([main, ...repeats]) => ({ main: main!, repeats }));
 }
 
 /** Two decimals, no leading zero (APA 7). */

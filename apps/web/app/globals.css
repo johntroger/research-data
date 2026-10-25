@@ -818,3 +818,12 @@ h1 {
 .unverified > ul {
   opacity: 0.9;
 }
+
+.repeats-item {
+  list-style: none;
+}
+.repeats > summary {
+  cursor: pointer;
+  color: var(--muted, #5f6670);
+  font-size: 13px;
+}

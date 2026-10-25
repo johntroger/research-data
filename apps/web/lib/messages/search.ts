@@ -80,6 +80,14 @@ export const search = defineMessages({
   "result.notCounted.design": { vi: "{n} thuộc {design}", en: "{n} of them {design}" },
   "result.notCounted.link": { vi: "Tính cả ⚠ để xem số liệu sơ bộ", en: "Count ⚠ too for a preliminary view" },
   "result.notCounted.bias": { vi: " · Kết quả có thể thiên về các nghiên cứu đơn giản.", en: " · The result may lean towards simpler studies." },
+  "result.repeats.sg": {
+    vi: "Quan hệ này còn {n} kết quả khác trong bài (báo cáo nhiều lần, ví dụ ở bảng hoặc mô hình khác): bấm để xem",
+    en: "{n} more result for this relationship in the paper (reported more than once, e.g. in another table or model): click to see",
+  },
+  "result.repeats.pl": {
+    vi: "Quan hệ này còn {n} kết quả khác trong bài (báo cáo nhiều lần, ví dụ ở bảng hoặc mô hình khác): bấm để xem",
+    en: "{n} more results for this relationship in the paper (reported more than once, e.g. in another table or model): click to see",
+  },
   "result.more.summary": { vi: "Chi tiết: cách tính, tên đã gộp, phạm vi của kho", en: "Details: how it is counted, merged names, what the repository covers" },
   "result.unverified.sg": { vi: "⚠ {n} kiểm định chưa kiểm chứng (bấm để xem)", en: "⚠ {n} unverified test (click to see)" },
   "result.unverified.pl": { vi: "⚠ {n} kiểm định chưa kiểm chứng (bấm để xem)", en: "⚠ {n} unverified tests (click to see)" },
