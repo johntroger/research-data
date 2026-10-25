@@ -1,6 +1,9 @@
 import { getOverview } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
+/** The public address for takedown and correction requests (step 4.8). */
+const TAKEDOWN_EMAIL = "tranthanhtung37@gmail.com";
+
 export const metadata = { title: "Giới thiệu và cách đọc dữ liệu" };
 
 const BADGES = [
@@ -104,7 +107,11 @@ export default async function AboutPage() {
       <h2>Nội dung và bản quyền</h2>
       <p>
         Web chỉ hiển thị dữ kiện (con số, thiết kế, thang đo) và các câu trích ngắn kèm số trang để đối chiếu; không đăng lại bài báo. Chủ dự án xem được PDF mọi bài; khách chỉ tải được PDF có giấy phép mở.
-        Nếu bạn là tác giả hoặc chủ bản quyền và muốn gỡ hoặc sửa một mục, hãy liên hệ chủ dự án qua kênh được cung cấp cùng đường dẫn này.
+        Nếu bạn là tác giả hoặc chủ bản quyền và muốn gỡ hoặc sửa một mục, hãy gửi email tới{" "}
+        <a href={`mailto:${TAKEDOWN_EMAIL}?subject=Yêu cầu gỡ hoặc sửa một mục trên Research Data`} data-testid="takedown-contact">
+          {TAKEDOWN_EMAIL}
+        </a>{" "}
+        kèm đường dẫn của trang bài và nội dung cần gỡ hoặc sửa; chủ dự án sẽ xem xét và trả lời.
       </p>
     </article>
   );

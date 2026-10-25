@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CopyButton } from "@/app/library/copy-button";
 import { CorpusBlock } from "@/app/corpus-block";
 import { describeCorpus } from "@/lib/corpus";
+import { countryName, DESIGN_LABELS, SAMPLE_LABELS } from "@/lib/library";
 import { listConcepts, listLibraryItems, listPathRows } from "@/lib/data";
 import { countUse } from "@/lib/usage";
 import { academicSentence } from "@/lib/sentence";
@@ -10,6 +11,10 @@ import {
   countsLine,
   DEFAULT_QUERY,
   EFFECT_LABEL,
+  ESTIMATE_LABEL,
+  ESTIMATES,
+  SORT_LABEL,
+  SORTS,
   formatStats,
   hasQuestion,
   isSingleConcept,
@@ -20,6 +25,7 @@ import {
   type PathRow,
   queryTitle,
   queryToSearch,
+  sampleOf,
   type RelationQuery,
   SAMPLE_QUERIES,
   searchRelations,
@@ -99,6 +105,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const query = parseQuery(await searchParams);
   const [rows, concepts, items] = await Promise.all([listPathRows(), listConcepts(), listLibraryItems()]);
   const corpus = describeCorpus(items);
+  const countries = [...new Set(rows.flatMap((r) => sampleOf(r)?.country_iso ?? []))].sort((x, y) => countryName(x).localeCompare(countryName(y), "vi"));
+  const studyFilterOn = query.from !== null || query.to !== null || query.design.length + query.sample.length + query.country.length > 0;
   const names = suggestions(rows, concepts);
   const conceptName = new Map(concepts.map((c) => [c.id, c.canonical_name]));
   const result = hasQuestion(query) ? searchRelations(rows, concepts, query) : null;
@@ -110,7 +118,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       ? ([["a", query.a], ["b", query.b]] as const).flatMap(([box, term]) => similarNames(term, names).map((name) => ({ box, name })))
       : [];
   // The extra filters stay folded until one of them is in use, so a shared link never hides a filter that is shaping its result.
-  const filtersActive = query.role !== DEFAULT_QUERY.role || query.status.length > 0 || query.sign.length > 0 || query.includeWarn || query.equiv !== DEFAULT_QUERY.equiv;
+  const filtersActive =
+    query.role !== DEFAULT_QUERY.role || query.status.length > 0 || query.sign.length > 0 || query.est.length > 0 || query.includeWarn || query.equiv !== DEFAULT_QUERY.equiv || studyFilterOn;
 
   return (
     <>
@@ -142,7 +151,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           ))}
         </datalist>
         <details className="more-filters" open={filtersActive} data-testid="more-filters">
-          <summary>Lọc thêm: vai trò quan hệ, kết quả giả thuyết, chiều tác động{filtersActive ? " (đang áp dụng)" : ""}</summary>
+          <summary>Lọc thêm: vai trò, kết quả, loại ước lượng, chiều tác động, năm, thiết kế, mẫu{filtersActive ? " (đang áp dụng)" : ""}</summary>
         <fieldset>
           <legend>Vai trò quan hệ</legend>
           {(
@@ -167,6 +176,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </label>
           ))}
           <br />
+          <span className="muted">Loại ước lượng:</span>
+          {ESTIMATES.map((e) => (
+            <label key={e}>
+              <input type="checkbox" name="est" value={e} defaultChecked={query.est.includes(e)} /> {ESTIMATE_LABEL[e]}
+            </label>
+          ))}
+          <br />
           <span className="muted">Chiều tác động:</span>
           {(
             [
@@ -180,6 +196,42 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </label>
           ))}
         </fieldset>
+        <details open={studyFilterOn} data-testid="study-filters">
+          <summary>Lọc theo bài và mẫu: năm, thiết kế, loại mẫu, quốc gia{studyFilterOn ? " (đang lọc)" : ""}</summary>
+          <fieldset>
+            <legend>Năm xuất bản</legend>
+            <label>
+              Từ <input type="number" name="from" min={1900} max={2100} defaultValue={query.from ?? ""} />
+            </label>{" "}
+            <label>
+              Đến <input type="number" name="to" min={1900} max={2100} defaultValue={query.to ?? ""} />
+            </label>
+          </fieldset>
+          <fieldset>
+            <legend>Thiết kế study</legend>
+            {Object.entries(DESIGN_LABELS).map(([value, label]) => (
+              <label key={value}>
+                <input type="checkbox" name="design" value={value} defaultChecked={query.design.includes(value)} /> {label}
+              </label>
+            ))}
+          </fieldset>
+          <fieldset>
+            <legend>Loại mẫu</legend>
+            {Object.entries(SAMPLE_LABELS).map(([value, label]) => (
+              <label key={value}>
+                <input type="checkbox" name="sample" value={value} defaultChecked={query.sample.includes(value)} /> {label}
+              </label>
+            ))}
+          </fieldset>
+          <fieldset>
+            <legend>Quốc gia của mẫu</legend>
+            {countries.map((c) => (
+              <label key={c}>
+                <input type="checkbox" name="country" value={c} defaultChecked={query.country.includes(c)} /> {countryName(c)}
+              </label>
+            ))}
+          </fieldset>
+        </details>
         <div>
           <input type="hidden" name="equiv" value="0" />
           <label>
@@ -190,6 +242,18 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           </label>
         </div>
         </details>
+        <div>
+          <label>
+            Sắp xếp{" "}
+            <select name="sort" defaultValue={query.sort} data-testid="sort">
+              {SORTS.map((k) => (
+                <option key={k} value={k}>
+                  {SORT_LABEL[k]}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </form>
 
       {!result && (
@@ -257,6 +321,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             {!(s.tests === 0 && s.notCounted > 0) && (
               <>
                 <p className="muted" data-testid="summary-method">Phương pháp: đếm số kiểm định theo kết quả (vote counting). Không xét cỡ mẫu, cỡ hiệu ứng hay sức mạnh thống kê; không phải meta-analysis.</p>
+                <p data-testid="summary-estimates">
+                  Loại ước lượng: {ESTIMATES.filter((e) => s.estimates[e] > 0).map((e) => `${ESTIMATE_LABEL[e]} ${s.estimates[e]}`).join(" · ")}
+                  {ESTIMATES.filter((e) => e !== "none" && s.estimates[e] > 0).length > 1 ? " — các loại này không so sánh trực tiếp được (không quy đổi β thành r)." : ""}
+                </p>
                 <p data-testid="summary-outcome">
                   Kết quả giả thuyết: {OUTCOME.map((o) => `${o.label} ${s.outcome[o.key]}`).join(" · ")}
                 </p>

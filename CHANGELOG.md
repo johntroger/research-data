@@ -2,6 +2,36 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.93 (so với 3.9.92)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Chốt 4.8 và Giai đoạn 4: giữ tên miền vercel.app, email công khai tranthanhtung37@gmail.com cho yêu cầu gỡ bài, vẫn noindex | Chủ dự án chọn không mua tên miền lúc này; cần kênh để tác giả yêu cầu gỡ bài |
+
+### Version 3.9.92 (so với 3.9.91)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Chốt 4.7: đo thật trên vercel.app; giới hạn trang và tìm kiếm đếm trong bộ nhớ instance (PDF, xuất file, đăng nhập vẫn dùng Upstash); nhớ dữ liệu công khai 60 giây | Trang chậm 0,4 đến 0,9 s do Upstash ở xa và đọc lại database mỗi lần; nay 0,14 đến 0,20 s |
+
+### Version 3.9.91 (so với 3.9.90)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Chốt P2 (P2.5): kiểm trên web thật, đối chiếu một dòng CI và N với PDF | Chắc số hiển thị đúng trước khi dùng |
+
+### Version 3.9.90 (so với 3.9.89)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | P2.3 và P2.4: lọc theo năm, thiết kế, loại mẫu, quốc gia; sắp xếp theo năm, cỡ mẫu, cỡ hiệu ứng, tác giả | Tách được nhóm bằng chứng cần xem mà không phải xuất Excel |
+
+### Version 3.9.89 (so với 3.9.88)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | P2.2: đếm và lọc theo loại ước lượng (β chuẩn hóa, hệ số đường dẫn, r, khác, chưa có số) kèm cảnh báo không so sánh trực tiếp | Các loại hiệu ứng bị trộn lẫn dễ gây đọc nhầm |
+
 ### Version 3.9.88 (so với 3.9.87)
 
 | # | Thay đổi | Lý do |
