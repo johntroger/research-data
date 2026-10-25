@@ -10,7 +10,7 @@ import {
 import { countryName, DESIGN_LABELS } from "./library";
 import { THEORY_ROLE_LABELS, sampleSummary, type MatrixRow } from "./matrix";
 import { BADGE_LABEL, DISCLAIMER, describeQuery } from "./relations-export";
-import { EFFECT_LABEL, formatEstimate, formatP, isVerified, paperLabel, STATUS_LABEL, type PathRow, type RelationResult } from "./relations";
+import { EFFECT_LABEL, formatCi, formatEstimate, formatP, formatSe, sampleSize, isVerified, paperLabel, STATUS_LABEL, type PathRow, type RelationResult } from "./relations";
 
 export interface WordTable {
   title: string;
@@ -85,15 +85,16 @@ export function relationsWordSpec(result: RelationResult, exportedAt: Date): Wor
     tables: [
       {
         title: "Kết quả kiểm định của mối quan hệ trong kho bài báo",
-        columns: ["Nguồn", "Study", "Quan hệ", "Giả thuyết", "Ước lượng", "p", "Kết quả", "Huy hiệu", "Trang"],
-        widths: [3, 1.3, 4, 1.2, 1.6, 1.3, 1.8, 1.8, 0.9],
+        columns: ["Nguồn", "Study", "Quan hệ", "Giả thuyết", "Ước lượng", "p", "N", "Kết quả", "Huy hiệu", "Trang"],
+        widths: [3, 1.3, 4, 1.2, 2, 1.3, 0.9, 1.8, 1.8, 0.9],
         rows: rows.map((r) => [
           `${r.papers?.apa_citation ?? paperLabel(r.papers)}`,
           r.studies?.study_label ?? "",
           `${r.iv_label_original}${r.mediator_labels.length ? ` → ${r.mediator_labels.join(", ")}` : ""} → ${r.dv_label_original}${r.moderator_labels.length ? ` (điều tiết: ${r.moderator_labels.join(", ")})` : ""} [${EFFECT_LABEL[r.effect_type]}]`,
           r.hypothesis_code ?? "",
-          formatEstimate(r),
+          [formatEstimate(r), formatSe(r), formatCi(r)].filter(Boolean).join(", "),
           formatP(r),
+          sampleSize(r)?.toLocaleString("en-US") ?? "",
           STATUS_LABEL[r.status],
           BADGE_LABEL[r.badge] ?? r.badge,
           r.evidence?.printed_page ?? "",

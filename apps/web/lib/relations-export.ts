@@ -4,10 +4,16 @@
  * cells (pure, tested); `buildWorkbook` writes them as .xlsx.
  */
 import ExcelJS from "exceljs";
+import { countryName, DESIGN_LABELS, SAMPLE_LABELS } from "./library";
 import {
   EFFECT_LABEL,
+  ESTIMATE_LABEL,
+  SORT_LABEL,
   formatEstimate,
   formatP,
+  formatCi,
+  formatSe,
+  sampleSize,
   isVerified,
   paperLabel,
   type PathRow,
@@ -46,6 +52,9 @@ export const COLUMNS = [
   "Mã giả thuyết",
   "Ước lượng",
   "p",
+  "SE",
+  "CI",
+  "N",
   "Kết quả giả thuyết",
   "Chiều tác động",
   "Huy hiệu",
@@ -77,6 +86,9 @@ function rowCells(r: PathRow, openUrl: (r: PathRow) => string): (string | number
     r.hypothesis_code,
     formatEstimate(r) || null,
     formatP(r) || null,
+    formatSe(r).replace(/^SE = /, "") || null,
+    formatCi(r).replace(/^CI /, "") || null,
+    sampleSize(r),
     STATUS_LABEL[r.status],
     SIGN_LABEL[signGroup(r)],
     BADGE_LABEL[r.badge] ?? r.badge,
@@ -97,6 +109,12 @@ export function describeQuery(q: RelationQuery): string {
   ];
   if (q.status.length) parts.push(`Kết quả giả thuyết: ${q.status.map((s) => STATUS_LABEL[s]).join(", ")}`);
   if (q.sign.length) parts.push(`Chiều tác động: ${q.sign.map((s) => SIGN_LABEL[s]).join(", ")}`);
+  if (q.est.length) parts.push(`Loại ước lượng: ${q.est.map((e) => ESTIMATE_LABEL[e]).join(", ")}`);
+  if (q.from !== null || q.to !== null) parts.push(`Năm: ${q.from ?? "…"}–${q.to ?? "…"}`);
+  if (q.design.length) parts.push(`Thiết kế: ${q.design.map((d) => DESIGN_LABELS[d] ?? d).join(", ")}`);
+  if (q.sample.length) parts.push(`Mẫu: ${q.sample.map((d) => SAMPLE_LABELS[d] ?? d).join(", ")}`);
+  if (q.country.length) parts.push(`Quốc gia: ${q.country.map(countryName).join(", ")}`);
+  if (q.sort !== "year") parts.push(`Sắp xếp: ${SORT_LABEL[q.sort]}`);
   return parts.join(" · ");
 }
 

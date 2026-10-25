@@ -2,19 +2,27 @@ import Link from "next/link";
 import { CopyButton } from "@/app/library/copy-button";
 import { CorpusBlock } from "@/app/corpus-block";
 import { describeCorpus } from "@/lib/corpus";
+import { countryName, DESIGN_LABELS, SAMPLE_LABELS } from "@/lib/library";
 import { listConcepts, listLibraryItems, listPathRows } from "@/lib/data";
 import { countUse } from "@/lib/usage";
 import { academicSentence } from "@/lib/sentence";
 import {
   DEFAULT_QUERY,
   EFFECT_LABEL,
-  formatEstimate,
-  formatP,
+  ESTIMATE_LABEL,
+  ESTIMATES,
+  SORT_LABEL,
+  SORTS,
+  formatStats,
   hasQuestion,
+  isSingleConcept,
+  rolesInTest,
+  singleTerm,
   paperLabel,
   parseQuery,
   type PathRow,
   queryToSearch,
+  sampleOf,
   type RelationQuery,
   SAMPLE_QUERIES,
   searchRelations,
@@ -52,10 +60,10 @@ const OUTCOME: { key: "supported" | "not_supported" | "mixed" | "not_hypothesize
 
 const link = (q: RelationQuery) => `/?${queryToSearch(q)}`;
 
-function TestLine({ row, concepts }: { row: PathRow; concepts: Map<string, string> }) {
+function TestLine({ row, concepts, roles = [] }: { row: PathRow; concepts: Map<string, string>; roles?: string[] }) {
   const iv = concepts.get(row.iv_construct_id ?? "");
   const dv = concepts.get(row.dv_construct_id ?? "");
-  const stats = [formatEstimate(row), formatP(row)].filter(Boolean).join("  ");
+  const stats = formatStats(row);
   const sentence = academicSentence(row);
   return (
     <li data-testid={`test-${row.id}`} className="relation-row">
@@ -71,6 +79,7 @@ function TestLine({ row, concepts }: { row: PathRow; concepts: Map<string, strin
         </>
       )}
       <div className="muted">
+        {roles.length ? `khái niệm tìm là ${roles.join(", ")} · ` : ""}
         {EFFECT_LABEL[row.effect_type]}
         {row.mediator_labels.length ? ` · qua trung gian: ${row.mediator_labels.join(", ")}` : ""}
         {row.moderator_labels.length ? ` · điều tiết bởi: ${row.moderator_labels.join(", ")}` : ""}
@@ -86,6 +95,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const query = parseQuery(await searchParams);
   const [rows, concepts, items] = await Promise.all([listPathRows(), listConcepts(), listLibraryItems()]);
   const corpus = describeCorpus(items);
+  const countries = [...new Set(rows.flatMap((r) => sampleOf(r)?.country_iso ?? []))].sort((x, y) => countryName(x).localeCompare(countryName(y), "vi"));
+  const studyFilterOn = query.from !== null || query.to !== null || query.design.length + query.sample.length + query.country.length > 0;
   const names = suggestions(rows, concepts);
   const conceptName = new Map(concepts.map((c) => [c.id, c.canonical_name]));
   const result = hasQuestion(query) ? searchRelations(rows, concepts, query) : null;
@@ -145,6 +156,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </label>
           ))}
           <br />
+          <span className="muted">Loại ước lượng:</span>
+          {ESTIMATES.map((e) => (
+            <label key={e}>
+              <input type="checkbox" name="est" value={e} defaultChecked={query.est.includes(e)} /> {ESTIMATE_LABEL[e]}
+            </label>
+          ))}
+          <br />
           <span className="muted">Chiều tác động:</span>
           {(
             [
@@ -158,10 +176,56 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </label>
           ))}
         </fieldset>
+        <details open={studyFilterOn} data-testid="study-filters">
+          <summary>Lọc theo bài và mẫu: năm, thiết kế, loại mẫu, quốc gia{studyFilterOn ? " (đang lọc)" : ""}</summary>
+          <fieldset>
+            <legend>Năm xuất bản</legend>
+            <label>
+              Từ <input type="number" name="from" min={1900} max={2100} defaultValue={query.from ?? ""} />
+            </label>{" "}
+            <label>
+              Đến <input type="number" name="to" min={1900} max={2100} defaultValue={query.to ?? ""} />
+            </label>
+          </fieldset>
+          <fieldset>
+            <legend>Thiết kế study</legend>
+            {Object.entries(DESIGN_LABELS).map(([value, label]) => (
+              <label key={value}>
+                <input type="checkbox" name="design" value={value} defaultChecked={query.design.includes(value)} /> {label}
+              </label>
+            ))}
+          </fieldset>
+          <fieldset>
+            <legend>Loại mẫu</legend>
+            {Object.entries(SAMPLE_LABELS).map(([value, label]) => (
+              <label key={value}>
+                <input type="checkbox" name="sample" value={value} defaultChecked={query.sample.includes(value)} /> {label}
+              </label>
+            ))}
+          </fieldset>
+          <fieldset>
+            <legend>Quốc gia của mẫu</legend>
+            {countries.map((c) => (
+              <label key={c}>
+                <input type="checkbox" name="country" value={c} defaultChecked={query.country.includes(c)} /> {countryName(c)}
+              </label>
+            ))}
+          </fieldset>
+        </details>
         <div>
           <input type="hidden" name="equiv" value="0" />
           <label>
             <input type="checkbox" name="equiv" value="1" defaultChecked={query.equiv} /> Bao gồm tên gọi tương đương (khái niệm chuẩn và các tên khác)
+          </label>{" "}
+          <label>
+            Sắp xếp{" "}
+            <select name="sort" defaultValue={query.sort} data-testid="sort">
+              {SORTS.map((k) => (
+                <option key={k} value={k}>
+                  {SORT_LABEL[k]}
+                </option>
+              ))}
+            </select>
           </label>{" "}
           <label>
             <input type="checkbox" name="warn" value="1" defaultChecked={query.includeWarn} /> Tính cả kiểm định ⚠ trong thanh tổng hợp
@@ -188,7 +252,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               Muốn hiểu các huy hiệu ✓ ⚠ ◇ và độ chính xác đã đo? Xem <Link href="/about">Giới thiệu và cách đọc dữ liệu</Link>.
             </p>
           </details>
-          <p className="muted">Nhập một hoặc hai biến (tên bất kỳ trong bài, tiếng Anh), hoặc thử:</p>
+          <p className="muted">Nhập một biến để xem mọi quan hệ của nó, hoặc hai biến để xem quan hệ giữa chúng (tên bất kỳ trong bài, tiếng Anh, không phân biệt hoa thường), hoặc thử:</p>
           <ul className="sample-list">
             {SAMPLE_QUERIES.map((x) => (
               <li key={`${x.a}-${x.b}`}>
@@ -206,6 +270,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {result && s && (
         <>
           <section className="summary" data-testid="summary">
+            {isSingleConcept(query) && (
+              <p data-testid="single-note">
+                <strong>Tìm theo một khái niệm:</strong> mọi quan hệ có “{singleTerm(query)}” là biến độc lập, biến phụ thuộc, trung gian hoặc điều tiết, theo cả hai chiều và mọi vai trò (không gồm biến kiểm soát); không phân biệt chữ hoa, chữ thường. Ô “Chiều” và “Vai trò” không áp dụng. Nhập thêm khái niệm thứ hai để xem riêng quan hệ giữa hai khái niệm.
+              </p>
+            )}
             <p data-testid="summary-coverage">
               Tìm thấy <strong>{s.matchedTests} kiểm định từ {s.matchedPapers} bài</strong> (kho có {s.corpusPapers} bài có dữ liệu quan hệ, chọn theo thư viện của chủ dự án, không phải mẫu hệ thống của y văn).
             </p>
@@ -223,6 +292,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   </strong>
                 </p>
                 <p className="muted" data-testid="summary-method">Phương pháp: đếm số kiểm định theo kết quả (vote counting). Không xét cỡ mẫu, cỡ hiệu ứng hay sức mạnh thống kê; không phải meta-analysis.</p>
+                <p data-testid="summary-estimates">
+                  Loại ước lượng: {ESTIMATES.filter((e) => s.estimates[e] > 0).map((e) => `${ESTIMATE_LABEL[e]} ${s.estimates[e]}`).join(" · ")}
+                  {ESTIMATES.filter((e) => e !== "none" && s.estimates[e] > 0).length > 1 ? " — các loại này không so sánh trực tiếp được (không quy đổi β thành r)." : ""}
+                </p>
                 <p data-testid="summary-outcome">
                   Kết quả giả thuyết: {OUTCOME.map((o) => `${o.label} ${s.outcome[o.key]}`).join(" · ")}
                 </p>
@@ -301,7 +374,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   </h3>
                   <ul>
                     {g.rows.map((r) => (
-                      <TestLine key={r.id} row={r} concepts={conceptName} />
+                      <TestLine key={r.id} row={r} concepts={conceptName} roles={rolesInTest(r, concepts, query)} />
                     ))}
                   </ul>
                 </div>

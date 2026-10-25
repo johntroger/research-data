@@ -57,7 +57,35 @@ function config() {
   return { url, key };
 }
 
-async function rest<T>(pathAndQuery: string): Promise<T> {
+/**
+ * Every read here uses the visitor's rights (the anon key), so what comes back is the same for everyone and can be remembered. In production
+ * a function instance keeps each answer for DATA_CACHE_SECONDS (default 60) instead of asking the database again on every page; new data
+ * therefore shows up within a minute. In development and tests nothing is kept (0), so a change shows at once.
+ */
+const CACHE_MS = Number(process.env.DATA_CACHE_SECONDS ?? (process.env.NODE_ENV === "production" ? 60 : 0)) * 1000;
+const CACHE_MAX_ENTRIES = 300;
+const remembered = new Map<string, { at: number; value: Promise<unknown> }>();
+
+function memoised<T>(key: string, load: () => Promise<T>): Promise<T> {
+  if (CACHE_MS <= 0) return load();
+  const now = Date.now();
+  const hit = remembered.get(key);
+  if (hit && now - hit.at < CACHE_MS) return hit.value as Promise<T>;
+  const value = load();
+  remembered.set(key, { at: now, value });
+  value.catch(() => remembered.delete(key)); // never remember a failure
+  for (const k of remembered.keys()) {
+    if (remembered.size <= CACHE_MAX_ENTRIES) break;
+    remembered.delete(k);
+  }
+  return value;
+}
+
+function rest<T>(pathAndQuery: string): Promise<T> {
+  return memoised(`rest:${pathAndQuery}`, () => fetchRest<T>(pathAndQuery));
+}
+
+async function fetchRest<T>(pathAndQuery: string): Promise<T> {
   const { url, key } = config();
   const res = await fetch(`${url}/rest/v1/${pathAndQuery}`, {
     headers: { apikey: key, Authorization: `Bearer ${key}` },
@@ -139,7 +167,11 @@ export async function listLibraryItems(): Promise<LibraryItem[]> {
 // --- Relationship Search (step 3a.1) ---------------------------------------------------------------
 
 /** All rows of a query, page by page: the REST API returns at most 1000 rows per request. */
-async function restAll<T>(pathAndQuery: string): Promise<T[]> {
+function restAll<T>(pathAndQuery: string): Promise<T[]> {
+  return memoised(`all:${pathAndQuery}`, () => fetchAll<T>(pathAndQuery));
+}
+
+async function fetchAll<T>(pathAndQuery: string): Promise<T[]> {
   const { url, key } = config();
   const all: T[] = [];
   const size = 1000;
@@ -157,8 +189,8 @@ async function restAll<T>(pathAndQuery: string): Promise<T[]> {
 
 const PATH_COLUMNS =
   "id,paper_id,study_id,natural_key,hypothesis_code,iv_label_original,dv_label_original,iv_construct_id,dv_construct_id," +
-  "mediator_labels,moderator_labels,effect_type,estimate_type,estimate,p_value,p_reported_as,status,observed_sign,significant,badge," +
-  "studies(study_label,research_design),papers(title,authors,year,journal,citekey,apa_citation),evidence(printed_page,pdf_page_index)";
+  "mediator_labels,moderator_labels,effect_type,estimate_type,estimate,se,ci_low,ci_high,p_value,p_reported_as,status,observed_sign,significant,badge," +
+  "studies(study_label,research_design,samples(n,sample_type,country_iso)),papers(title,authors,year,journal,citekey,apa_citation),evidence(printed_page,pdf_page_index)";
 
 /** Every test (path) visitors may see, with its study, paper and evidence page. */
 export function listPathRows(): Promise<PathRow[]> {
@@ -170,7 +202,7 @@ export async function listMatrixData(): Promise<{ theories: TheoryRow[]; samples
   const [theories, samples, paths] = await Promise.all([
     restAll<TheoryRow>("paper_theories?select=paper_id,theory_name_original,application_role"),
     restAll<SampleRow>("samples?select=paper_id,study_id,n,country_iso,sample_type,studies(study_label,position,research_design)"),
-    restAll<MatrixPath>(`path_results?select=${PATH_COLUMNS},ci_low,ci_high,r2_dv&order=paper_id,natural_key`),
+    restAll<MatrixPath>(`path_results?select=${PATH_COLUMNS},r2_dv&order=paper_id,natural_key`),
   ]);
   return { theories, samples, paths };
 }
@@ -180,7 +212,7 @@ export async function listPaperLines(paperId: string): Promise<{ studyId: string
   if (!/^[0-9a-f-]{36}$/i.test(paperId)) return null;
   const [samples, paths] = await Promise.all([
     restAll<SampleRow>(`samples?select=paper_id,study_id,n,country_iso,sample_type,studies(study_label,position,research_design)&paper_id=eq.${paperId}`),
-    restAll<MatrixPath>(`path_results?select=${PATH_COLUMNS},ci_low,ci_high,r2_dv&paper_id=eq.${paperId}&order=natural_key`),
+    restAll<MatrixPath>(`path_results?select=${PATH_COLUMNS},r2_dv&paper_id=eq.${paperId}&order=natural_key`),
   ]);
   const row = buildMatrix([paperId], [], samples, paths).get(paperId);
   return (row?.studies ?? []).filter((s) => s.lines.length > 0).map((s) => ({ studyId: s.studyId, label: s.label, lines: s.lines }));

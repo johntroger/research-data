@@ -15,6 +15,20 @@ export const STATUSES = ["supported", "not_supported", "mixed", "not_hypothesize
 export const SIGNS = ["positive", "negative", "none"] as const;
 export type StatusGroup = (typeof STATUSES)[number];
 export type SignGroup = (typeof SIGNS)[number];
+/** Kinds of effect size that cannot be compared with each other (the project never converts β to r). */
+export const ESTIMATES = ["std_beta", "path_coefficient", "r", "other", "none"] as const;
+export type EstimateGroup = (typeof ESTIMATES)[number];
+/** How the papers of a result are ordered. "effect" sorts by the largest |estimate| a paper reports, whatever its kind: read the kinds first. */
+export const SORTS = ["year", "n", "effect", "name"] as const;
+export type SortKey = (typeof SORTS)[number];
+export const SORT_LABEL: Record<SortKey, string> = { year: "Năm (mới nhất trước)", n: "Cỡ mẫu (lớn nhất trước)", effect: "Cỡ hiệu ứng (|ước lượng| lớn nhất trước)", name: "Tác giả (A–Z)" };
+export const ESTIMATE_LABEL: Record<EstimateGroup, string> = {
+  std_beta: "β chuẩn hóa",
+  path_coefficient: "hệ số đường dẫn",
+  r: "r (tương quan)",
+  other: "khác (b, η², OR…)",
+  none: "chưa có số",
+};
 
 export interface RelationQuery {
   a: string;
@@ -27,6 +41,16 @@ export interface RelationQuery {
   includeWarn: boolean;
   status: StatusGroup[];
   sign: SignGroup[];
+  /** Only these kinds of effect size (empty: all). */
+  est: EstimateGroup[];
+  /** Paper year range (inclusive); null: no limit. */
+  from: number | null;
+  to: number | null;
+  /** Study design, type of sample and country (ISO code) of the study; empty: all. */
+  design: string[];
+  sample: string[];
+  country: string[];
+  sort: SortKey;
 }
 
 export interface PaperInfo {
@@ -37,6 +61,9 @@ export interface PaperInfo {
   citekey: string | null;
   apa_citation: string | null;
 }
+
+/** PostgREST returns a one-to-one embed (one sample per study) as an object, a one-to-many one as a list. */
+type SampleN = { n: number | null; sample_type?: string | null; country_iso?: string[] | null };
 
 export interface PathRow {
   id: string;
@@ -59,7 +86,11 @@ export interface PathRow {
   observed_sign: "positive" | "negative" | null;
   significant: boolean | null;
   badge: string;
-  studies: { study_label: string; research_design: string | null } | null;
+  /** Standard error and confidence interval, when the paper prints them (about one test in eight). */
+  se?: number | null;
+  ci_low?: number | null;
+  ci_high?: number | null;
+  studies: { study_label: string; research_design: string | null; samples?: SampleN | SampleN[] | null } | null;
   papers: PaperInfo | null;
   evidence: { printed_page: string | null; pdf_page_index: number } | null;
 }
@@ -70,13 +101,19 @@ export interface Concept {
   aliases: string[];
 }
 
-export const DEFAULT_QUERY: RelationQuery = { a: "", b: "", dir: "ab", role: "direct", equiv: true, includeWarn: false, status: [], sign: [] };
+export const DEFAULT_QUERY: RelationQuery = { a: "", b: "", dir: "ab", role: "direct", equiv: true, includeWarn: false, status: [], sign: [], est: [], from: null, to: null, design: [], sample: [], country: [], sort: "year" };
 
 type Params = Record<string, string | string[] | undefined>;
 const many = (v: string | string[] | undefined): string[] => (Array.isArray(v) ? v : v ? [v] : []);
 const pick = <T extends string>(v: string | string[] | undefined, allowed: readonly T[], fallback: T): T => {
   const first = many(v)[0];
   return (allowed as readonly string[]).includes(first ?? "") ? (first as T) : fallback;
+};
+
+const slug = (v: string) => /^[a-z_]{1,40}$/.test(v);
+const year = (v: string | string[] | undefined): number | null => {
+  const n = Number(many(v)[0]);
+  return Number.isInteger(n) && n >= 1900 && n <= 2100 ? n : null;
 };
 
 /** The query from the URL (anything unknown is ignored). A checkbox "equiv" is sent with a hidden 0 so that "off" can be told from "not given". */
@@ -91,6 +128,13 @@ export function parseQuery(p: Params): RelationQuery {
     includeWarn: many(p.warn).includes("1"),
     status: many(p.status).filter((s): s is StatusGroup => (STATUSES as readonly string[]).includes(s)),
     sign: many(p.sign).filter((s): s is SignGroup => (SIGNS as readonly string[]).includes(s)),
+    est: many(p.est).filter((s): s is EstimateGroup => (ESTIMATES as readonly string[]).includes(s)),
+    from: year(p.from),
+    to: year(p.to),
+    design: many(p.design).filter(slug),
+    sample: many(p.sample).filter(slug),
+    sort: pick(p.sort, SORTS, "year"),
+    country: many(p.country).map((c) => c.toUpperCase()).filter((c) => /^[A-Z]{2,3}$/.test(c)),
   };
 }
 
@@ -105,10 +149,23 @@ export function queryToSearch(q: RelationQuery): string {
   if (q.includeWarn) s.set("warn", "1");
   for (const v of q.status) s.append("status", v);
   for (const v of q.sign) s.append("sign", v);
+  for (const v of q.est) s.append("est", v);
+  if (q.from !== null) s.set("from", String(q.from));
+  if (q.to !== null) s.set("to", String(q.to));
+  for (const v of q.design) s.append("design", v);
+  for (const v of q.sample) s.append("sample", v);
+  for (const v of q.country) s.append("country", v);
+  if (q.sort !== DEFAULT_QUERY.sort) s.set("sort", q.sort);
   return s.toString();
 }
 
 export const hasQuestion = (q: RelationQuery) => q.a !== "" || q.b !== "";
+
+/** Only one box is filled: show every relationship of that concept, whatever its direction or role. */
+export const isSingleConcept = (q: RelationQuery): boolean => (q.a !== "") !== (q.b !== "");
+
+/** The one concept typed in a single-concept search. */
+export const singleTerm = (q: RelationQuery): string => (q.a !== "" ? q.a : q.b);
 
 /** Lower case, no accents, words separated by single spaces. */
 export function normalise(text: string): string {
@@ -151,12 +208,33 @@ function matches(side: Side | null, label: string, conceptId: string | null): bo
   return side.tokens.every((t) => n.includes(t)) || side.phrases.some((p) => n.includes(p));
 }
 
+/** The parts a concept plays in a test: independent variable, dependent variable, mediator, moderator. */
+function conceptRoles(row: PathRow, side: Side | null): string[] {
+  const roles: string[] = [];
+  if (matches(side, row.iv_label_original, row.iv_construct_id)) roles.push("biến độc lập");
+  if (matches(side, row.dv_label_original, row.dv_construct_id)) roles.push("biến phụ thuộc");
+  if (row.mediator_labels.some((l) => matches(side, l, null))) roles.push("trung gian");
+  if (row.moderator_labels.some((l) => matches(side, l, null))) roles.push("điều tiết");
+  return roles;
+}
+
+/** What the single concept of the query is in this test, for the list ("là biến độc lập, trung gian"). */
+export function rolesInTest(row: PathRow, concepts: Concept[], q: RelationQuery): string[] {
+  return isSingleConcept(q) ? conceptRoles(row, expand(singleTerm(q), concepts, q.equiv)) : [];
+}
+
 const roleOf = (row: PathRow, role: Role): boolean => {
   if (role === "direct") return row.effect_type === "direct";
   if (role === "mediated") return row.effect_type === "indirect";
   if (role === "moderated") return row.effect_type === "interaction" || row.moderator_labels.length > 0;
   return row.effect_type !== "control";
 };
+
+export function estimateGroup(row: Pick<PathRow, "estimate" | "estimate_type">): EstimateGroup {
+  if (row.estimate === null || row.estimate_type === "none") return "none";
+  const t = row.estimate_type;
+  return t === "std_beta" || t === "path_coefficient" || t === "r" ? t : "other";
+}
 
 export const statusGroup = (row: PathRow): StatusGroup => (row.status === "partially_supported" ? "mixed" : row.status);
 
@@ -186,6 +264,8 @@ export interface Summary {
   shareNotCounted: number;
   outcome: Record<StatusGroup, number>;
   direction: Record<SignGroup | "unknown", number>;
+  /** Counted tests by kind of effect size. */
+  estimates: Record<EstimateGroup, number>;
 }
 
 export interface PaperGroup {
@@ -205,7 +285,30 @@ export interface RelationResult {
 }
 
 /** The tests that answer the query: after the role, the direction and the extra filters. */
+/** The filters that do not depend on which concepts were typed: result of the hypothesis, direction of the effect, kind of estimate. */
+function passesFilters(r: PathRow, q: RelationQuery): boolean {
+  if (q.status.length && !q.status.includes(statusGroup(r))) return false;
+  if (q.sign.length) {
+    const sg = signGroup(r);
+    if (sg === "unknown" || !q.sign.includes(sg)) return false;
+  }
+  if (q.est.length && !q.est.includes(estimateGroup(r))) return false;
+  const y = r.papers?.year ?? null;
+  if ((q.from !== null || q.to !== null) && (y === null || (q.from !== null && y < q.from) || (q.to !== null && y > q.to))) return false;
+  if (q.design.length && !q.design.includes(r.studies?.research_design ?? "")) return false;
+  const sample = sampleOf(r);
+  if (q.sample.length && !q.sample.includes(sample?.sample_type ?? "")) return false;
+  if (q.country.length && !(sample?.country_iso ?? []).some((c) => q.country.includes(c))) return false;
+  return true;
+}
+
 export function findRows(rows: PathRow[], concepts: Concept[], q: RelationQuery): PathRow[] {
+  if (isSingleConcept(q)) {
+    const side = expand(singleTerm(q), concepts, q.equiv);
+    return rows.filter((r) => {
+      return roleOf(r, "all") && conceptRoles(r, side).length > 0 && passesFilters(r, q);
+    });
+  }
   const a = expand(q.a, concepts, q.equiv);
   const b = expand(q.b, concepts, q.equiv);
   return rows.filter((r) => {
@@ -213,12 +316,7 @@ export function findRows(rows: PathRow[], concepts: Concept[], q: RelationQuery)
     const forward = matches(a, r.iv_label_original, r.iv_construct_id) && matches(b, r.dv_label_original, r.dv_construct_id);
     const backward = matches(b, r.iv_label_original, r.iv_construct_id) && matches(a, r.dv_label_original, r.dv_construct_id);
     if (!(q.dir === "ab" ? forward : q.dir === "ba" ? backward : forward || backward)) return false;
-    if (q.status.length && !q.status.includes(statusGroup(r))) return false;
-    if (q.sign.length) {
-      const s = signGroup(r);
-      if (s === "unknown" || !q.sign.includes(s)) return false;
-    }
-    return true;
+    return passesFilters(r, q);
   });
 }
 
@@ -244,7 +342,9 @@ export function searchRelations(allRows: PathRow[], concepts: Concept[], q: Rela
   }
   const outcome: Summary["outcome"] = { supported: 0, not_supported: 0, mixed: 0, not_hypothesized: 0 };
   const direction: Summary["direction"] = { positive: 0, negative: 0, none: 0, unknown: 0 };
+  const estimates: Summary["estimates"] = { std_beta: 0, path_coefficient: 0, r: 0, other: 0, none: 0 };
   for (const r of counted) {
+    estimates[estimateGroup(r)]++;
     outcome[statusGroup(r)]++;
     direction[signGroup(r)]++;
   }
@@ -256,7 +356,15 @@ export function searchRelations(allRows: PathRow[], concepts: Concept[], q: Rela
     const states = new Set(sorted.map((r) => statusGroup(r)).filter((s) => s === "supported" || s === "not_supported"));
     return { paperId, paper: list[0]!.papers, rows: sorted, differs: states.size > 1 };
   });
-  groups.sort((x, y) => (y.paper?.year ?? 0) - (x.paper?.year ?? 0) || paperLabel(x.paper).localeCompare(paperLabel(y.paper)));
+  const byName = (x: PaperGroup, y: PaperGroup) => paperLabel(x.paper).localeCompare(paperLabel(y.paper));
+  const biggest = (g: PaperGroup, value: (r: PathRow) => number | null) => Math.max(-1, ...g.rows.map((r) => value(r) ?? -1));
+  const order: Record<SortKey, (x: PaperGroup, y: PaperGroup) => number> = {
+    year: (x, y) => (y.paper?.year ?? 0) - (x.paper?.year ?? 0) || byName(x, y),
+    n: (x, y) => biggest(y, sampleSize) - biggest(x, sampleSize) || byName(x, y),
+    effect: (x, y) => biggest(y, (r) => (r.estimate === null ? null : Math.abs(r.estimate))) - biggest(x, (r) => (r.estimate === null ? null : Math.abs(r.estimate))) || byName(x, y),
+    name: byName,
+  };
+  groups.sort(order[q.sort]);
 
   return {
     query: q,
@@ -274,6 +382,7 @@ export function searchRelations(allRows: PathRow[], concepts: Concept[], q: Rela
       shareNotCounted: rows.length === 0 ? 0 : notCountedRows.length / rows.length,
       outcome,
       direction,
+      estimates,
     },
   };
 }
@@ -303,6 +412,33 @@ export function formatP(row: Pick<PathRow, "p_reported_as" | "p_value">): string
     return m ? `p ${m[1] ?? "="} ${apaNumber(Number(`${m[2] || "0"}.${m[3]}`))}` : printed;
   }
   return row.p_value === null ? "" : `p = ${apaNumber(row.p_value)}`;
+}
+
+/** Two decimals, no leading zero (APA 7). */
+function two(n: number): string {
+  const [whole = "0", frac = ""] = Math.abs(n).toFixed(2).split(".");
+  return `${n < 0 ? "−" : ""}${whole === "0" ? "" : whole}.${frac}`;
+}
+
+/** The sample of the study the test comes from (a one-to-one embed arrives as an object). */
+export function sampleOf(row: Pick<PathRow, "studies">): SampleN | null {
+  const samples = row.studies?.samples;
+  const list = Array.isArray(samples) ? samples : samples ? [samples] : [];
+  return list.find((x) => x.n !== null) ?? list[0] ?? null;
+}
+
+/** The sample size of the study the test comes from, or null when the paper did not give one. */
+export function sampleSize(row: Pick<PathRow, "studies">): number | null {
+  return sampleOf(row)?.n ?? null;
+}
+
+export const formatSe = (row: Pick<PathRow, "se">): string => (row.se == null ? "" : `SE = ${two(row.se)}`);
+export const formatCi = (row: Pick<PathRow, "ci_low" | "ci_high">): string => (row.ci_low == null || row.ci_high == null ? "" : `CI [${two(row.ci_low)}, ${two(row.ci_high)}]`);
+
+/** "β = −.31, SE = .05, CI [−.42, −.20], p < .001, N = 312": everything the paper gave, in APA order. */
+export function formatStats(row: PathRow): string {
+  const n = sampleSize(row);
+  return [formatEstimate(row), formatSe(row), formatCi(row), formatP(row), n === null ? "" : `N = ${n.toLocaleString("en-US")}`].filter(Boolean).join(", ");
 }
 
 export const STATUS_LABEL: Record<PathRow["status"], string> = {

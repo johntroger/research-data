@@ -18,6 +18,6 @@ export default defineConfig({
     reuseExistingServer: false,
     timeout: 300_000,
     // TRUST_PROXY: the tests play different visitors by sending their own forwarded-for address (A.5).
-    env: { NEXT_DIST_DIR: ".next-prod", TRUST_PROXY: "1" },
+    env: { NEXT_DIST_DIR: ".next-prod", TRUST_PROXY: "1", DATA_CACHE_SECONDS: "0" },
   },
 });
