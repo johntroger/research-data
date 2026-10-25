@@ -30,7 +30,7 @@ function Statements({ items, limit = 3, t }: { items: string[]; limit?: number; 
 }
 
 /**
- * The top of a paper page: what it contributes, how each study was run, how each hypothesis came out, the limits the authors state.
+ * The top of a paper page: the research question and conclusions, what it contributes, how each study was run, how each hypothesis came out, the limits the authors state.
  * Everything here is a short, reworded view of the fields below it; each hypothesis row links to its evidence.
  */
 export function PaperSheet({ sheet, paperId, t, tn, lang, canView = false }: { sheet: Sheet; paperId: string; t: Translate; tn: TranslatePlural; lang: "vi" | "en"; canView?: boolean }) {
