@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CopyButton } from "@/app/library/copy-button";
+import { SearchButton } from "@/app/search-button";
 import { CorpusBlock } from "@/app/corpus-block";
 import { describeCorpus } from "@/lib/corpus";
 import { countryName, DESIGN_LABELS, SAMPLE_LABELS } from "@/lib/library";
@@ -143,7 +144,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <label>
             Biến B <input name="b" list="variable-names" defaultValue={query.b} placeholder="ví dụ: trust" />
           </label>
-          <button type="submit">Tìm kiếm</button>
+          <SearchButton>Tìm kiếm</SearchButton>
         </div>
         <datalist id="variable-names">
           {names.map((n) => (

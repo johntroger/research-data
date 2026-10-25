@@ -5,6 +5,7 @@ import { getOwner } from "@/lib/supabase-server";
 import { canDownloadPdf, canViewPdf, pdfLinks } from "@/lib/pdf-access";
 import { authorLine, paperFacts, sourceLine } from "@/lib/paper-header";
 import { defaultTab, summariseSections, TABS } from "@/lib/workspace";
+import { BackToResults } from "@/app/back-to-results";
 import { EvidenceWorkspace } from "./evidence-workspace";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +36,7 @@ export default async function PaperPage({
 
   return (
     <>
+      <BackToResults />
       <h1>{paperLabel(paper)}</h1>
       <div className="paper-head" data-testid="paper-head">
         {paper.authors.length > 0 && <p data-testid="paper-authors">{authorLine(paper.authors)}</p>}
