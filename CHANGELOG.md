@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.87 (so với 3.9.86)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Tìm theo một khái niệm: điền một ô thì liệt kê mọi quan hệ có khái niệm đó (độc lập, phụ thuộc, trung gian, điều tiết; hai chiều; không phân biệt hoa thường) | Chủ dự án muốn xem toàn bộ mô hình của một khái niệm qua các bài |
+
 ### Version 3.9.86 (so với 3.9.85)
 
 | # | Thay đổi | Lý do |

@@ -110,6 +110,12 @@ export function queryToSearch(q: RelationQuery): string {
 
 export const hasQuestion = (q: RelationQuery) => q.a !== "" || q.b !== "";
 
+/** Only one box is filled: show every relationship of that concept, whatever its direction or role. */
+export const isSingleConcept = (q: RelationQuery): boolean => (q.a !== "") !== (q.b !== "");
+
+/** The one concept typed in a single-concept search. */
+export const singleTerm = (q: RelationQuery): string => (q.a !== "" ? q.a : q.b);
+
 /** Lower case, no accents, words separated by single spaces. */
 export function normalise(text: string): string {
   return text
@@ -149,6 +155,21 @@ function matches(side: Side | null, label: string, conceptId: string | null): bo
   if (conceptId !== null && side.conceptIds.has(conceptId)) return true;
   const n = normalise(label);
   return side.tokens.every((t) => n.includes(t)) || side.phrases.some((p) => n.includes(p));
+}
+
+/** The parts a concept plays in a test: independent variable, dependent variable, mediator, moderator. */
+function conceptRoles(row: PathRow, side: Side | null): string[] {
+  const roles: string[] = [];
+  if (matches(side, row.iv_label_original, row.iv_construct_id)) roles.push("biến độc lập");
+  if (matches(side, row.dv_label_original, row.dv_construct_id)) roles.push("biến phụ thuộc");
+  if (row.mediator_labels.some((l) => matches(side, l, null))) roles.push("trung gian");
+  if (row.moderator_labels.some((l) => matches(side, l, null))) roles.push("điều tiết");
+  return roles;
+}
+
+/** What the single concept of the query is in this test, for the list ("là biến độc lập, trung gian"). */
+export function rolesInTest(row: PathRow, concepts: Concept[], q: RelationQuery): string[] {
+  return isSingleConcept(q) ? conceptRoles(row, expand(singleTerm(q), concepts, q.equiv)) : [];
 }
 
 const roleOf = (row: PathRow, role: Role): boolean => {
@@ -206,6 +227,18 @@ export interface RelationResult {
 
 /** The tests that answer the query: after the role, the direction and the extra filters. */
 export function findRows(rows: PathRow[], concepts: Concept[], q: RelationQuery): PathRow[] {
+  if (isSingleConcept(q)) {
+    const side = expand(singleTerm(q), concepts, q.equiv);
+    return rows.filter((r) => {
+      if (!roleOf(r, "all") || conceptRoles(r, side).length === 0) return false;
+      if (q.status.length && !q.status.includes(statusGroup(r))) return false;
+      if (q.sign.length) {
+        const sg = signGroup(r);
+        if (sg === "unknown" || !q.sign.includes(sg)) return false;
+      }
+      return true;
+    });
+  }
   const a = expand(q.a, concepts, q.equiv);
   const b = expand(q.b, concepts, q.equiv);
   return rows.filter((r) => {

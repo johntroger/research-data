@@ -11,6 +11,7 @@ import {
   parseQuery,
   type PathRow,
   queryToSearch,
+  rolesInTest,
   type RelationQuery,
   searchRelations,
   suggestions,
@@ -105,8 +106,26 @@ describe("finding the tests of a relationship", () => {
   });
 
   it("lets one side stay empty (anything) and shows nothing for no question at all only on the page", () => {
-    expect(labels(findRows(rows, [], q({ b: "brand trust" })))).toEqual(["Perceived Risk -> Brand Trust"]);
     expect(findRows(rows, [], q({}))).toHaveLength(4); // the page does not search without a question (hasQuestion)
+  });
+
+  it("with one concept only, lists every relationship of it: either direction, any role, any case", () => {
+    const data = [
+      row("Brand Trust", "Loyalty"),
+      row("Satisfaction", "BRAND TRUST"),
+      row("Price", "Loyalty", { effect_type: "indirect", mediator_labels: ["brand trust"] }),
+      row("Price", "Loyalty", { effect_type: "interaction", moderator_labels: ["Brand Trust"] }),
+      row("Price", "Loyalty", { effect_type: "control" }),
+      row("Price", "Quality"),
+    ];
+    for (const typed of ["brand trust", "BRAND TRUST", "Brand trust"]) {
+      expect(findRows(data, [], q({ a: typed }))).toHaveLength(4);
+      expect(findRows(data, [], q({ b: typed }))).toHaveLength(4); // the box does not matter
+    }
+    expect(rolesInTest(data[2]!, [], q({ a: "brand trust" }))).toEqual(["trung gian"]);
+    expect(rolesInTest(data[0]!, [], q({ a: "brand trust" }))).toEqual(["biến độc lập"]);
+    expect(rolesInTest(data[0]!, [], q({ a: "brand trust", b: "loyalty" }))).toEqual([]); // two concepts: no roles
+    expect(findRows(data, [], q({ a: "brand trust", status: ["not_supported"] }))).toHaveLength(0); // other filters still apply
   });
 
   it("with equivalent names on, also finds the canonical concept's aliases and mapped paths", () => {

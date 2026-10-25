@@ -229,3 +229,17 @@ test("says what the repository holds: open on the start page, folded under a res
   await expect(page.getByTestId("corpus")).not.toHaveAttribute("open", "");
   await expect(page.getByTestId("corpus").locator("summary")).toContainText("Kho này gồm gì:");
 });
+
+test("searching one concept lists all its relationships, whatever the case, and says how it is searched", async ({ page }) => {
+  await page.goto("/?a=zebra");
+  await expect(page.getByTestId("single-note")).toContainText("Tìm theo một khái niệm");
+  const lower = await page.locator("[data-testid^='test-']").count();
+  expect(lower).toBeGreaterThan(0);
+  await page.goto("/?a=ZeBrA");
+  await expect(page.locator("[data-testid^='test-']")).toHaveCount(lower);
+  await expect(page.getByTestId("results")).toContainText("khái niệm tìm là");
+  await page.goto("/?b=zebra");
+  await expect(page.locator("[data-testid^='test-']")).toHaveCount(lower);
+  await page.goto("/?a=zebra&b=quokka");
+  await expect(page.getByTestId("single-note")).toHaveCount(0);
+});

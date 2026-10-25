@@ -11,6 +11,9 @@ import {
   formatEstimate,
   formatP,
   hasQuestion,
+  isSingleConcept,
+  rolesInTest,
+  singleTerm,
   paperLabel,
   parseQuery,
   type PathRow,
@@ -52,7 +55,7 @@ const OUTCOME: { key: "supported" | "not_supported" | "mixed" | "not_hypothesize
 
 const link = (q: RelationQuery) => `/?${queryToSearch(q)}`;
 
-function TestLine({ row, concepts }: { row: PathRow; concepts: Map<string, string> }) {
+function TestLine({ row, concepts, roles = [] }: { row: PathRow; concepts: Map<string, string>; roles?: string[] }) {
   const iv = concepts.get(row.iv_construct_id ?? "");
   const dv = concepts.get(row.dv_construct_id ?? "");
   const stats = [formatEstimate(row), formatP(row)].filter(Boolean).join("  ");
@@ -71,6 +74,7 @@ function TestLine({ row, concepts }: { row: PathRow; concepts: Map<string, strin
         </>
       )}
       <div className="muted">
+        {roles.length ? `khái niệm tìm là ${roles.join(", ")} · ` : ""}
         {EFFECT_LABEL[row.effect_type]}
         {row.mediator_labels.length ? ` · qua trung gian: ${row.mediator_labels.join(", ")}` : ""}
         {row.moderator_labels.length ? ` · điều tiết bởi: ${row.moderator_labels.join(", ")}` : ""}
@@ -188,7 +192,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               Muốn hiểu các huy hiệu ✓ ⚠ ◇ và độ chính xác đã đo? Xem <Link href="/about">Giới thiệu và cách đọc dữ liệu</Link>.
             </p>
           </details>
-          <p className="muted">Nhập một hoặc hai biến (tên bất kỳ trong bài, tiếng Anh), hoặc thử:</p>
+          <p className="muted">Nhập một biến để xem mọi quan hệ của nó, hoặc hai biến để xem quan hệ giữa chúng (tên bất kỳ trong bài, tiếng Anh, không phân biệt hoa thường), hoặc thử:</p>
           <ul className="sample-list">
             {SAMPLE_QUERIES.map((x) => (
               <li key={`${x.a}-${x.b}`}>
@@ -206,6 +210,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {result && s && (
         <>
           <section className="summary" data-testid="summary">
+            {isSingleConcept(query) && (
+              <p data-testid="single-note">
+                <strong>Tìm theo một khái niệm:</strong> mọi quan hệ có “{singleTerm(query)}” là biến độc lập, biến phụ thuộc, trung gian hoặc điều tiết, theo cả hai chiều và mọi vai trò (không gồm biến kiểm soát); không phân biệt chữ hoa, chữ thường. Ô “Chiều” và “Vai trò” không áp dụng. Nhập thêm khái niệm thứ hai để xem riêng quan hệ giữa hai khái niệm.
+              </p>
+            )}
             <p data-testid="summary-coverage">
               Tìm thấy <strong>{s.matchedTests} kiểm định từ {s.matchedPapers} bài</strong> (kho có {s.corpusPapers} bài có dữ liệu quan hệ, chọn theo thư viện của chủ dự án, không phải mẫu hệ thống của y văn).
             </p>
@@ -301,7 +310,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   </h3>
                   <ul>
                     {g.rows.map((r) => (
-                      <TestLine key={r.id} row={r} concepts={conceptName} />
+                      <TestLine key={r.id} row={r} concepts={conceptName} roles={rolesInTest(r, concepts, query)} />
                     ))}
                   </ul>
                 </div>
