@@ -6,6 +6,7 @@ import type { Badge } from "@research-data/schema";
 import type { LibraryItem } from "./library";
 import { buildMatrix, type MatrixPath, type PathLine, type SampleRow, type TheoryRow } from "./matrix";
 import type { Concept, PathRow } from "./relations";
+import { fetchCache } from "./data-cache";
 
 export interface Paper {
   id: string;
@@ -63,6 +64,12 @@ function config() {
  * therefore shows up within a minute. In development and tests nothing is kept (0), so a change shows at once.
  */
 const CACHE_MS = Number(process.env.DATA_CACHE_SECONDS ?? (process.env.NODE_ENV === "production" ? 60 : 0)) * 1000;
+/**
+ * Next's Data Cache (shared between function instances) is opt-in: DATA_SHARED_CACHE=1 and a cache time above zero. It serves the last answer
+ * while it fetches a new one, so the first visit after a quiet spell can show data from before the last publish; the in-memory copy above
+ * never does. Off by default, so merging this changes nothing until the owner turns it on and has measured what it buys.
+ */
+const SHARED_CACHE_MS = process.env.DATA_SHARED_CACHE === "1" ? CACHE_MS : 0;
 const CACHE_MAX_ENTRIES = 300;
 const remembered = new Map<string, { at: number; value: Promise<unknown> }>();
 
@@ -85,11 +92,11 @@ function rest<T>(pathAndQuery: string): Promise<T> {
   return memoised(`rest:${pathAndQuery}`, () => fetchRest<T>(pathAndQuery));
 }
 
-async function fetchRest<T>(pathAndQuery: string): Promise<T> {
+async function fetchRest<T>(pathAndQuery: string, fresh = false): Promise<T> {
   const { url, key } = config();
   const res = await fetch(`${url}/rest/v1/${pathAndQuery}`, {
     headers: { apikey: key, Authorization: `Bearer ${key}` },
-    cache: "no-store",
+    ...fetchCache(fresh ? 0 : SHARED_CACHE_MS),
   });
   if (!res.ok) throw new Error(`Supabase ${res.status}: ${await res.text()}`);
   return (await res.json()) as T;
@@ -114,9 +121,11 @@ export async function listBadgeCounts(): Promise<Map<string, BadgeCounts>> {
   return new Map(rows.map((r) => [r.paper_id, r]));
 }
 
-export async function getPaper(id: string): Promise<Paper | null> {
+/** `fresh` skips every copy: the PDF route decides who may open a file from the licence, which must be the one in the database now. */
+export async function getPaper(id: string, options: { fresh?: boolean } = {}): Promise<Paper | null> {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
-  const rows = await rest<Paper[]>(`papers?select=${PAPER_COLUMNS}&id=eq.${id}`);
+  const path = `papers?select=${PAPER_COLUMNS}&id=eq.${id}`;
+  const rows = options.fresh ? await fetchRest<Paper[]>(path, true) : await rest<Paper[]>(path);
   return rows[0] ?? null;
 }
 
@@ -178,7 +187,7 @@ async function fetchAll<T>(pathAndQuery: string): Promise<T[]> {
   for (let from = 0; ; from += size) {
     const res = await fetch(`${url}/rest/v1/${pathAndQuery}`, {
       headers: { apikey: key, Authorization: `Bearer ${key}`, "Range-Unit": "items", Range: `${from}-${from + size - 1}` },
-      cache: "no-store",
+      ...fetchCache(SHARED_CACHE_MS),
     });
     if (!res.ok) throw new Error(`Supabase ${res.status}: ${await res.text()}`);
     const rows = (await res.json()) as T[];
