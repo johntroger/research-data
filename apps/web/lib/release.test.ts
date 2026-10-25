@@ -28,3 +28,17 @@ describe("toolCitation", () => {
     expect(note).toContain("Cách trích dẫn: Tran, T. T. (2026).");
   });
 });
+
+import { staleWarning } from "./release";
+
+describe("staleWarning", () => {
+  const latest = { id: "2026.11.02", released_at: "2026-11-02T03:00:00Z" };
+  it("warns only when the link names a release other than the latest", () => {
+    expect(staleWarning(null, latest)).toBeNull();
+    expect(staleWarning("2026.11.02", latest)).toBeNull();
+    expect(staleWarning("2026.10.25", null)).toBeNull();
+    const text = staleWarning("2026.10.25", latest)!;
+    expect(text).toContain("bản dữ liệu 2026.10.25");
+    expect(text).toContain("bản 2026.11.02 (02/11/2026)");
+  });
+});

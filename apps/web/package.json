@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
+    "@retorquere/bibtex-parser": "^12.1.13",
     "@types/pg": "^8.23.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

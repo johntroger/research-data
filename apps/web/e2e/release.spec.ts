@@ -48,3 +48,13 @@ test("an exported Excel file and Word file carry the release and the citation", 
   const word = await request.get("/export/word?a=zebra&b=quokka");
   expect(word.status()).toBe(200);
 });
+
+test("a permanent link from an older release warns that the data has changed since; one from the current release does not", async ({ page }) => {
+  await page.goto("/?a=nonexistentzzz&v=1999.01.01");
+  await expect(page.getByTestId("stale-release")).toContainText("bản dữ liệu 1999.01.01");
+  await expect(page.getByTestId("stale-release")).toContainText("bản 9999.01.01");
+  await page.goto(`/?a=nonexistentzzz&v=${ID}`);
+  await expect(page.getByTestId("stale-release")).toHaveCount(0);
+  await page.goto("/?a=nonexistentzzz");
+  await expect(page.getByTestId("stale-release")).toHaveCount(0);
+});

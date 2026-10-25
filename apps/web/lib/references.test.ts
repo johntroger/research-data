@@ -77,3 +77,28 @@ describe("toBibtex", () => {
     expect(citeKeys(list).get("p1")).toMatch(/^van2026/);
   });
 });
+
+import { parse as parseBib } from "@retorquere/bibtex-parser";
+
+describe("BibTeX read back by a real parser (the one Zotero's tools use)", () => {
+  it("parses without errors and gives back the same people, title, year, pages and doi", () => {
+    const list = [
+      paper({ id: "a" }),
+      paper({ id: "b", title: "50% of {users} like_it #1 & more", journal: "J. of A & B", authors: [{ given: "Hoàng Đình", family: "Văn" }], year: 2026, pages: "e12345" }),
+    ];
+    const parsed = parseBib(toBibtex(list), { sentenceCase: false });
+    expect(parsed.errors).toEqual([]);
+    expect(parsed.entries).toHaveLength(2);
+    const first = parsed.entries[0]!;
+    expect(first.key).toBe("chaudhuri2001chain");
+    expect(first.fields.title).toBe("The Chain of Effects from Brand Trust & Brand Affect");
+    expect(first.fields.year).toBe("2001");
+    expect(first.fields.doi).toBe("10.1509/jmkg.65.2.81.18255");
+    expect(first.fields.author?.map((c) => `${c.lastName}, ${c.firstName}`)).toEqual(["Chaudhuri, Arjun", "Holbrook, Morris B."]);
+    expect(first.fields.pages).toBe("81–93"); // the parser turns -- into an en dash
+    const second = parsed.entries[1]!;
+    expect(second.fields.title).toBe("50% of users like_it #1 & more");
+    expect(second.fields.journal).toBe("J. of A & B");
+    expect(second.fields.author?.[0]?.lastName).toBe("Văn");
+  });
+});

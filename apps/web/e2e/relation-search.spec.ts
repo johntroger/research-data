@@ -306,3 +306,12 @@ test("the CSV has the tests of the list with raw values, a byte order mark and t
   expect(lines).toHaveLength(1 + 3); // the page lists 3 tests for zebra and quokka
   expect(lines[1]).toContain("zebra");
 });
+
+test("copies a permanent link that holds the question and the release of the data", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/?a=zebra&b=quokka");
+  await page.getByTestId("permalink").click();
+  const copied = await page.evaluate(() => navigator.clipboard.readText());
+  expect(copied).toContain("/?a=zebra&b=quokka");
+  if ((await page.getByTestId("data-release").count()) > 0) expect(copied).toMatch(/&v=[0-9.-]+$/);
+});

@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.99 (so với 3.9.98)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | P4.4 và P4.5: liên kết cố định kèm bản dữ liệu và cảnh báo khi dữ liệu đã đổi; kiểm BibTeX bằng bộ phân tích thật; chốt P4 | Người đọc biết kết quả trong liên kết còn mới hay không |
+
 ### Version 3.9.98 (so với 3.9.97)
 
 | # | Thay đổi | Lý do |

@@ -3,7 +3,9 @@ import { CopyButton } from "@/app/library/copy-button";
 import { CorpusBlock } from "@/app/corpus-block";
 import { describeCorpus } from "@/lib/corpus";
 import { countryName, DESIGN_LABELS, SAMPLE_LABELS } from "@/lib/library";
-import { listConcepts, listLibraryItems, listPathRows } from "@/lib/data";
+import { PermalinkButton } from "@/app/permalink-button";
+import { getLatestRelease, listConcepts, listLibraryItems, listPathRows } from "@/lib/data";
+import { releaseLabel, staleWarning } from "@/lib/release";
 import { countUse } from "@/lib/usage";
 import { academicSentence } from "@/lib/sentence";
 import {
@@ -93,8 +95,11 @@ function TestLine({ row, concepts, roles = [] }: { row: PathRow; concepts: Map<s
 }
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
-  const query = parseQuery(await searchParams);
-  const [rows, concepts, items] = await Promise.all([listPathRows(), listConcepts(), listLibraryItems()]);
+  const rawParams = await searchParams;
+  const query = parseQuery(rawParams);
+  const linkedRelease = (Array.isArray(rawParams.v) ? rawParams.v[0] : rawParams.v)?.trim().slice(0, 20) || null;
+  const [rows, concepts, items, release] = await Promise.all([listPathRows(), listConcepts(), listLibraryItems(), getLatestRelease()]);
+  const stale = staleWarning(linkedRelease, release);
   const corpus = describeCorpus(items);
   const countries = [...new Set(rows.flatMap((r) => sampleOf(r)?.country_iso ?? []))].sort((x, y) => countryName(x).localeCompare(countryName(y), "vi"));
   const studyFilterOn = query.from !== null || query.to !== null || query.design.length + query.sample.length + query.country.length > 0;
@@ -272,6 +277,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {result && s && (
         <>
           <section className="summary" data-testid="summary">
+            {stale && (
+              <p data-testid="stale-release" role="alert">
+                <strong>⚠ </strong>
+                {stale}
+              </p>
+            )}
             {isSingleConcept(query) && (
               <p data-testid="single-note">
                 <strong>Tìm theo một khái niệm:</strong> mọi quan hệ có “{singleTerm(query)}” là biến độc lập, biến phụ thuộc, trung gian hoặc điều tiết, theo cả hai chiều và mọi vai trò (không gồm biến kiểm soát); không phân biệt chữ hoa, chữ thường. Ô “Chiều” và “Vai trò” không áp dụng. Nhập thêm khái niệm thứ hai để xem riêng quan hệ giữa hai khái niệm.
@@ -375,8 +386,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 {" · "}
                 <a href={`/export/csv?${queryToSearch(query)}`} download data-testid="export-csv">
                   Tải CSV
-                </a>{" "}
-                <span className="muted">đúng danh sách bên dưới, có cột huy hiệu, trang in và tuyên bố trách nhiệm (CSV: giá trị gốc để phân tích, kèm số hiệu bản dữ liệu).</span>
+                </a>
+                {" · "}
+                <PermalinkButton path={`/?${queryToSearch(query)}${release ? `&v=${encodeURIComponent(release.id)}` : ""}`} testId="permalink" />{" "}
+                <span className="muted">đúng danh sách bên dưới, có cột huy hiệu, trang in và tuyên bố trách nhiệm (CSV: giá trị gốc để phân tích, kèm số hiệu bản dữ liệu).{release ? ` Kết quả tính trên ${releaseLabel(release)}.` : ""}</span>
               </p>
               {result.groups.map((g) => (
                 <div key={g.paperId} className="relation-paper" data-testid={`paper-${g.paperId}`}>
