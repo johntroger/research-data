@@ -13,11 +13,17 @@ export interface RateRule {
   name: string;
   limit: number;
   windowSec: number;
+  /**
+   * Counted in the store shared by every function instance (default). Pages and searches are cheap and constant, and a call to a shared store
+   * costs a round trip on every request (about 230 ms from a far-away Redis), so they are counted in each instance's own memory: the limit
+   * then holds per instance, which still stops one visitor from hammering the site.
+   */
+  shared?: boolean;
 }
 
 export const RULES = {
-  pages: { name: "pages", limit: 120, windowSec: 60 },
-  search: { name: "search", limit: 60, windowSec: 60 },
+  pages: { name: "pages", limit: 120, windowSec: 60, shared: false },
+  search: { name: "search", limit: 60, windowSec: 60, shared: false },
   pdf: { name: "pdf", limit: 20, windowSec: 60 },
   pdfDownload: { name: "pdf-download", limit: 10, windowSec: 3600 },
   export: { name: "export", limit: 10, windowSec: 3600 },
@@ -91,9 +97,9 @@ export interface Verdict {
 }
 
 /** Applies every rule to one visitor; the first one that refuses decides. */
-export async function enforce(store: RateStore, rules: RateRule[], visitor: string, now: number): Promise<Verdict> {
+export async function enforce(store: RateStore, rules: RateRule[], visitor: string, now: number, localStore: RateStore = store): Promise<Verdict> {
   for (const rule of rules) {
-    const r = await store.consume(`${rule.name}:${visitor}`, rule.limit, rule.windowSec * 1000, now);
+    const r = await (rule.shared === false ? localStore : store).consume(`${rule.name}:${visitor}`, rule.limit, rule.windowSec * 1000, now);
     if (!r.allowed) return { allowed: false, retryAfterSec: Math.max(1, Math.ceil(r.retryAfterMs / 1000)), rule };
   }
   return { allowed: true, retryAfterSec: 0 };
