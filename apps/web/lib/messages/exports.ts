@@ -19,6 +19,7 @@ export const exports = defineMessages({
   "xl.col.result": { vi: "Kết quả giả thuyết", en: "Hypothesis result" },
   "xl.col.direction": { vi: "Chiều tác động", en: "Direction of the effect" },
   "xl.col.badge": { vi: "Huy hiệu", en: "Badge" },
+  "xl.col.table": { vi: "Bảng", en: "Table" },
   "xl.col.printed": { vi: "Trang in", en: "Printed page" },
   "xl.col.pdfPage": { vi: "Trang PDF", en: "PDF page" },
   "xl.col.open": { vi: "Mở bài", en: "Open paper" },

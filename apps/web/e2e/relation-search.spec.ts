@@ -328,13 +328,17 @@ test("shows the certain tests first and gathers the unverified ones of a paper i
   await expect(page.getByTestId("summary-more")).not.toHaveAttribute("open", "");
 });
 
-test("a relationship stated twice in a paper shows once, the other statements folded under it", async ({ page }) => {
-  // The local database holds the real Zeugner-Roth data: Study 5 states Brand opportunism → ABE → Brand trust twice.
+test("a relationship stated twice in a paper shows once; the other statements are folded and compared in a table with their tables and captions", async ({ page }) => {
+  // The local database holds the real Zeugner-Roth data: Study 5 states Brand opportunism → ABE → Brand trust in Table 6 and again in Table 7.
   await page.goto("/?a=brand+opportunism&b=brand+trust&role=all");
   const folds = page.locator("details.repeats");
   if ((await folds.count()) === 0) test.skip(true, "the local database has no repeated statement of one relationship");
   await expect(folds.first()).not.toHaveAttribute("open", "");
-  await expect(folds.first().locator("li").first()).toBeHidden();
+  await expect(folds.first().getByTestId("repeats-table")).toBeHidden();
   await folds.first().locator("summary").click();
-  await expect(folds.first().locator("li").first()).toBeVisible();
+  const table = folds.first().getByTestId("repeats-table");
+  await expect(table).toBeVisible();
+  await expect(table.locator("tbody tr")).toHaveCount(2);
+  await expect(table).toContainText("Table 7");
+  await expect(table).toContainText("parsimonious"); // the caption of Table 7 (needs pnpm worker captions on the local database)
 });

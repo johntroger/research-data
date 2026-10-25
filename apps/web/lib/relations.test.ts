@@ -377,3 +377,12 @@ describe("a printed p of zero, and the same relationship reported twice", () => 
     expect(groups[1]!.repeats).toEqual([]);
   });
 });
+
+describe("covariateDiff", () => {
+  it("lists what the other model has extra and what it lacks, ignoring case and spacing", async () => {
+    const { covariateDiff } = await import("./relations");
+    expect(covariateDiff({ model_covariates: ["Age", "Gender"] }, { model_covariates: ["age", "Gender", "Education"] })).toEqual({ added: ["Education"], missing: [] });
+    expect(covariateDiff({ model_covariates: ["Age", "Gender"] }, { model_covariates: ["Age"] })).toEqual({ added: [], missing: ["Gender"] });
+    expect(covariateDiff({}, {})).toEqual({ added: [], missing: [] });
+  });
+});

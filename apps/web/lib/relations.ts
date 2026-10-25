@@ -69,6 +69,8 @@ export interface PathRow {
   dv_construct_id: string | null;
   mediator_labels: string[];
   moderator_labels: string[];
+  /** Other predictors in the same model, as the paper lists them (differs between two statements of one relationship). */
+  model_covariates?: string[];
   effect_type: "direct" | "indirect" | "interaction" | "total" | "control";
   estimate_type: string | null;
   estimate: number | null;
@@ -84,7 +86,7 @@ export interface PathRow {
   ci_high?: number | null;
   studies: { study_label: string; research_design: string | null; samples?: SampleN | SampleN[] | null } | null;
   papers: PaperInfo | null;
-  evidence: { printed_page: string | null; pdf_page_index: number } | null;
+  evidence: { printed_page: string | null; pdf_page_index: number; /** "Table 6" when the evidence is a table row. */ table_or_figure?: string | null } | null;
 }
 
 export interface Concept {
@@ -428,6 +430,14 @@ export function formatP(row: Pick<PathRow, "p_reported_as" | "p_value">): string
  * of near-identical lines does not bury the rest. Which of them is "the" result is for the reader to judge from the paper: the data
  * does not say which model each one comes from.
  */
+/** What the other statement has that the main one lacks ("+ Age") and what it lacks ("− Gender"); empty when the models list the same variables. */
+export function covariateDiff(main: Pick<PathRow, "model_covariates">, other: Pick<PathRow, "model_covariates">): { added: string[]; missing: string[] } {
+  const norm = (xs: string[] | undefined) => new Map((xs ?? []).map((x) => [x.trim().toLowerCase(), x.trim()]));
+  const a = norm(main.model_covariates);
+  const b = norm(other.model_covariates);
+  return { added: [...b].filter(([k]) => !a.has(k)).map(([, v]) => v), missing: [...a].filter(([k]) => !b.has(k)).map(([, v]) => v) };
+}
+
 export function groupRepeats(rows: PathRow[]): { main: PathRow; repeats: PathRow[] }[] {
   const key = (r: PathRow) =>
     [r.study_id, r.hypothesis_code ?? "", r.iv_label_original, r.dv_label_original, r.effect_type, r.mediator_labels.join("|"), r.moderator_labels.join("|")].join("\u0000");

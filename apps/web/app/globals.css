@@ -827,3 +827,15 @@ h1 {
   color: var(--muted, #5f6670);
   font-size: 13px;
 }
+
+.repeats-table {
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 6px 0;
+}
+.repeats-table th,
+.repeats-table td {
+  border: 1px solid #d0d4d9;
+  padding: 3px 8px;
+  text-align: left;
+}

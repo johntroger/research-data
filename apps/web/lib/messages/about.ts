@@ -98,7 +98,7 @@ export const about = defineMessages({
   "about.files.result": { vi: "là kết quả giả thuyết;", en: "is the hypothesis result;" },
   "about.files.direction": { vi: "là chiều tác động;", en: "is the direction of the effect;" },
   "about.files.badge": { vi: "là huy hiệu (✓ ⚠ ◇ ★);", en: "is the badge (✓ ⚠ ◇ ★);" },
-  "about.files.pages": { vi: "chỉ chỗ bằng chứng trong bài.", en: "point to the evidence in the paper." },
+  "about.files.pages": { vi: "chỉ chỗ bằng chứng trong bài; cột table là bảng chứa số đó.", en: "point to the evidence in the paper; the table column is the table that holds the number." },
 
   "about.cite.h": { vi: "Cách trích dẫn công cụ này", en: "How to cite this tool" },
   "about.cite.p": {

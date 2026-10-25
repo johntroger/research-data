@@ -191,8 +191,8 @@ async function fetchAll<T>(pathAndQuery: string): Promise<T[]> {
 
 const PATH_COLUMNS =
   "id,paper_id,study_id,natural_key,hypothesis_code,iv_label_original,dv_label_original,iv_construct_id,dv_construct_id," +
-  "mediator_labels,moderator_labels,effect_type,estimate_type,estimate,se,ci_low,ci_high,p_value,p_reported_as,status,observed_sign,significant,badge," +
-  "studies(study_label,research_design,samples(n,sample_type,country_iso)),papers(title,authors,year,journal,citekey,apa_citation,doi),evidence(printed_page,pdf_page_index)";
+  "mediator_labels,moderator_labels,model_covariates,effect_type,estimate_type,estimate,se,ci_low,ci_high,p_value,p_reported_as,status,observed_sign,significant,badge," +
+  "studies(study_label,research_design,samples(n,sample_type,country_iso)),papers(title,authors,year,journal,citekey,apa_citation,doi),evidence(printed_page,pdf_page_index,table_or_figure)";
 
 /** Every test (path) visitors may see, with its study, paper and evidence page. */
 export function listPathRows(): Promise<PathRow[]> {
@@ -237,6 +237,16 @@ export async function getOverview(): Promise<Overview> {
   const attention = sum((c) => c.attention);
   const interpreted = sum((c) => c.interpreted);
   return { papers: papers.length, fields: verified + attention + interpreted, verified, attention, interpreted };
+}
+
+/** The captions of the tables ("Table 7. Results: ... parsimonious scale"), by paper and table label; found by machine in the PDF (pnpm worker captions). */
+export async function listTableCaptions(): Promise<Map<string, string>> {
+  try {
+    const rows = await restAll<{ paper_id: string; table_label: string; caption: string | null }>("paper_tables?select=paper_id,table_label,caption&caption=not.is.null");
+    return new Map(rows.map((r) => [`${r.paper_id}|${r.table_label}`, r.caption!]));
+  } catch {
+    return new Map(); // the column may not be there yet; the page then shows the table label alone
+  }
 }
 
 /** The latest numbered release of the data, or null when none was cut (or the table is not there yet). */

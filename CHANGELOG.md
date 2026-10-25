@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.106 (so với 3.9.105)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | M1 đến M3: hiện bảng và chú thích bảng ở mỗi dòng kết quả, bảng so sánh các dòng lặp (kèm biến kiểm soát khác nhau), lệnh `pnpm worker captions`, cột `paper_tables.caption` | Phân biệt được các dòng cùng quan hệ (ví dụ thang đầy đủ và thang rút gọn) |
+
 ### Version 3.9.105 (so với 3.9.104)
 
 | # | Thay đổi | Lý do |

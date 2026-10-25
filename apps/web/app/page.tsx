@@ -6,7 +6,7 @@ import { ForestPlot } from "@/app/forest-plot";
 import { buildForest } from "@/lib/forest";
 import { describeCorpus } from "@/lib/corpus";
 import { PermalinkButton } from "@/app/permalink-button";
-import { getLatestRelease, listConcepts, listLibraryItems, listPathRows } from "@/lib/data";
+import { getLatestRelease, listConcepts, listLibraryItems, listPathRows, listTableCaptions } from "@/lib/data";
 import { getT } from "@/lib/i18n-server";
 import type { Translate } from "@/lib/i18n";
 import { countryLabel, label, labelKeys, tk } from "@/lib/labels";
@@ -18,7 +18,13 @@ import {
   ESTIMATES,
   SORTS,
   formatStats,
+  formatEstimate,
+  formatP,
+  formatSe,
+  formatCi,
+  sampleSize,
   groupRepeats,
+  covariateDiff,
   hasQuestion,
   isSingleConcept,
   isVerified,
@@ -44,7 +50,9 @@ const outcomeLabel = (t: Translate, key: (typeof OUTCOME)[number]) => (key === "
 
 const link = (q: RelationQuery) => `/?${queryToSearch(q)}`;
 
-function TestLine({ row, concepts, roles = [], t }: { row: PathRow; concepts: Map<string, string>; roles?: string[]; t: Translate }) {
+const captionOf = (captions: Map<string, string>, r: PathRow) => (r.evidence?.table_or_figure ? captions.get(`${r.paper_id}|${r.evidence.table_or_figure}`) : undefined);
+
+function TestLine({ row, concepts, roles = [], t, captions }: { row: PathRow; concepts: Map<string, string>; roles?: string[]; t: Translate; captions: Map<string, string> }) {
   const iv = concepts.get(row.iv_construct_id ?? "");
   const dv = concepts.get(row.dv_construct_id ?? "");
   const stats = formatStats(row);
@@ -69,9 +77,65 @@ function TestLine({ row, concepts, roles = [], t }: { row: PathRow; concepts: Ma
         {row.moderator_labels.length ? t("test.moderatedBy", { list: row.moderator_labels.join(", ") }) : ""}
         {iv && iv !== row.iv_label_original ? t("test.canonicalIv", { name: iv }) : ""}
         {dv && dv !== row.dv_label_original ? t("test.canonicalDv", { name: dv }) : ""}
+        {row.evidence?.table_or_figure ? (captionOf(captions, row) ? t("test.tableCaption", { table: row.evidence.table_or_figure, caption: captionOf(captions, row)! }) : t("test.table", { table: row.evidence.table_or_figure })) : ""}
         {row.evidence ? t("test.page", { printed: row.evidence.printed_page ?? "?", pdf: row.evidence.pdf_page_index + 1 }) : ""}
       </div>
     </li>
+  );
+}
+
+/** The other statements of one relationship next to the main one: where each is (table, page), its numbers, and what differs in the model. */
+function RepeatsTable({ main, repeats, t, captions }: { main: PathRow; repeats: PathRow[]; t: Translate; captions: Map<string, string> }) {
+  const sameAsMain = (r: PathRow) => r.estimate === main.estimate && formatP(r) === formatP(main) && (r.se ?? null) === (main.se ?? null);
+  return (
+    <table className="repeats-table" data-testid="repeats-table">
+      <thead>
+        <tr>
+          <th>{t("repeats.col.where")}</th>
+          <th>{t("repeats.col.estimate")}</th>
+          <th>{t("repeats.col.p")}</th>
+          <th>{t("repeats.col.n")}</th>
+          <th>{t("repeats.col.model")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {[main, ...repeats].map((r, i) => {
+          const diff = i === 0 ? null : covariateDiff(main, r);
+          return (
+            <tr key={r.id}>
+              <td>
+                <Link href={`/papers/${r.paper_id}?focus=${encodeURIComponent(r.natural_key)}`}>
+                  {[r.evidence?.table_or_figure, r.evidence ? t("repeats.page", { p: r.evidence.printed_page ?? r.evidence.pdf_page_index + 1 }) : null].filter(Boolean).join(" · ") || t("repeats.open")}
+                </Link>
+                {i === 0 && <span className="muted"> ({t("repeats.main")})</span>}
+                {captionOf(captions, r) && <div className="muted">{captionOf(captions, r)}</div>}
+              </td>
+              <td>{[formatEstimate(r), formatSe(r), formatCi(r)].filter(Boolean).join(", ")}</td>
+              <td>{formatP(r)}</td>
+              <td>{sampleSize(r)?.toLocaleString("en-US") ?? ""}</td>
+              <td>
+                {i === 0 ? (
+                  <span className="muted">{(main.model_covariates ?? []).join(", ") || t("repeats.noVars")}</span>
+                ) : (
+                  <>
+                    {sameAsMain(r) && <span className="muted">{t("repeats.sameNumber")} </span>}
+                    {diff && diff.added.length + diff.missing.length === 0 ? (
+                      <span className="muted">{t("repeats.sameVars")}</span>
+                    ) : (
+                      <span>
+                        {diff?.added.map((x) => `+ ${x}`).join(", ")}
+                        {diff && diff.added.length > 0 && diff.missing.length > 0 ? "; " : ""}
+                        {diff?.missing.map((x) => `− ${x}`).join(", ")}
+                      </span>
+                    )}
+                  </>
+                )}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
   );
 }
 
@@ -80,7 +144,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const rawParams = await searchParams;
   const query = parseQuery(rawParams);
   const linkedRelease = (Array.isArray(rawParams.v) ? rawParams.v[0] : rawParams.v)?.trim().slice(0, 20) || null;
-  const [rows, concepts, items, release] = await Promise.all([listPathRows(), listConcepts(), listLibraryItems(), getLatestRelease()]);
+  const [rows, concepts, items, release, captions] = await Promise.all([listPathRows(), listConcepts(), listLibraryItems(), getLatestRelease(), listTableCaptions()]);
   const stale = staleWarning(linkedRelease, release, lang);
   const corpus = describeCorpus(items);
   const countries = [...new Set(rows.flatMap((r) => sampleOf(r)?.country_iso ?? []))].sort((x, y) => countryLabel(x, lang).localeCompare(countryLabel(y, lang), lang));
@@ -402,16 +466,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                     <ul>
                       {groupRepeats(g.rows.filter(isVerified)).map(({ main, repeats }) => (
                         <Fragment key={main.id}>
-                          <TestLine row={main} concepts={conceptName} roles={rolesInTest(main, concepts, query)} t={t} />
+                          <TestLine row={main} concepts={conceptName} roles={rolesInTest(main, concepts, query)} t={t} captions={captions} />
                           {repeats.length > 0 && (
                             <li className="repeats-item">
                               <details className="repeats" data-testid={`repeats-${main.id}`}>
                                 <summary>{tn("result.repeats", repeats.length)}</summary>
-                                <ul>
-                                  {repeats.map((r) => (
-                                    <TestLine key={r.id} row={r} concepts={conceptName} roles={rolesInTest(r, concepts, query)} t={t} />
-                                  ))}
-                                </ul>
+                                <RepeatsTable main={main} repeats={repeats} t={t} captions={captions} />
                               </details>
                             </li>
                           )}
@@ -424,7 +484,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                       <summary>{tn("result.unverified", g.rows.filter((r) => !isVerified(r)).length)}</summary>
                       <ul>
                         {g.rows.filter((r) => !isVerified(r)).map((r) => (
-                          <TestLine key={r.id} row={r} concepts={conceptName} roles={rolesInTest(r, concepts, query)} t={t} />
+                          <TestLine key={r.id} row={r} concepts={conceptName} roles={rolesInTest(r, concepts, query)} t={t} captions={captions} />
                         ))}
                       </ul>
                     </details>

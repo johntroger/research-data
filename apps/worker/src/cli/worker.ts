@@ -27,6 +27,7 @@ import { backupFile, importPacket, manualVersions, once, pgDumpViaDocker } from 
 import { connect, prodDbUrl } from "../db/client.js";
 import { lookupAll, saveOa } from "../db/oa.js";
 import { planRelease, saveRelease } from "../db/release.js";
+import { findCaption } from "../pdf/captions.js";
 import { applyRemap, planRemap } from "../db/map-labels.js";
 import { renderCanonicalSeedSql } from "@research-data/schema";
 import { lookupMetadata, saveMetadata, type MetadataPaper } from "../db/metadata.js";
@@ -617,6 +618,67 @@ async function releaseCommand(args: string[]): Promise<number> {
   }
 }
 
+/**
+ * pnpm worker captions [--paper X] [--target prod] [--yes]: finds the caption of every table of every paper in the text of the PDF page that
+ * holds the table (machine only, no AI) and stores it in paper_tables.caption. The PDFs are read from raw_papers/ on this machine, so the
+ * same command can fill the prod database. Preview unless --yes.
+ */
+async function captionsCommand(args: string[]): Promise<number> {
+  loadEnv();
+  const only = option(args, "--paper");
+  const yes = args.includes("--yes");
+  const prod = option(args, "--target") === "prod";
+  const url = prod ? prodDbUrl() : undefined;
+  if (prod && !url) {
+    console.error("Prod is not configured: SUPABASE_PROD_REF, SUPABASE_PROD_DB_PASSWORD and SUPABASE_PROD_POOLER_HOST are needed in .env.");
+    return 1;
+  }
+  const db = await connect(url ?? undefined);
+  try {
+    const papers = await db.query<{ id: string; title: string | null; pdf_path: string | null }>(
+      "select id, title, pdf_path from papers where pdf_path is not null and exists (select 1 from paper_tables t where t.paper_id = papers.id) and ($1::text is null or id::text like $1 || '%' or title ilike '%' || $1 || '%') order by title",
+      [only ?? null],
+    );
+    let found = 0;
+    let total = 0;
+    const updates: { paperId: string; label: string; caption: string }[] = [];
+    for (const paper of papers.rows) {
+      let layer;
+      try {
+        layer = await readTextLayer(new Uint8Array(await readFile(path.resolve(REPO_ROOT, paper.pdf_path!))));
+      } catch {
+        console.log(`${(paper.title ?? paper.id).slice(0, 56).padEnd(56)} bỏ qua: không đọc được PDF`);
+        continue;
+      }
+      const tables = await db.query<{ table_label: string; pdf_page_index: number }>("select table_label, pdf_page_index from paper_tables where paper_id = $1 order by pdf_page_index", [paper.id]);
+      let hit = 0;
+      for (const t of tables.rows) {
+        total++;
+        // The table sits on its page; a caption can also be printed on the page before it.
+        const caption = [t.pdf_page_index, t.pdf_page_index - 1].map((i) => layer.pages[i]?.text).filter((x): x is string => !!x).map((text) => findCaption(text, t.table_label)).find(Boolean) ?? null;
+        if (caption) {
+          hit++;
+          found++;
+          updates.push({ paperId: paper.id, label: t.table_label, caption });
+        }
+      }
+      console.log(`${(paper.title ?? paper.id).slice(0, 56).padEnd(56)} ${hit}/${tables.rows.length} chú thích`);
+    }
+    console.log(`
+${found}/${total} bảng có chú thích.`);
+    for (const u of updates.slice(0, 5)) console.log(`  ${u.label}: ${u.caption}`);
+    if (!yes) {
+      console.log("Nothing written. Add --yes to store these.");
+      return 0;
+    }
+    for (const u of updates) await db.query("update paper_tables set caption = $3 where paper_id = $1 and table_label = $2", [u.paperId, u.label, u.caption]);
+    console.log(`Stored ${updates.length} captions.`);
+    return 0;
+  } finally {
+    await db.end();
+  }
+}
+
 /** pnpm worker highlights [--paper X]: recompute where each quote sits on its PDF page (step 3a.3). No API call. */
 async function highlights(args: string[]): Promise<number> {
   const only = option(args, "--paper");
@@ -814,10 +876,11 @@ async function main(): Promise<number> {
   if (command === "metadata") return metadataCommand(args);
   if (command === "map-labels") return mapLabelsCommand(args);
   if (command === "release") return releaseCommand(args);
+  if (command === "captions") return captionsCommand(args);
   if (command === "backup-files") return backupFiles(args);
   if (command === "ocr") return ocr(args);
   if (command === "republish") return republish(args);
-  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | oa [--paper X] [--target prod] [--yes] | metadata [--paper X] [--doi D] [--target prod] [--yes] | map-labels [--target prod] [--yes] | release [--note T] [--target prod] [--yes] | backup-files [--yes] [--keep N] | ocr --paper X | republish [--paper X] [--yes] | manual export --paper X");
+  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | oa [--paper X] [--target prod] [--yes] | metadata [--paper X] [--doi D] [--target prod] [--yes] | map-labels [--target prod] [--yes] | release [--note T] [--target prod] [--yes] | captions [--paper X] [--target prod] [--yes] | backup-files [--yes] [--keep N] | ocr --paper X | republish [--paper X] [--yes] | manual export --paper X");
   return 1;
 }
 

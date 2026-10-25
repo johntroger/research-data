@@ -22,7 +22,7 @@ import {
 
 const COLUMN_KEYS = [
   "xl.col.citation", "xl.col.year", "xl.col.journal", "xl.col.study", "xl.col.iv", "xl.col.dv", "xl.col.role", "xl.col.hypothesis", "xl.col.estimate",
-  "xl.col.p", "xl.col.se", "xl.col.ci", "xl.col.n", "xl.col.result", "xl.col.direction", "xl.col.badge", "xl.col.printed", "xl.col.pdfPage", "xl.col.open",
+  "xl.col.p", "xl.col.se", "xl.col.ci", "xl.col.n", "xl.col.result", "xl.col.direction", "xl.col.badge", "xl.col.table", "xl.col.printed", "xl.col.pdfPage", "xl.col.open",
 ] as const satisfies readonly MessageKey[];
 
 /** The column headings in the language of the page. */
@@ -40,7 +40,7 @@ export const DISCLAIMER = disclaimer(vi);
 export const CSV_COLUMNS = [
   "data_release", "paper_id", "citation", "year", "journal", "doi", "study", "iv", "dv", "role", "mediators", "moderators", "hypothesis",
   "estimate_type", "estimate", "se", "ci_low", "ci_high", "p_value", "p_reported", "n", "result", "effect_direction", "badge",
-  "printed_page", "pdf_page", "url",
+  "table", "printed_page", "pdf_page", "url",
 ] as const;
 
 /** One row per test, in the order of the page, with the raw values (not the APA text) so the file can be analysed. */
@@ -72,6 +72,7 @@ export function csvRows(result: RelationResult, opts: { release: string; openUrl
       r.status,
       signGroup(r),
       r.badge,
+      r.evidence?.table_or_figure ?? null,
       r.evidence ? (r.evidence.printed_page ?? null) : null,
       r.evidence ? r.evidence.pdf_page_index + 1 : null,
       opts.openUrl(r),
@@ -109,6 +110,7 @@ function rowCells(r: PathRow, openUrl: (r: PathRow) => string, t: Translate): (s
     label(t, "status", r.status),
     tk(t, `xl.sign.${signGroup(r)}`),
     label(t, "badge", r.badge),
+    r.evidence?.table_or_figure ?? null,
     r.evidence ? (r.evidence.printed_page ?? null) : null,
     r.evidence ? r.evidence.pdf_page_index + 1 : null,
     openUrl(r),
