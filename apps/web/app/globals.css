@@ -4,9 +4,10 @@
   --text: #1f2328;
   --muted: #5f6670;
   --border: #e3e5e8;
-  --accent: #1f6feb;
-  --ok: #1a7f5a;
-  --warn: #9a6700;
+  /* Text colours measured against the page (#fbfbfa), cards (#fff) and the selected row (#eaf2ff): each is at least 4.5:1 on all three (WCAG AA). */
+  --accent: #1a63d6;
+  --ok: #177350;
+  --warn: #8a5d00;
   --info: #57606a;
   --selected: #eaf2ff;
   font-family: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -170,7 +171,7 @@ h1 {
   font-size: 13px;
 }
 
-.why h4 {
+.why h3 {
   margin: 0 0 4px;
   font-size: 13px;
 }
@@ -807,4 +808,109 @@ h1 {
   cursor: pointer;
   font-size: 14px;
   padding: 6px 0;
+}
+
+/* Targets big enough to hit (WCAG 2.2, 2.5.8: at least 24 px), and bigger where the finger is the pointer. */
+.brand,
+.site-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: 24px;
+  height: 24px;
+  margin: 0 4px 0 0;
+  vertical-align: middle;
+  accent-color: var(--accent);
+}
+
+.relation-form label:has(> input[type="checkbox"]),
+.relation-form label:has(> input[type="radio"]),
+.library-facets label:has(> input[type="checkbox"]) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  margin-right: 10px;
+}
+
+button,
+select,
+input[type="text"],
+input[type="search"],
+input:not([type]),
+input[type="number"] {
+  min-height: 28px;
+}
+
+summary {
+  min-height: 28px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.library-actions a,
+.copy-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+}
+
+@media (max-width: 640px) {
+  /* The name on one line, the menu under it on one row that scrolls sideways, instead of four links broken into two lines each. */
+  .site-header {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .site-nav {
+    order: 3;
+    width: 100%;
+    gap: 4px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .site-nav a {
+    padding: 0 10px;
+  }
+
+  .header-right {
+    margin-left: auto;
+  }
+}
+
+@media (pointer: coarse) {
+  button,
+  select,
+  input[type="text"],
+  input[type="search"],
+  input:not([type]),
+  input[type="number"],
+  summary,
+  .site-nav a,
+  .library-actions a,
+  .copy-button {
+    min-height: 44px;
+  }
+
+  .relation-form label:has(> input[type="checkbox"]),
+  .relation-form label:has(> input[type="radio"]),
+  .library-facets label:has(> input[type="checkbox"]) {
+    min-height: 44px;
+  }
+}
+
+.sample-list a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+}
+
+@media (pointer: coarse) {
+  .sample-list a {
+    min-height: 44px;
+  }
 }
