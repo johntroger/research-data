@@ -54,12 +54,14 @@ describe("does not merge near-matches (không chắc thì tách)", () => {
   });
 
   it("different constructs with similar words are not merged", () => {
-    for (const label of ["Brand love and loyalty", "Perceived brand ethicality", "Consumer skepticism toward green claims", "Trust"]) {
+    for (const label of ["Brand love and loyalty", "Perceived brand coolness", "Consumer skepticism toward green claims", "Trust"]) {
       expect(map(label).status, label).toBe("separate");
       expect(map(label).id, label).toBeNull();
     }
     expect(map("Brand attachment")).toMatchObject({ id: "brand_attachment" }); // exact, for contrast
     expect(map("Perceived brand attachment")).toMatchObject({ status: "separate" });
+    expect(map("Perceived brand ethicality")).toMatchObject({ id: "perceived_brand_ethicality" }); // grouped in P3 (docs/concept-mapping-p3.md)
+    expect(map("State gratitude")).toMatchObject({ status: "separate" }); // a sub-dimension of customer gratitude stays apart
   });
 
   it("experimental conditions and unknown names stay separate without suggestions", () => {
@@ -112,8 +114,8 @@ describe("mapExtraction", () => {
     const byLabel = new Map(m.constructs.map((c) => [c.label, c]));
     expect(byLabel.get("Loyalty")).toMatchObject({ status: "mapped", id: "loyalty", usedAs: ["dv"] });
     expect(byLabel.get("Brand trust")).toMatchObject({ id: "brand_trust", usedAs: ["dv", "mediator"] });
-    expect(byLabel.get("Perceived transparency")).toMatchObject({ status: "separate" });
-    expect(byLabel.get("Perceived transparency x Brand familiarity")).toMatchObject({ status: "separate", suggestions: [] });
+    expect(byLabel.get("Perceived transparency")).toMatchObject({ status: "mapped", id: "perceived_brand_transparency" });
+    expect(byLabel.get("Perceived transparency x Brand familiarity")).toMatchObject({ status: "separate", id: null }); // an interaction term is never merged (suggestions may name its parts)
     expect(byLabel.get("Brand familiarity")).toMatchObject({ status: "separate", usedAs: ["moderator"] });
   });
 

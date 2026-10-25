@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.95 (so với 3.9.94)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | P3.2 và P3.3: danh sách chuẩn 1.1.0 (thêm 10 khái niệm, 41 tên khác), lệnh `pnpm worker map-labels`, áp dụng local và prod có sao lưu | Tìm từ đồng nghĩa: 529/1007 đường dẫn có khái niệm chuẩn thay vì khoảng 5% |
+
 ### Version 3.9.94 (so với 3.9.93)
 
 | # | Thay đổi | Lý do |

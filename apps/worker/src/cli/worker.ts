@@ -26,6 +26,8 @@ import { checkCode, exportPacket, findPaper } from "../manual/export.js";
 import { backupFile, importPacket, manualVersions, once, pgDumpViaDocker } from "../manual/import.js";
 import { connect, prodDbUrl } from "../db/client.js";
 import { lookupAll, saveOa } from "../db/oa.js";
+import { applyRemap, planRemap } from "../db/map-labels.js";
+import { renderCanonicalSeedSql } from "@research-data/schema";
 import { lookupMetadata, saveMetadata, type MetadataPaper } from "../db/metadata.js";
 import { backupFiles } from "../backup/run.js";
 import { refreshHighlights } from "../db/highlights.js";
@@ -546,6 +548,43 @@ async function metadataCommand(args: string[]): Promise<number> {
   }
 }
 
+/**
+ * pnpm worker map-labels [--target prod] [--yes]: after the canonical list grew (packages/schema canonical-data.ts), loads that list into
+ * the database and gives the rows already there the concept their label now maps to (path_results, measurements, condition cells). Shows
+ * what would change; writes only with --yes. Take a backup of prod first (scripts/backup-prod.sh).
+ */
+async function mapLabelsCommand(args: string[]): Promise<number> {
+  loadEnv();
+  const yes = args.includes("--yes");
+  const prod = option(args, "--target") === "prod";
+  const url = prod ? prodDbUrl() : undefined;
+  if (prod && !url) {
+    console.error("Prod is not configured: SUPABASE_PROD_REF, SUPABASE_PROD_DB_PASSWORD and SUPABASE_PROD_POOLER_HOST are needed in .env.");
+    return 1;
+  }
+  const db = await connect(url ?? undefined);
+  try {
+    console.log(`${prod ? "PROD" : "local"} database
+`);
+    const plan = await planRemap(db);
+    const perConcept = new Map<string, number>();
+    for (const c of plan.paths) for (const n of c.notes) if (n.includes(" -> ") && !n.startsWith("trung gian") && !n.startsWith("điều tiết")) perConcept.set(n, (perConcept.get(n) ?? 0) + 1);
+    for (const [note, n] of [...perConcept.entries()].sort((a, b) => b[1] - a[1])) console.log(`  ${String(n).padStart(4)} × ${note}`);
+    console.log(`
+path_results: ${plan.paths.length} rows change; measurements: ${plan.measurements.length}; condition cells: ${plan.conditionCells.length}.`);
+    if (!yes) {
+      console.log("Nothing written. Add --yes to load the canonical list and store this.");
+      return 0;
+    }
+    await db.query(renderCanonicalSeedSql());
+    await applyRemap(db, plan);
+    console.log("Stored.");
+    return 0;
+  } finally {
+    await db.end();
+  }
+}
+
 /** pnpm worker highlights [--paper X]: recompute where each quote sits on its PDF page (step 3a.3). No API call. */
 async function highlights(args: string[]): Promise<number> {
   const only = option(args, "--paper");
@@ -741,10 +780,11 @@ async function main(): Promise<number> {
   if (command === "highlights") return highlights(args);
   if (command === "oa") return oa(args);
   if (command === "metadata") return metadataCommand(args);
+  if (command === "map-labels") return mapLabelsCommand(args);
   if (command === "backup-files") return backupFiles(args);
   if (command === "ocr") return ocr(args);
   if (command === "republish") return republish(args);
-  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | oa [--paper X] [--target prod] [--yes] | metadata [--paper X] [--doi D] [--target prod] [--yes] | backup-files [--yes] [--keep N] | ocr --paper X | republish [--paper X] [--yes] | manual export --paper X");
+  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | oa [--paper X] [--target prod] [--yes] | metadata [--paper X] [--doi D] [--target prod] [--yes] | map-labels [--target prod] [--yes] | backup-files [--yes] [--keep N] | ocr --paper X | republish [--paper X] [--yes] | manual export --paper X");
   return 1;
 }
 

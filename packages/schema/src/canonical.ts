@@ -6,7 +6,7 @@
 import { z } from "zod";
 import { CANONICAL_CONSTRUCTS, CANONICAL_THEORIES } from "./canonical-data.js";
 
-export const CANONICAL_LIST_VERSION = "1.0.0";
+export const CANONICAL_LIST_VERSION = "1.1.0";
 
 export const CONSTRUCT_DOMAINS = ["social_media", "branding", "ethics", "consumer_behavior"] as const;
 
