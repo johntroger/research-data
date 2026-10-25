@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.100 (so với 3.9.99)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | D14 sửa: khách xem PDF của mọi bài, chỉ tải bài có giấy phép mở (không nút tải, không liên kết trình xem trình duyệt cho bài không mở) | Chủ dự án muốn người dùng đối chiếu số liệu với bài gốc ngay trên web; chấp nhận rủi ro bản quyền |
+
 ### Version 3.9.99 (so với 3.9.98)
 
 | # | Thay đổi | Lý do |

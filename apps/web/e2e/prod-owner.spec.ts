@@ -20,13 +20,18 @@ test.beforeAll(async () => {
   await db.end();
 });
 
-test("a visitor: no PDF without an open licence, no admin page, a link to sign in", async ({ page, request }) => {
+test("a visitor: views every PDF but downloads only open ones, no admin page, a link to sign in", async ({ page, request }) => {
   test.skip(!closed, "no closed-access paper with a PDF in the local database");
-  expect((await request.get(`/api/papers/${closed!.id}/pdf`, { maxRedirects: 0 })).status()).toBe(403);
-  expect((await request.get(`/api/papers/${closed!.id}/pdf?download=1`, { maxRedirects: 0 })).status()).toBe(403);
+  const view = await request.get(`/api/papers/${closed!.id}/pdf`, { maxRedirects: 0 });
+  expect(view.status()).toBe(302); // anyone may view
+  expect(new URL(view.headers().location!).searchParams.get("response-content-disposition")).toBe("inline");
+  expect((await request.get(`/api/papers/${closed!.id}/pdf?download=1`, { maxRedirects: 0 })).status()).toBe(403); // but not save a closed paper
   expect((await request.get("/admin/quality")).status()).toBe(404);
   await page.goto(`/papers/${closed!.id}`);
-  await expect(page.getByTestId("pdf-restricted")).toBeVisible();
+  await expect(page.getByTestId("pdf-restricted")).toHaveCount(0);
+  await expect(page.getByTestId("pdf-view-only")).toBeVisible();
+  await expect(page.getByTestId("pdf-download")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Mở bằng trình xem của trình duyệt" })).toHaveCount(0);
   // Open to everyone: the sign-in link is a quiet one in the footer for the owner, not a gate at the top, and the site says so.
   await expect(page.locator("footer").getByTestId("login-link")).toBeVisible();
   await expect(page.locator("header").getByTestId("login-link")).toHaveCount(0);
@@ -79,6 +84,6 @@ test("the signed-in owner views and downloads a closed PDF and reads the admin p
 
   await page.getByTestId("logout").click();
   await expect(page.locator("footer").getByTestId("login-link")).toBeVisible();
-  expect((await page.request.get(`/api/papers/${closed!.id}/pdf`, { maxRedirects: 0 })).status()).toBe(403);
+  expect((await page.request.get(`/api/papers/${closed!.id}/pdf?download=1`, { maxRedirects: 0 })).status()).toBe(403);
   expect((await page.request.get("/admin/quality")).status()).toBe(404);
 });

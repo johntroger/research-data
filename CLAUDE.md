@@ -15,7 +15,7 @@
 
 ## Mục đích
 - Công cụ phục vụ nghiên cứu của chính chủ dự án, **không** nhằm viết bài báo về phương pháp. Không thêm cơ chế chỉ để phục vụ công bố (nguyên tắc "đủ dùng, không thừa").
-- Web công khai: ai có URL đều xem được, không cần đăng nhập; chỉ chủ dự án có tài khoản quản trị. Khách chỉ tải được PDF Open Access có giấy phép mở.
+- Web công khai: ai có URL đều xem được, không cần đăng nhập; chỉ chủ dự án có tài khoản quản trị. Khách xem được PDF của mọi bài (để đối chiếu, chủ dự án quyết định 25/10/2026) nhưng chỉ tải được PDF Open Access có giấy phép mở.
 - **Công cụ tham khảo:** người dùng có trách nhiệm tự đối chiếu với bài gốc. Không ai đọc bài, mã hóa hay duyệt. Chất lượng dựa trên một lượt trích xuất (nguồn chính: Codex / Antigravity theo gói việc; dự phòng: Gemini Pro, D16) + các lớp máy đối chiếu với PDF + huy hiệu ✓ / ⚠ / ◇ (Mục 6). Ưu tiên hàng đầu là làm việc tự kiểm tra thật nhanh (bấm là mở đúng chỗ trong PDF, bảng "Vì sao ✓").
 - Không thêm lại các cơ chế đắt (trích xuất kép, trọng tài, bộ đối chứng…) trừ khi số liệu cho thấy một loại trường sai nhiều.
 - Sửa tay trên web chỉ là tùy chọn. Trường đã sửa tay được khóa theo khóa tự nhiên ổn định; trích xuất lại không được ghi đè. Ánh xạ khái niệm theo nguyên tắc "không chắc thì tách".

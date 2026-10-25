@@ -13,7 +13,7 @@
 | 4 | Chi phí Gemini vượt dự kiến | `estimate`; trần ngân sách; đo đơn giá ở 1b; Batch API; Flash mặc định |
 | 5 | Rate-limit (Gemini, Zotero) / lỗi mạng | Token bucket + backoff có jitter; tuân theo `Retry-After` / `Backoff`; trạng thái từng bước; chạy tiếp không tốn lại token |
 | 6 | Đổi prompt / model làm giảm chất lượng | Chạy bộ bài giả lập và so tỷ lệ ✓ / ⚠ trên 20 bài thật trước khi chuyển; ghi phiên bản model cụ thể (6.6) |
-| 7 | Bản quyền PDF trên web công khai | Khách chỉ tải được bài OA có giấy phép mở; bài không OA chỉ chủ dự án tải (D14); R2 private + presigned URL 5 phút; giới hạn tốc độ theo IP; câu trích ≤ 50 từ; trang chính sách nội dung + kênh gỡ bỏ |
+| 7 | Bản quyền PDF trên web công khai | Khách xem được PDF mọi bài nhưng chỉ tải được bài OA có giấy phép mở (D14 sửa 25/10/2026: rủi ro bản quyền chấp nhận có chủ đích, không nút tải, không liên kết sang trình xem của trình duyệt, không thể chặn hoàn toàn việc lưu lại bản đã hiển thị); R2 private + presigned URL 5 phút; giới hạn tốc độ theo IP; câu trích ≤ 50 từ; trang chính sách nội dung + kênh gỡ bỏ |
 | 8 | Jingle–jangle | Lớp khái niệm chuẩn theo miền; so khớp theo item thang đo; nguyên tắc "không chắc thì tách" |
 | 9 | Kết luận sai từ so sánh bối cảnh | Nhãn "so sánh mô tả"; cảnh báo phương pháp trên giao diện |
 | 10 | Mất dữ liệu | `pg_dump` hằng đêm lên R2; raw JSONB; Zotero là kho gốc PDF; migrations có phiên bản |

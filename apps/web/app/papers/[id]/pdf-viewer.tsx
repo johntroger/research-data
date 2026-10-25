@@ -174,9 +174,15 @@ export function PdfViewer({
             Tải PDF
           </a>
         )}
-        <a className={canDownload ? undefined : "pdf-native"} href={`/api/papers/${paperId}/pdf#page=${current}`} target="_blank" rel="noreferrer">
-          Mở bằng trình xem của trình duyệt
-        </a>
+        {canDownload ? (
+          <a href={`/api/papers/${paperId}/pdf#page=${current}`} target="_blank" rel="noreferrer">
+            Mở bằng trình xem của trình duyệt
+          </a>
+        ) : (
+          <span className="pdf-native muted" data-testid="pdf-view-only">
+            Chỉ để xem, đối chiếu: bài chưa có giấy phép mở nên không tải được
+          </span>
+        )}
       </div>
       {note && (
         <p className="pdf-note" data-testid="pdf-locate-note" role="status">
@@ -185,7 +191,7 @@ export function PdfViewer({
       )}
       {error ? (
         <p className="pdf-note" role="alert" data-testid="pdf-error">
-          {error}. Bạn có thể thử «Mở bằng trình xem của trình duyệt».
+          {error}.{canDownload ? " Bạn có thể thử «Mở bằng trình xem của trình duyệt»." : " Hãy tải lại trang; nếu vẫn lỗi, mở DOI của bài để đọc bản gốc."}
         </p>
       ) : (
         <div className="pdf-scroller" ref={scroller}>

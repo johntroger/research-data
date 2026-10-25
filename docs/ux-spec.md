@@ -13,10 +13,10 @@
 | Tình trạng | Khách (không đăng nhập) | Chủ dự án (đăng nhập) |
 | :--- | :--- | :--- |
 | Gold / Hybrid / Green OA với giấy phép mở (CC-BY…) | Xem và tải trực tiếp | Xem và tải |
-| Bronze OA hoặc không rõ giấy phép | Nút **"Bản OA"** (link gốc của nhà xuất bản / kho lưu trữ) và **"Mở DOI"** | Xem và tải |
-| Không phải OA (bài có bản quyền, tải qua thư viện trường hoặc tự mua) | **Chỉ link DOI**; không xem, không tải | Xem và tải |
+| Bronze OA hoặc không rõ giấy phép | **Xem** trong trang bài, không tải; dòng "chỉ để xem, đối chiếu" | Xem và tải |
+| Không phải OA (bài có bản quyền, tải qua thư viện trường hoặc tự mua) | **Xem** trong trang bài, không tải; không có liên kết sang trình xem của trình duyệt (có nút Lưu) | Xem và tải |
 
-  *(Đã chốt ở D14.)*
+  *(Đã chốt ở D14; sửa 25/10/2026: khách xem được mọi PDF, chỉ tải bài có giấy phép mở. "Không tải" nghĩa là không có nút tải và đường tải bị từ chối; vì trình duyệt phải nhận nội dung tệp để hiển thị nên không thể ngăn hoàn toàn người cố tình lưu lại.)*
 * **Lý do không cho khách tải bài không OA:** web công khai mà phát tán PDF có bản quyền là hành vi phân phối lại tài liệu có bản quyền. Hệ quả có thể là yêu cầu gỡ bỏ (DMCA) gửi tới Vercel / Cloudflare, bị khóa tài khoản, hoặc vi phạm hợp đồng thuê bao của thư viện trường.
 * **Giấy phép khi gửi PDF lên AI:** một số hợp đồng thuê bao của nhà xuất bản hạn chế việc tải toàn văn lên công cụ AI bên thứ ba. Gói Gemini trả phí không dùng dữ liệu để huấn luyện, nên giảm được rủi ro, nhưng không thay đổi điều khoản hợp đồng. Khi tiện, hỏi thư viện trường về điều khoản AI / TDM; ưu tiên bản OA khi có. Trường `license_source` (oa / institution_subscription / personal_purchase / other) cho phép lọc hoặc xử lý riêng khi cần. *(Lưu ý quản trị rủi ro, không phải tư vấn pháp lý.)*
 * **Zotero Storage là kho gốc**; R2 (private) chỉ là bản phục vụ hiển thị, dựng lại được từ Zotero.

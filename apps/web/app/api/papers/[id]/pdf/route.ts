@@ -1,7 +1,7 @@
 /**
  * A paper's PDF. With the read-only R2 token configured (step 2.2b) the browser is sent to a 5-minute presigned R2 link, so the
  * file never passes through this server; without it, in development only, the file is read from the local raw_papers folder.
- * Viewing and saving a copy both follow the licence rule of lib/pdf-access (Mục 7, D14): the owner gets every PDF, a visitor only open-licence ones.
+ * Viewing is open to everyone; saving a copy follows the licence rule of lib/pdf-access (Mục 7, D14): the owner gets every PDF, a visitor only open-licence ones.
  */
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -19,11 +19,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const paper = await getPaper(id);
   if (!paper?.pdf_path) return new Response("Not found", { status: 404 });
 
-  // Viewing and saving a copy both follow the licence rule of lib/pdf-access (D14): the owner sees every PDF, a visitor only open-licence ones.
+  // Anyone may view; only the owner and open-licence papers may be saved (lib/pdf-access, D14).
   const isOwner = (await getOwner()) !== null;
   const download = new URL(request.url).searchParams.get("download") === "1";
-  if (!canViewPdf(isOwner, paper)) return new Response("Forbidden: this PDF is not published (no open licence)", { status: 403 });
-  if (download && !canDownloadPdf(isOwner, paper)) return new Response("Forbidden: this PDF may only be downloaded by the project owner", { status: 403 });
+  if (!canViewPdf()) return new Response("Forbidden", { status: 403 });
+  if (download && !canDownloadPdf(isOwner, paper)) return new Response("Forbidden: this PDF has no open licence, so it can be viewed on the site but not downloaded", { status: 403 });
 
   const r2 = r2Config();
   if (r2 && pdfKey(paper.file_hash)) {

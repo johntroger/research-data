@@ -22,11 +22,13 @@ describe("who may download a PDF", () => {
 });
 
 describe("who may view a PDF, and the links for those who may not", () => {
-  it("lets a visitor view only an open-licence paper; the owner views all", () => {
-    expect(canViewPdf(false, { oa_status: "hybrid", license_source: "oa" })).toBe(true);
-    expect(canViewPdf(false, { oa_status: "closed", license_source: null })).toBe(false);
-    expect(canViewPdf(false, { oa_status: "bronze", license_source: null })).toBe(false);
-    expect(canViewPdf(true, { oa_status: "closed", license_source: null })).toBe(true);
+  it("lets everyone view every PDF (owner's decision of 25/10/2026) while only open-licence papers and the owner may download", () => {
+    for (const paper of [{ oa_status: "hybrid", license_source: "oa" }, { oa_status: "closed", license_source: null }, { oa_status: "bronze", license_source: null }, { oa_status: null, license_source: null }]) {
+      expect(canViewPdf()).toBe(true);
+      expect(canDownloadPdf(true, paper)).toBe(true);
+    }
+    expect(canDownloadPdf(false, { oa_status: "closed", license_source: null })).toBe(false);
+    expect(canDownloadPdf(false, { oa_status: "hybrid", license_source: "oa" })).toBe(true);
   });
 
   it("offers the open-access copy and the DOI, never a link that is not http(s)", () => {

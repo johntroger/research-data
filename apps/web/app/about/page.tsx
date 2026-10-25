@@ -34,7 +34,7 @@ export default async function AboutPage() {
         Công cụ không thay cho việc đọc bài gốc. <strong>Người dùng có trách nhiệm tự đối chiếu với bài gốc</strong> trước khi dùng số liệu trong nghiên cứu.
       </p>
       <p data-testid="about-open">
-        <strong>Ai cũng dùng được, không cần đăng nhập</strong>: tìm quan hệ, thư viện, ma trận, xem bằng chứng và xuất Excel, Word đều mở. Chỉ chủ dự án đăng nhập, để vào trang quản trị và xem các PDF chưa có giấy phép mở.
+        <strong>Ai cũng dùng được, không cần đăng nhập</strong>: tìm quan hệ, thư viện, ma trận, xem bằng chứng và xuất Excel, Word đều mở. Mọi PDF đều xem được trong trang bài để đối chiếu, nhưng chỉ bài có giấy phép mở mới tải được. Chỉ chủ dự án đăng nhập, để vào trang quản trị và tải các PDF chưa có giấy phép mở.
       </p>
 
       <h2>Quyền riêng tư</h2>
@@ -128,7 +128,7 @@ export default async function AboutPage() {
         <CopyButton text={citation} label="Sao chép câu trích dẫn" testId="copy-tool-citation" />
       </p>
       <p>
-        Web chỉ hiển thị dữ kiện (con số, thiết kế, thang đo) và các câu trích ngắn kèm số trang để đối chiếu; không đăng lại bài báo. Chủ dự án xem được PDF mọi bài; khách chỉ tải được PDF có giấy phép mở.
+        Web chỉ hiển thị dữ kiện (con số, thiết kế, thang đo) và các câu trích ngắn kèm số trang để đối chiếu; không đăng lại bài báo. Mọi người xem được PDF của mọi bài ngay trong trang bài, chỉ để đối chiếu số liệu; chỉ bài có giấy phép mở mới có nút tải (chủ dự án tải được mọi bài).
         Nếu bạn là tác giả hoặc chủ bản quyền và muốn gỡ hoặc sửa một mục, hãy gửi email tới{" "}
         <a href={`mailto:${TAKEDOWN_EMAIL}?subject=Yêu cầu gỡ hoặc sửa một mục trên Research Data`} data-testid="takedown-contact">
           {TAKEDOWN_EMAIL}
