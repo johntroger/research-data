@@ -26,6 +26,7 @@ import { checkCode, exportPacket, findPaper } from "../manual/export.js";
 import { backupFile, importPacket, manualVersions, once, pgDumpViaDocker } from "../manual/import.js";
 import { connect, prodDbUrl } from "../db/client.js";
 import { lookupAll, saveOa } from "../db/oa.js";
+import { planRelease, saveRelease } from "../db/release.js";
 import { applyRemap, planRemap } from "../db/map-labels.js";
 import { renderCanonicalSeedSql } from "@research-data/schema";
 import { lookupMetadata, saveMetadata, type MetadataPaper } from "../db/metadata.js";
@@ -585,6 +586,37 @@ path_results: ${plan.paths.length} rows change; measurements: ${plan.measurement
   }
 }
 
+/**
+ * pnpm worker release --note "..." [--target prod] [--yes]: cuts a numbered release of the data (the date, with -2 on a second one that day)
+ * with how many papers and tests the repository holds now and the version of the canonical concept list. The web shows the latest release in
+ * the footer, on the About page and in every exported file. Preview unless --yes.
+ */
+async function releaseCommand(args: string[]): Promise<number> {
+  loadEnv();
+  const note = option(args, "--note") ?? "";
+  const yes = args.includes("--yes");
+  const prod = option(args, "--target") === "prod";
+  const url = prod ? prodDbUrl() : undefined;
+  if (prod && !url) {
+    console.error("Prod is not configured: SUPABASE_PROD_REF, SUPABASE_PROD_DB_PASSWORD and SUPABASE_PROD_POOLER_HOST are needed in .env.");
+    return 1;
+  }
+  const db = await connect(url ?? undefined);
+  try {
+    const plan = await planRelease(db, note);
+    console.log(`${prod ? "PROD" : "local"} database: release ${plan.id}: ${plan.papers} papers, ${plan.tests} tests, concept list ${plan.canonicalVersion}${plan.note ? `, note: ${plan.note}` : ""}`);
+    if (!yes) {
+      console.log("Nothing written. Add --yes to store this release.");
+      return 0;
+    }
+    await saveRelease(db, plan);
+    console.log("Stored.");
+    return 0;
+  } finally {
+    await db.end();
+  }
+}
+
 /** pnpm worker highlights [--paper X]: recompute where each quote sits on its PDF page (step 3a.3). No API call. */
 async function highlights(args: string[]): Promise<number> {
   const only = option(args, "--paper");
@@ -781,10 +813,11 @@ async function main(): Promise<number> {
   if (command === "oa") return oa(args);
   if (command === "metadata") return metadataCommand(args);
   if (command === "map-labels") return mapLabelsCommand(args);
+  if (command === "release") return releaseCommand(args);
   if (command === "backup-files") return backupFiles(args);
   if (command === "ocr") return ocr(args);
   if (command === "republish") return republish(args);
-  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | oa [--paper X] [--target prod] [--yes] | metadata [--paper X] [--doi D] [--target prod] [--yes] | map-labels [--target prod] [--yes] | backup-files [--yes] [--keep N] | ocr --paper X | republish [--paper X] [--yes] | manual export --paper X");
+  console.error("Usage: pnpm worker extract [--limit N] | status | spend | estimate | run [--limit N] [--yes] | report | batch submit|poll|status | compare --paper X | quality [--top N] | highlights [--paper X] | oa [--paper X] [--target prod] [--yes] | metadata [--paper X] [--doi D] [--target prod] [--yes] | map-labels [--target prod] [--yes] | release [--note T] [--target prod] [--yes] | backup-files [--yes] [--keep N] | ocr --paper X | republish [--paper X] [--yes] | manual export --paper X");
   return 1;
 }
 

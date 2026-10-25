@@ -77,7 +77,7 @@ const SIGN_NOTE = "Ước lượng β, b hoặc r theo bài gốc (không quy đ
 const BADGE_NOTE = "Huy hiệu: ✓ máy đã đối chiếu với PDF, ⚠ có kiểm tra chưa qua, ◇ AI diễn giải, ★ đã sửa tay. Trang là số trang in của bài gốc.";
 
 /** One table with a row per test of a Relationship Search result, in the order the page shows them. */
-export function relationsWordSpec(result: RelationResult, exportedAt: Date): WordSpec {
+export function relationsWordSpec(result: RelationResult, exportedAt: Date, provenance = ""): WordSpec {
   const rows: PathRow[] = result.groups.flatMap((g) => g.rows);
   const verified = rows.filter(isVerified).length;
   return {
@@ -99,7 +99,7 @@ export function relationsWordSpec(result: RelationResult, exportedAt: Date): Wor
           BADGE_LABEL[r.badge] ?? r.badge,
           r.evidence?.printed_page ?? "",
         ]),
-        note: `${describeQuery(result.query)}. Ngày xuất ${exportedAt.toISOString().slice(0, 10)}. ${rows.length} kiểm định từ ${new Set(rows.map((r) => r.paper_id)).size} bài, trong đó ${verified} đã kiểm chứng (✓ hoặc ★) và ${rows.length - verified} chưa. ${SIGN_NOTE}${BADGE_NOTE}`,
+        note: `${describeQuery(result.query)}. Ngày xuất ${exportedAt.toISOString().slice(0, 10)}. ${rows.length} kiểm định từ ${new Set(rows.map((r) => r.paper_id)).size} bài, trong đó ${verified} đã kiểm chứng (✓ hoặc ★) và ${rows.length - verified} chưa. ${SIGN_NOTE}${BADGE_NOTE}${provenance ? ` ${provenance}` : ""}`,
       },
     ],
   };
@@ -112,7 +112,7 @@ export interface MatrixPaper {
 }
 
 /** Table 1: one row per paper (as the matrix page). Table 2: every test with badge and printed page. */
-export function matrixWordSpec(papers: MatrixPaper[], exportedAt: Date, filters: string): WordSpec {
+export function matrixWordSpec(papers: MatrixPaper[], exportedAt: Date, filters: string, provenance = ""): WordSpec {
   const outcome = (m: MatrixRow) => {
     const o = m.outcome;
     const counted = o.supported + o.notSupported + o.mixed;
@@ -144,7 +144,7 @@ export function matrixWordSpec(papers: MatrixPaper[], exportedAt: Date, filters:
             s.lines.map((l) => [p.citation, s.label, l.hypothesis ?? "", l.relation, [l.statistic, l.r2].filter(Boolean).join("; "), STATUS_LABEL[l.status], l.verified ? "✓ đã kiểm chứng" : "⚠ chưa kiểm chứng", l.printedPage ?? ""]),
           ),
         ),
-        note: `${stamp}${SIGN_NOTE}${BADGE_NOTE}`,
+        note: `${stamp}${SIGN_NOTE}${BADGE_NOTE}${provenance ? ` ${provenance}` : ""}`,
       },
     ],
   };

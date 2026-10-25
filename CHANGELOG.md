@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.97 (so với 3.9.96)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | P4.1 và P4.2: bảng data_releases, lệnh `pnpm worker release`, bản dữ liệu hiện ở chân trang, trang Giới thiệu và tệp xuất; câu trích dẫn công cụ theo APA 7 | Nhà nghiên cứu trích dẫn được công cụ và biết con số thuộc bản nào |
+
 ### Version 3.9.96 (so với 3.9.95)
 
 | # | Thay đổi | Lý do |

@@ -88,3 +88,14 @@ describe("Excel export of a search result", () => {
     expect(wb.getWorksheet("Ghi chú")!.getCell(8, 2).value).toBe(DISCLAIMER);
   });
 });
+
+describe("provenance in the notes of the Excel file", () => {
+  it("adds the release and the citation when given, and nothing when not", async () => {
+    const { searchRelations: search, DEFAULT_QUERY: dq } = await import("./relations");
+    const result = search([], [], { ...dq, a: "x" });
+    const withIt = exportTable(result, { exportedAt: new Date("2026-10-25"), openUrl: () => "", provenance: "Dữ liệu bản 1. Cách trích dẫn: Tran" });
+    expect(withIt.notes.find(([k]) => k === "Bản dữ liệu và cách trích dẫn")?.[1]).toContain("Cách trích dẫn: Tran");
+    const without = exportTable(result, { exportedAt: new Date("2026-10-25"), openUrl: () => "" });
+    expect(without.notes.some(([k]) => k === "Bản dữ liệu và cách trích dẫn")).toBe(false);
+  });
+});

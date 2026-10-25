@@ -2,7 +2,8 @@
  * Word file (APA 7 tables) of the summary matrix for the filters in the URL (step 3b.3): the same papers as /matrix.
  * GET /matrix/word?q=…&design=…
  */
-import { listLibraryItems, listMatrixData, paperLabel } from "@/lib/data";
+import { getLatestRelease, listLibraryItems, listMatrixData, paperLabel } from "@/lib/data";
+import { provenanceNote } from "@/lib/release";
 import { filterLibrary, parseLibraryQuery } from "@/lib/library";
 import { buildMatrix } from "@/lib/matrix";
 import { paperLabel as citation } from "@/lib/relations";
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
     params[key] = values.length === 1 ? values[0]! : values;
   }
   const query = parseLibraryQuery(params);
-  const [all, data] = await Promise.all([listLibraryItems(), listMatrixData()]);
+  const [all, data, release] = await Promise.all([listLibraryItems(), listMatrixData(), getLatestRelease()]);
   const papers = filterLibrary(all, query);
   const rows = buildMatrix(papers.map((p) => p.id), data.theories, data.samples, data.paths);
   const now = new Date();
@@ -33,6 +34,7 @@ export async function GET(request: Request) {
       }),
       now,
       filters,
+      provenanceNote(release, now, url.origin),
     ),
   );
   await countUse("export_word_matrix");

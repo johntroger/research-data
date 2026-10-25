@@ -1,4 +1,6 @@
-import { getOverview } from "@/lib/data";
+import { getLatestRelease, getOverview } from "@/lib/data";
+import { CopyButton } from "@/app/library/copy-button";
+import { releaseDate, releaseLabel, toolCitation } from "@/lib/release";
 
 export const dynamic = "force-dynamic";
 /** The public address for takedown and correction requests (step 4.8). */
@@ -20,7 +22,8 @@ const AUDITS = [
 ];
 
 export default async function AboutPage() {
-  const o = await getOverview();
+  const [o, release] = await Promise.all([getOverview(), getLatestRelease()]);
+  const citation = toolCitation(release, new Date());
   return (
     <article className="about" data-testid="about">
       <h1>Giới thiệu và cách đọc dữ liệu</h1>
@@ -45,6 +48,13 @@ export default async function AboutPage() {
         <span className="badge badge-needs_attention">⚠ {o.attention.toLocaleString("vi-VN")}</span> · <span className="badge badge-ai_interpreted">◇ {o.interpreted.toLocaleString("vi-VN")}</span>.
         Giá trị không khớp PDF bị ẩn với khách, nên số trên chưa gồm chúng.
       </p>
+
+      {release && (
+        <p data-testid="about-release">
+          <strong>Bản dữ liệu hiện tại:</strong> {releaseLabel(release)}, đóng ngày {releaseDate(release)}, danh sách khái niệm chuẩn phiên bản {release.canonical_version}.
+          {release.note ? ` ${release.note}` : ""} Mỗi lần nhập thêm bài, chủ dự án đóng một bản mới; con số trong kết quả tìm kiếm và tệp xuất là của bản đang hiện, nên hãy ghi số hiệu bản khi trích dẫn.
+        </p>
+      )}
 
       <h2>Dữ liệu từ đâu, được làm thế nào</h2>
       <ol>
@@ -104,7 +114,14 @@ export default async function AboutPage() {
         <li>Con số tổng hợp chỉ mô tả các bài trong kho; đây không phải kết luận của cả lĩnh vực và không thay cho meta-analysis. Không có ý nghĩa thống kê không có nghĩa là không có tác động.</li>
       </ul>
 
-      <h2>Nội dung và bản quyền</h2>
+      <h2 id="cach-trich-dan">Cách trích dẫn công cụ này</h2>
+      <p>
+        Nếu bạn dùng con số lấy từ web trong bài viết, hãy trích dẫn công cụ <strong>kèm số hiệu bản dữ liệu</strong> (kết quả đổi khi nhập thêm bài) và trích dẫn cả bài gốc mà bạn lấy số; công cụ chỉ là nơi tìm, không thay cho bài gốc. Mẫu APA 7:
+      </p>
+      <blockquote data-testid="tool-citation">{citation}</blockquote>
+      <p>
+        <CopyButton text={citation} label="Sao chép câu trích dẫn" testId="copy-tool-citation" />
+      </p>
       <p>
         Web chỉ hiển thị dữ kiện (con số, thiết kế, thang đo) và các câu trích ngắn kèm số trang để đối chiếu; không đăng lại bài báo. Chủ dự án xem được PDF mọi bài; khách chỉ tải được PDF có giấy phép mở.
         Nếu bạn là tác giả hoặc chủ bản quyền và muốn gỡ hoặc sửa một mục, hãy gửi email tới{" "}

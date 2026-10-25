@@ -4,6 +4,7 @@
  */
 import type { Badge } from "@research-data/schema";
 import type { ConceptDetail } from "./concepts";
+import type { DataRelease } from "./release";
 import type { LibraryItem } from "./library";
 import { buildMatrix, type MatrixPath, type PathLine, type SampleRow, type TheoryRow } from "./matrix";
 import type { Concept, PathRow } from "./relations";
@@ -236,6 +237,16 @@ export async function getOverview(): Promise<Overview> {
   const attention = sum((c) => c.attention);
   const interpreted = sum((c) => c.interpreted);
   return { papers: papers.length, fields: verified + attention + interpreted, verified, attention, interpreted };
+}
+
+/** The latest numbered release of the data, or null when none was cut (or the table is not there yet). */
+export async function getLatestRelease(): Promise<DataRelease | null> {
+  try {
+    const rows = await rest<DataRelease[]>("data_releases?select=id,released_at,papers,tests,canonical_version,note&order=released_at.desc&limit=1");
+    return rows[0] ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /** The canonical concepts with their definitions and other names (the "Khái niệm" page). */

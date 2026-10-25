@@ -174,7 +174,10 @@ test("the Excel file has exactly the tests of the list, with badge, printed page
   const badges = [2, 3, 4].map((r) => sheet.getCell(r, col("Huy hiệu")).value);
   expect(badges.filter((b) => b === "✓ đã kiểm chứng")).toHaveLength(2);
   expect(badges.filter((b) => b === "⚠ nên xem kỹ")).toHaveLength(1);
-  expect(wb.getWorksheet("Ghi chú")!.getCell(8, 2).value).toContain("tự đối chiếu với bài gốc");
+  const notes = new Map<string, string>();
+  wb.getWorksheet("Ghi chú")!.eachRow((row) => notes.set(String(row.getCell(1).value), String(row.getCell(2).value)));
+  expect(notes.get("Tuyên bố trách nhiệm")).toContain("tự đối chiếu với bài gốc");
+  expect(notes.get("Bản dữ liệu và cách trích dẫn")).toContain("Cách trích dẫn: Tran, T. T.");
 
   // The filter in the URL narrows the file in the same way as the page.
   const filtered = await request.get("/export?a=zebra&b=quokka&status=not_supported");

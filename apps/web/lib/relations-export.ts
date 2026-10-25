@@ -118,7 +118,7 @@ export function describeQuery(q: RelationQuery): string {
   return parts.join(" · ");
 }
 
-export function exportTable(result: RelationResult, opts: { exportedAt: Date; openUrl: (r: PathRow) => string }): ExportTable {
+export function exportTable(result: RelationResult, opts: { exportedAt: Date; openUrl: (r: PathRow) => string; provenance?: string }): ExportTable {
   const rows = result.groups.flatMap((g) => g.rows);
   const verified = rows.filter(isVerified).length;
   return {
@@ -132,6 +132,7 @@ export function exportTable(result: RelationResult, opts: { exportedAt: Date; op
       ["Trong đó chưa kiểm chứng (⚠ hoặc ◇)", String(rows.length - verified)],
       ["Số bài", String(new Set(rows.map((r) => r.paper_id)).size)],
       ["Cách đọc cột Huy hiệu", "✓ máy đã đối chiếu giá trị với PDF · ⚠ có kiểm tra chưa qua, nên xem kỹ · ◇ AI diễn giải, máy không kiểm được · ★ đã sửa tay"],
+      ...(opts.provenance ? ([["Bản dữ liệu và cách trích dẫn", opts.provenance]] as [string, string][]) : []),
       ["Tuyên bố trách nhiệm", DISCLAIMER],
     ],
   };

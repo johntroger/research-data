@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { getLatestRelease } from "@/lib/data";
+import { releaseDate, releaseLabel } from "@/lib/release";
 import { getOwner } from "@/lib/supabase-server";
 import { indexingAllowed } from "@/lib/seo";
 import "./globals.css";
@@ -11,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const owner = await getOwner();
+  const [owner, release] = await Promise.all([getOwner(), getLatestRelease()]);
   return (
     <html lang="vi">
       <body>
@@ -48,6 +50,13 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <footer className="site-footer">
           Dữ liệu do AI trích xuất, chỉ để tham khảo. Người dùng có trách nhiệm đối chiếu với bài gốc trước khi sử dụng
           trong nghiên cứu. Ai cũng dùng được, không cần đăng nhập.
+          {release ? (
+            <span data-testid="data-release">
+              {" "}
+              Dữ liệu {releaseLabel(release)} ({releaseDate(release)}).{" "}
+              <a href="/about#cach-trich-dan">Cách trích dẫn</a>.
+            </span>
+          ) : null}
           {!owner ? (
             <>
               {" "}
