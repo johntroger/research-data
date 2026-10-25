@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.92 (so với 3.9.91)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Chốt 4.7: đo thật trên vercel.app; giới hạn trang và tìm kiếm đếm trong bộ nhớ instance (PDF, xuất file, đăng nhập vẫn dùng Upstash); nhớ dữ liệu công khai 60 giây | Trang chậm 0,4 đến 0,9 s do Upstash ở xa và đọc lại database mỗi lần; nay 0,14 đến 0,20 s |
+
 ### Version 3.9.91 (so với 3.9.90)
 
 | # | Thay đổi | Lý do |
