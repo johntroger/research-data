@@ -46,4 +46,6 @@ Không thấy lỗ hổng nghiêm trọng. Làm tốt: quyền xem/tải PDF m�
 | 6 | Thấp | Kho giới hạn lỗi thì web cho qua hết (theo thiết kế) | Chấp nhận |
 | 7 | Rất thấp | Xuất Excel ghi chuỗi, không phải công thức | Không cần |
 
-**Chưa kiểm:** `pnpm audit` (pnpm 12 không tải được trong cloud; nên chạy trên máy hoặc thêm vào CI); cài đặt bảo vệ GitHub (4.5) và cấu hình R2, Supabase, Vercel; không thử xâm nhập thật.
+**Lỗ hổng thư viện:** `pnpm audit --prod` (chạy bằng pnpm 12.14.0 cài ngoài repo) báo 1 cảnh báo mức trung bình: `uuid` < 11.1.1 thiếu kiểm tra giới hạn buffer ở v3/v5/v6 khi truyền `buf` ([GHSA-w5hq-g745-h8pq](https://github.com/advisories/GHSA-w5hq-g745-h8pq)), đường phụ thuộc `apps/web > exceljs > uuid`. Chưa kiểm `exceljs` có gọi các hàm đó với buffer riêng không, nên chưa kết luận mức ảnh hưởng thật. Nên thêm `pnpm audit --prod` vào CI.
+
+**Chưa kiểm:** cài đặt bảo vệ GitHub (4.5) và cấu hình R2, Supabase, Vercel; không thử xâm nhập thật.
