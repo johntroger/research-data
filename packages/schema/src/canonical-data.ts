@@ -309,7 +309,7 @@ export const CANONICAL_CONSTRUCTS: CanonicalConstruct[] = [
   {
     id: "brand_trust",
     canonical_name: "Brand Trust",
-    aliases: ["Customer Trust", "Consumer Trust", "Product Brand Trust"],
+    aliases: ["Customer Trust", "Product Brand Trust"],
     domain: "branding",
     parent_id: null,
     canonical_definition: "The consumer's willingness to rely on the brand's ability to perform its stated function.",
@@ -481,7 +481,7 @@ export const CANONICAL_CONSTRUCTS: CanonicalConstruct[] = [
   {
     id: "perceived_brand_transparency",
     canonical_name: "Perceived Brand Transparency",
-    aliases: ["Perceived Transparency"],
+    aliases: [],
     domain: "ethics",
     parent_id: null,
     canonical_definition: "Consumers' perception that a brand is open, clear and forthcoming about information that matters to them.",
@@ -491,7 +491,7 @@ export const CANONICAL_CONSTRUCTS: CanonicalConstruct[] = [
   {
     id: "customer_gratitude",
     canonical_name: "Customer Gratitude",
-    aliases: ["Gratitude", "Customers' Feelings of Gratitude"],
+    aliases: ["Customers' Feelings of Gratitude"],
     domain: "consumer_behavior",
     parent_id: null,
     canonical_definition: "A customer's felt appreciation toward a firm for benefits received that were seen as intended and valuable.",
@@ -541,7 +541,7 @@ export const CANONICAL_CONSTRUCTS: CanonicalConstruct[] = [
   {
     id: "perceived_value",
     canonical_name: "Perceived Value",
-    aliases: ["Value"],
+    aliases: [],
     domain: "consumer_behavior",
     parent_id: null,
     canonical_definition: "The consumer's overall assessment of what is received relative to what is given.",
@@ -558,4 +558,15 @@ export const CANONICAL_CONSTRUCTS: CanonicalConstruct[] = [
     definition_source: "Chaudhuri & Holbrook (2001), Journal of Marketing",
     origin: "added",
   },
+];
+
+/**
+ * Names that were once aliases and were taken back after a blind check found them wrong or not safe ("không chắc thì tách").
+ * The seed deletes them from a database that still has them; a label with such a name stays separate.
+ */
+export const RETIRED_ALIASES: { construct_id: string; alias: string; reason: string }[] = [
+  { construct_id: "customer_gratitude", alias: "Gratitude", reason: "Bài tâm lý học dùng nhãn này cho lòng biết ơn nói chung, không phải của khách hàng với doanh nghiệp (kiểm mù P3.5, 25/10/2026)" },
+  { construct_id: "perceived_value", alias: "Value", reason: "Có bài dùng cho chỉ số giá trị tiêu dùng nhiều chiều, rộng hơn định nghĩa (kiểm mù P3.5)" },
+  { construct_id: "perceived_brand_transparency", alias: "Perceived Transparency", reason: "Có bài dùng cho thang ad hoc về một chương trình cụ thể, hẹp hơn (kiểm mù P3.5)" },
+  { construct_id: "brand_trust", alias: "Consumer Trust", reason: "Có bài dùng cho niềm tin vào website của nhà bán lẻ, không thuần là thương hiệu (kiểm mù P3.5)" },
 ];

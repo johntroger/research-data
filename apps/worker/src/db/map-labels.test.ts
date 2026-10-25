@@ -43,3 +43,12 @@ describe("planSimpleChanges", () => {
     ]);
   });
 });
+
+describe("retired aliases", () => {
+  it("clears a concept that was set through a name since retired, and no longer maps that name", () => {
+    const [c] = planPathChanges([row({ iv_label_original: "Gratitude", iv_construct_id: "customer_gratitude", dv_label_original: "Customer gratitude" })], index);
+    expect(c).toMatchObject({ iv_construct_id: null, dv_construct_id: "customer_gratitude" });
+    expect(planSimpleChanges([{ id: "a", label: "Value", current: "perceived_value" }], index)).toEqual([{ id: "a", to: null, label: "Value" }]);
+    expect(planPathChanges([row({ iv_label_original: "Consumer trust" })], index)).toEqual([]);
+  });
+});

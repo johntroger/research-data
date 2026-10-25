@@ -4,7 +4,7 @@
  * Definitions are short paraphrases written for this project (not quotes), each with its source.
  */
 import { z } from "zod";
-import { CANONICAL_CONSTRUCTS, CANONICAL_THEORIES } from "./canonical-data.js";
+import { CANONICAL_CONSTRUCTS, CANONICAL_THEORIES, RETIRED_ALIASES } from "./canonical-data.js";
 
 export const CANONICAL_LIST_VERSION = "1.1.0";
 
@@ -42,7 +42,7 @@ export const CanonicalConstruct = z.object({
 });
 export type CanonicalConstruct = z.infer<typeof CanonicalConstruct>;
 
-export { CANONICAL_CONSTRUCTS, CANONICAL_THEORIES };
+export { CANONICAL_CONSTRUCTS, CANONICAL_THEORIES, RETIRED_ALIASES };
 
 /** Name form used to detect duplicates and to match author labels: case, dashes, "&" and spaces unified. */
 export function canonicalKey(name: string): string {

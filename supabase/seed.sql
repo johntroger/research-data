@@ -107,7 +107,6 @@ insert into construct_aliases (alias, alias_key, construct_id, mapping_method, m
   ('Brand Image', 'brand image', 'brand_image', 'human', 1, true),
   ('Brand Trust', 'brand trust', 'brand_trust', 'human', 1, true),
   ('Customer Trust', 'customer trust', 'brand_trust', 'human', 1, true),
-  ('Consumer Trust', 'consumer trust', 'brand_trust', 'human', 1, true),
   ('Product Brand Trust', 'product brand trust', 'brand_trust', 'human', 1, true),
   ('Brand Love', 'brand love', 'brand_love', 'human', 1, true),
   ('Brand Authenticity', 'brand authenticity', 'brand_authenticity', 'human', 1, true),
@@ -166,9 +165,7 @@ insert into construct_aliases (alias, alias_key, construct_id, mapping_method, m
   ('Authentic Brand Ethicality (Parsimonious Version)', 'authentic brand ethicality parsimonious version', 'authentic_brand_ethicality', 'human', 1, true),
   ('ABE', 'abe', 'authentic_brand_ethicality', 'human', 1, true),
   ('Perceived Brand Transparency', 'perceived brand transparency', 'perceived_brand_transparency', 'human', 1, true),
-  ('Perceived Transparency', 'perceived transparency', 'perceived_brand_transparency', 'human', 1, true),
   ('Customer Gratitude', 'customer gratitude', 'customer_gratitude', 'human', 1, true),
-  ('Gratitude', 'gratitude', 'customer_gratitude', 'human', 1, true),
   ('Customers'' Feelings of Gratitude', 'customers feelings of gratitude', 'customer_gratitude', 'human', 1, true),
   ('Perceived Quality', 'perceived quality', 'perceived_quality', 'human', 1, true),
   ('Customer Perceived Quality', 'customer perceived quality', 'perceived_quality', 'human', 1, true),
@@ -182,7 +179,12 @@ insert into construct_aliases (alias, alias_key, construct_id, mapping_method, m
   ('Customer Perceived Ethicality', 'customer perceived ethicality', 'perceived_ethicality', 'human', 1, true),
   ('Perceived Ethics', 'perceived ethics', 'perceived_ethicality', 'human', 1, true),
   ('Perceived Value', 'perceived value', 'perceived_value', 'human', 1, true),
-  ('Value', 'value', 'perceived_value', 'human', 1, true),
   ('Brand Affect', 'brand affect', 'brand_affect', 'human', 1, true),
   ('Product Brand Affect', 'product brand affect', 'brand_affect', 'human', 1, true)
 on conflict (alias_key, construct_id) do update set alias = excluded.alias;
+
+-- Tên đã rút lại sau kiểm tra (RETIRED_ALIASES).
+delete from construct_aliases where alias_key = 'gratitude' and construct_id = 'customer_gratitude';
+delete from construct_aliases where alias_key = 'value' and construct_id = 'perceived_value';
+delete from construct_aliases where alias_key = 'perceived transparency' and construct_id = 'perceived_brand_transparency';
+delete from construct_aliases where alias_key = 'consumer trust' and construct_id = 'brand_trust';

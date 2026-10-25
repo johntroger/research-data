@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.96 (so với 3.9.95)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | P3.4 và P3.5: trang Khái niệm, dòng đã gộp tên gọi; kiểm mù 30 cặp (26 đúng, 1 nhầm, 3 không chắc); rút bốn tên bằng RETIRED_ALIASES | Minh bạch việc gộp và giữ nguyên tắc không chắc thì tách |
+
 ### Version 3.9.95 (so với 3.9.94)
 
 | # | Thay đổi | Lý do |

@@ -116,3 +116,14 @@ describe("canonical lists (step 0.14)", () => {
     expect(seed).toBe(renderCanonicalSeedSql());
   });
 });
+
+describe("retired aliases (step P3.5)", () => {
+  it("are not aliases of the construct any more, and name an existing construct", async () => {
+    const { RETIRED_ALIASES } = await import("./canonical.js");
+    for (const r of RETIRED_ALIASES) {
+      const c = CANONICAL_CONSTRUCTS.find((x) => x.id === r.construct_id);
+      expect(c, r.construct_id).toBeDefined();
+      expect([c!.canonical_name, ...c!.aliases].map(canonicalKey), r.alias).not.toContain(canonicalKey(r.alias));
+    }
+  });
+});

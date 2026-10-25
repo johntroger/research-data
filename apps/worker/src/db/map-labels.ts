@@ -4,12 +4,16 @@
  * import uses (a label maps only when it equals a canonical name or alias: "không chắc thì tách"); an id already set is never changed.
  */
 import type pg from "pg";
-import { CANONICAL_CONSTRUCTS } from "@research-data/schema";
+import { CANONICAL_CONSTRUCTS, canonicalKey, RETIRED_ALIASES } from "@research-data/schema";
 import { buildIndex, mapLabel, type AliasIndex } from "../mapping/labels.js";
 
 export function canonicalIndex(): AliasIndex {
   return buildIndex(CANONICAL_CONSTRUCTS.map((c) => ({ id: c.id, canonicalName: c.canonical_name, aliases: c.aliases })));
 }
+
+const retiredKeys = new Set(RETIRED_ALIASES.map((r) => `${canonicalKey(r.alias)}|${r.construct_id}`));
+/** A concept id set earlier through a name that has since been retired no longer stands. */
+const keep = (current: string | null, label: string): string | null => (current !== null && retiredKeys.has(`${canonicalKey(label)}|${current}`) ? null : current);
 
 const idOf = (label: string, index: AliasIndex): string | null => {
   const m = mapLabel(label, index);
@@ -45,10 +49,10 @@ export function planPathChanges(rows: PathRowLabels[], index: AliasIndex): PathC
   const out: PathChange[] = [];
   for (const r of rows) {
     const notes: string[] = [];
-    const iv = r.iv_construct_id ?? idOf(r.iv_label_original, index);
-    const dv = r.dv_construct_id ?? idOf(r.dv_label_original, index);
-    if (iv !== r.iv_construct_id && iv) notes.push(`${r.iv_label_original} -> ${iv}`);
-    if (dv !== r.dv_construct_id && dv) notes.push(`${r.dv_label_original} -> ${dv}`);
+    const iv = keep(r.iv_construct_id, r.iv_label_original) ?? idOf(r.iv_label_original, index);
+    const dv = keep(r.dv_construct_id, r.dv_label_original) ?? idOf(r.dv_label_original, index);
+    if (iv !== r.iv_construct_id) notes.push(`${r.iv_label_original} -> ${iv ?? "(bỏ gắn)"}`);
+    if (dv !== r.dv_construct_id) notes.push(`${r.dv_label_original} -> ${dv ?? "(bỏ gắn)"}`);
     const med = r.mediator_labels.map((l) => idOf(l, index)).filter((x): x is string => x !== null);
     const mod = r.moderator_labels.map((l) => idOf(l, index)).filter((x): x is string => x !== null);
     if (!same(med, r.mediator_ids)) notes.push(`trung gian: ${r.mediator_labels.join(", ")} -> ${med.join(", ") || "-"}`);
@@ -65,18 +69,19 @@ export interface LabelRow {
 }
 
 /** Rows of a table with one label column and one concept column (measurements, condition cells) whose concept is empty and now maps. */
-export function planSimpleChanges(rows: LabelRow[], index: AliasIndex): { id: string; to: string; label: string }[] {
+export function planSimpleChanges(rows: LabelRow[], index: AliasIndex): { id: string; to: string | null; label: string }[] {
   return rows.flatMap((r) => {
-    if (r.current) return [];
+    const current = keep(r.current, r.label);
+    if (current) return [];
     const to = idOf(r.label, index);
-    return to ? [{ id: r.id, to, label: r.label }] : [];
+    return to !== r.current ? [{ id: r.id, to, label: r.label }] : [];
   });
 }
 
 export interface RemapPlan {
   paths: PathChange[];
-  measurements: { id: string; to: string; label: string }[];
-  conditionCells: { id: string; to: string; label: string }[];
+  measurements: { id: string; to: string | null; label: string }[];
+  conditionCells: { id: string; to: string | null; label: string }[];
 }
 
 export async function planRemap(db: pg.Client): Promise<RemapPlan> {

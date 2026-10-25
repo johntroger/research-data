@@ -114,7 +114,7 @@ describe("mapExtraction", () => {
     const byLabel = new Map(m.constructs.map((c) => [c.label, c]));
     expect(byLabel.get("Loyalty")).toMatchObject({ status: "mapped", id: "loyalty", usedAs: ["dv"] });
     expect(byLabel.get("Brand trust")).toMatchObject({ id: "brand_trust", usedAs: ["dv", "mediator"] });
-    expect(byLabel.get("Perceived transparency")).toMatchObject({ status: "mapped", id: "perceived_brand_transparency" });
+    expect(byLabel.get("Perceived transparency")).toMatchObject({ status: "separate" }); // a retired alias (blind check P3.5): can mean a narrower scale
     expect(byLabel.get("Perceived transparency x Brand familiarity")).toMatchObject({ status: "separate", id: null }); // an interaction term is never merged (suggestions may name its parts)
     expect(byLabel.get("Brand familiarity")).toMatchObject({ status: "separate", usedAs: ["moderator"] });
   });

@@ -2,7 +2,7 @@
  * SQL seed for the canonical tables (step 1.1), generated from canonical-data.ts into
  * supabase/seed.sql by `pnpm canonical:build`. Upserts, so it can run again on any database.
  */
-import { CANONICAL_CONSTRUCTS, CANONICAL_LIST_VERSION, CANONICAL_THEORIES, canonicalKey } from "./canonical.js";
+import { CANONICAL_CONSTRUCTS, CANONICAL_LIST_VERSION, CANONICAL_THEORIES, canonicalKey, RETIRED_ALIASES } from "./canonical.js";
 
 const lit = (value: string | null) => (value === null ? "null" : `'${value.replace(/'/g, "''")}'`);
 const arr = (values: string[]) => `array[${values.map(lit).join(", ")}]::text[]`;
@@ -34,6 +34,8 @@ export function renderCanonicalSeedSql(): string {
     [c.canonical_name, ...c.aliases].map((a) => `  (${lit(a)}, ${lit(canonicalKey(a))}, ${lit(c.id)}, 'human', 1, true)`),
   );
 
+  const retired = RETIRED_ALIASES.map((r) => `delete from construct_aliases where alias_key = ${lit(canonicalKey(r.alias))} and construct_id = ${lit(r.construct_id)};`);
+
   return `-- Sinh tự động từ packages/schema/src/canonical-data.ts bằng \`pnpm canonical:build\`; đừng sửa tay.
 -- Danh sách lý thuyết và khái niệm chuẩn khởi tạo, phiên bản ${CANONICAL_LIST_VERSION} (bước 0.14, Mục 5.3).
 
@@ -53,5 +55,8 @@ on conflict (id) do update set
 insert into construct_aliases (alias, alias_key, construct_id, mapping_method, mapping_confidence, mapping_reviewed) values
 ${aliases.join(",\n")}
 on conflict (alias_key, construct_id) do update set alias = excluded.alias;
+
+-- Tên đã rút lại sau kiểm tra (RETIRED_ALIASES).
+${retired.join("\n")}
 `;
 }

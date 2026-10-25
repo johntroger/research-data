@@ -55,7 +55,7 @@
 | Brand Equity | — | Customer-Based Brand Equity, CBBE | The differential effect that brand knowledge has on consumer response to the brand's marketing. | Keller (1993), Journal of Marketing; Aaker (1991), Managing brand equity |
 | Brand Awareness | Brand Equity | — | The consumer's ability to recognise or recall a brand. | Keller (1993), Journal of Marketing |
 | Brand Image | Brand Equity | — | Consumers' perceptions of a brand as reflected by the associations held in memory. | Keller (1993), Journal of Marketing |
-| Brand Trust | — | Customer Trust, Consumer Trust, Product Brand Trust | The consumer's willingness to rely on the brand's ability to perform its stated function. | Chaudhuri & Holbrook (2001), Journal of Marketing |
+| Brand Trust | — | Customer Trust, Product Brand Trust | The consumer's willingness to rely on the brand's ability to perform its stated function. | Chaudhuri & Holbrook (2001), Journal of Marketing |
 | Brand Love | — | — | The degree of passionate emotional attachment a satisfied consumer has for a brand. | Carroll & Ahuvia (2006), Marketing Letters |
 | Brand Authenticity | — | Perceived Brand Authenticity, Authenticity | The extent to which consumers see a brand as faithful to itself and true to its consumers (continuity, credibility, integrity, symbolism). | Morhart, Malär, Guèvremont, Girardin & Grohmann (2015), Journal of Consumer Psychology |
 | Brand Attachment | — | Emotional Brand Attachment | The strength of the bond connecting the brand with the self, shown by brand–self connection and brand prominence. | Park, MacInnis, Priester, Eisingerich & Iacobucci (2010), Journal of Marketing |
@@ -74,7 +74,7 @@
 | Consumer Skepticism | — | Consumer Scepticism, Consumer Scepticism toward (Brand) CSR | A general tendency to disbelieve the claims a firm or its advertising makes. | Obermiller & Spangenberg (1998), Journal of Consumer Psychology |
 | Perceived Brand Ethicality ⁺ | — | Consumer Perceived Brand Ethicality | Consumers' overall perception that a brand behaves in a morally responsible way toward people, society and the environment. | Gom từ nhãn của các bài trong kho (2026); bước P3, định nghĩa do dự án tóm tắt, chưa đối chiếu nguồn kinh điển |
 | Authentic Brand Ethicality ⁺ | — | Authentic Brand Ethicality (Parsimonious Version), ABE | Consumers' perception that a brand's ethical conduct is genuine and consistent rather than a marketing pose. | Gom từ nhãn của các bài trong kho (2026); bước P3, định nghĩa do dự án tóm tắt, chưa đối chiếu nguồn kinh điển |
-| Perceived Brand Transparency ⁺ | — | Perceived Transparency | Consumers' perception that a brand is open, clear and forthcoming about information that matters to them. | Gom từ nhãn của các bài trong kho (2026); bước P3, định nghĩa do dự án tóm tắt, chưa đối chiếu nguồn kinh điển |
+| Perceived Brand Transparency ⁺ | — | — | Consumers' perception that a brand is open, clear and forthcoming about information that matters to them. | Gom từ nhãn của các bài trong kho (2026); bước P3, định nghĩa do dự án tóm tắt, chưa đối chiếu nguồn kinh điển |
 | Perceived Ethicality ⁺ | — | Consumer Perceived Ethicality, Customer Perceived Ethicality, Perceived Ethics | Consumers' general perception that a firm, a brand or its conduct is ethical, without tying it to one particular object. | Gom từ nhãn của các bài trong kho (2026); bước P3, định nghĩa do dự án tóm tắt, chưa đối chiếu nguồn kinh điển |
 
 ### Hành vi khách hàng (`consumer_behavior`, 9)
@@ -86,7 +86,7 @@
 | Loyalty | — | Customer Loyalty, Product Brand Loyalty | A deeply held commitment to rebuy or repatronise a preferred brand or firm consistently in the future despite situational influences. | Oliver (1999), Journal of Marketing |
 | Word-of-Mouth Intention | — | WOM Intention, Word of Mouth Intention, WOM Intentions, WOM, Word of Mouth, Customer Positive Word-of-Mouth | A consumer's intention to say positive things about and recommend a brand or firm to others. | Zeithaml, Berry & Parasuraman (1996), Journal of Marketing |
 | Willingness to Pay a Premium | — | Willingness to Pay a Price Premium, WTP Premium, Price Premium | The amount a consumer is willing to pay for a brand over comparable alternatives. | Netemeyer et al. (2004), Journal of Business Research |
-| Customer Gratitude ⁺ | — | Gratitude, Customers' Feelings of Gratitude | A customer's felt appreciation toward a firm for benefits received that were seen as intended and valuable. | Gom từ nhãn của các bài trong kho (2026); bước P3, định nghĩa do dự án tóm tắt, chưa đối chiếu nguồn kinh điển |
+| Customer Gratitude ⁺ | — | Customers' Feelings of Gratitude | A customer's felt appreciation toward a firm for benefits received that were seen as intended and valuable. | Gom từ nhãn của các bài trong kho (2026); bước P3, định nghĩa do dự án tóm tắt, chưa đối chiếu nguồn kinh điển |
 | Perceived Quality ⁺ | — | Customer Perceived Quality | The consumer's judgement of the overall excellence or superiority of a product or brand. | Zeithaml (1988), Journal of Marketing |
 | Commitment ⁺ | — | Customer Commitment | A customer's enduring desire to maintain a valued relationship with a brand or firm. | Morgan & Hunt (1994), Journal of Marketing |
-| Perceived Value ⁺ | — | Value | The consumer's overall assessment of what is received relative to what is given. | Zeithaml (1988), Journal of Marketing |
+| Perceived Value ⁺ | — | — | The consumer's overall assessment of what is received relative to what is given. | Zeithaml (1988), Journal of Marketing |

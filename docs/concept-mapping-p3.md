@@ -61,3 +61,12 @@
 | Sau lô C và V | 763 | 33,9% |
 
 Tỷ lệ tuyệt đối còn thấp **không phải vì bỏ sót**: 1.209 lượt (54%) là khái niệm chỉ xuất hiện trong một bài với tên riêng, 279 lượt là điều kiện thực nghiệm hoặc nhân khẩu học. Sau lô C và V, gần như mọi khái niệm hiện được gọi bằng từ hai tên trở lên (hoặc dùng ở từ hai bài) trong kho đã có khái niệm chuẩn.
+
+## Quyết định và kiểm chứng (P3.2 đến P3.5, 25/10/2026)
+
+- **P3.2:** chủ dự án duyệt cả lô C và lô V như đề xuất.
+- **P3.3:** đã áp dụng lên local và prod bằng `pnpm worker map-labels` (xem trước rồi `--yes`).
+- **P3.5, kiểm mù 30 cặp:** một tác tử Sonnet độc lập đọc PDF của từng bài (không biết mức chắc chắn tôi gán) và phán đoán nhãn có đúng là khái niệm chuẩn hay không. Kết quả: **26 đúng, 1 nhầm, 3 không chắc** (87% đúng, 3% nhầm). Hai mục của bài Dodds là PDF quét, tác tử chỉ đối chiếu theo nội dung kinh điển; mẫu 30 cặp chỉ bắt được lỗi lớn, không chứng minh độ chính xác cao.
+  - **Nhầm:** `gratitude` trong bài tâm lý học về lòng biết ơn nói chung (không phải của khách hàng với doanh nghiệp).
+  - **Không chắc:** `value` (một bài dùng chỉ số giá trị tiêu dùng nhiều chiều), `perceived transparency` (một bài dùng thang ad hoc về một chương trình), `consumer trust` (một bài dùng cho niềm tin vào website của nhà bán lẻ).
+  - **Xử lý theo "không chắc thì tách":** cả bốn tên bị **rút khỏi danh sách** (`RETIRED_ALIASES` trong `canonical-data.ts`; seed xóa chúng khỏi database, `map-labels` bỏ gắn các dòng đã gắn qua tên đó). Bốn nhãn này quay về trạng thái tách; muốn gộp lại thì thêm lại tên vào danh sách.
