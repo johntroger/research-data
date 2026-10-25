@@ -253,3 +253,22 @@ test("says which kinds of effect size are counted and filters by kind", async ({
   expect(onlyR).toBeLessThanOrEqual(all);
   await expect(page.getByRole("checkbox", { name: "r (tương quan)" })).toBeChecked();
 });
+
+test("filters by year, design, sample and country, and folds the filters open when one is on", async ({ page }) => {
+  await page.goto("/?a=zebra&b=quokka");
+  await expect(page.getByTestId("study-filters")).not.toHaveAttribute("open", "");
+  await page.goto("/?a=zebra&b=quokka&from=2100");
+  await expect(page.getByTestId("study-filters")).toHaveAttribute("open", "");
+  await expect(page.getByTestId("study-filters").locator("summary")).toContainText("đang lọc");
+  await expect(page.getByTestId("empty")).toBeVisible();
+  await page.goto("/?a=zebra&b=quokka&design=survey&design=lab_experiment&design=online_experiment");
+  await expect(page.locator("[data-testid^='test-']").first()).toBeVisible();
+});
+
+test("sorts the papers by the chosen key and keeps the choice in the URL", async ({ page }) => {
+  await page.goto("/?a=zebra&sort=name");
+  await expect(page.getByTestId("sort")).toHaveValue("name");
+  await page.getByTestId("sort").selectOption("n");
+  await page.getByRole("button", { name: "Tìm kiếm" }).click();
+  await expect(page).toHaveURL(/sort=n/);
+});

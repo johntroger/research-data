@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.90 (so với 3.9.89)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | P2.3 và P2.4: lọc theo năm, thiết kế, loại mẫu, quốc gia; sắp xếp theo năm, cỡ mẫu, cỡ hiệu ứng, tác giả | Tách được nhóm bằng chứng cần xem mà không phải xuất Excel |
+
 ### Version 3.9.89 (so với 3.9.88)
 
 | # | Thay đổi | Lý do |

@@ -4,9 +4,11 @@
  * cells (pure, tested); `buildWorkbook` writes them as .xlsx.
  */
 import ExcelJS from "exceljs";
+import { countryName, DESIGN_LABELS, SAMPLE_LABELS } from "./library";
 import {
   EFFECT_LABEL,
   ESTIMATE_LABEL,
+  SORT_LABEL,
   formatEstimate,
   formatP,
   formatCi,
@@ -108,6 +110,11 @@ export function describeQuery(q: RelationQuery): string {
   if (q.status.length) parts.push(`Kết quả giả thuyết: ${q.status.map((s) => STATUS_LABEL[s]).join(", ")}`);
   if (q.sign.length) parts.push(`Chiều tác động: ${q.sign.map((s) => SIGN_LABEL[s]).join(", ")}`);
   if (q.est.length) parts.push(`Loại ước lượng: ${q.est.map((e) => ESTIMATE_LABEL[e]).join(", ")}`);
+  if (q.from !== null || q.to !== null) parts.push(`Năm: ${q.from ?? "…"}–${q.to ?? "…"}`);
+  if (q.design.length) parts.push(`Thiết kế: ${q.design.map((d) => DESIGN_LABELS[d] ?? d).join(", ")}`);
+  if (q.sample.length) parts.push(`Mẫu: ${q.sample.map((d) => SAMPLE_LABELS[d] ?? d).join(", ")}`);
+  if (q.country.length) parts.push(`Quốc gia: ${q.country.map(countryName).join(", ")}`);
+  if (q.sort !== "year") parts.push(`Sắp xếp: ${SORT_LABEL[q.sort]}`);
   return parts.join(" · ");
 }
 

@@ -18,6 +18,10 @@ export type SignGroup = (typeof SIGNS)[number];
 /** Kinds of effect size that cannot be compared with each other (the project never converts β to r). */
 export const ESTIMATES = ["std_beta", "path_coefficient", "r", "other", "none"] as const;
 export type EstimateGroup = (typeof ESTIMATES)[number];
+/** How the papers of a result are ordered. "effect" sorts by the largest |estimate| a paper reports, whatever its kind: read the kinds first. */
+export const SORTS = ["year", "n", "effect", "name"] as const;
+export type SortKey = (typeof SORTS)[number];
+export const SORT_LABEL: Record<SortKey, string> = { year: "Năm (mới nhất trước)", n: "Cỡ mẫu (lớn nhất trước)", effect: "Cỡ hiệu ứng (|ước lượng| lớn nhất trước)", name: "Tác giả (A–Z)" };
 export const ESTIMATE_LABEL: Record<EstimateGroup, string> = {
   std_beta: "β chuẩn hóa",
   path_coefficient: "hệ số đường dẫn",
@@ -39,6 +43,14 @@ export interface RelationQuery {
   sign: SignGroup[];
   /** Only these kinds of effect size (empty: all). */
   est: EstimateGroup[];
+  /** Paper year range (inclusive); null: no limit. */
+  from: number | null;
+  to: number | null;
+  /** Study design, type of sample and country (ISO code) of the study; empty: all. */
+  design: string[];
+  sample: string[];
+  country: string[];
+  sort: SortKey;
 }
 
 export interface PaperInfo {
@@ -51,7 +63,7 @@ export interface PaperInfo {
 }
 
 /** PostgREST returns a one-to-one embed (one sample per study) as an object, a one-to-many one as a list. */
-type SampleN = { n: number | null };
+type SampleN = { n: number | null; sample_type?: string | null; country_iso?: string[] | null };
 
 export interface PathRow {
   id: string;
@@ -89,13 +101,19 @@ export interface Concept {
   aliases: string[];
 }
 
-export const DEFAULT_QUERY: RelationQuery = { a: "", b: "", dir: "ab", role: "direct", equiv: true, includeWarn: false, status: [], sign: [], est: [] };
+export const DEFAULT_QUERY: RelationQuery = { a: "", b: "", dir: "ab", role: "direct", equiv: true, includeWarn: false, status: [], sign: [], est: [], from: null, to: null, design: [], sample: [], country: [], sort: "year" };
 
 type Params = Record<string, string | string[] | undefined>;
 const many = (v: string | string[] | undefined): string[] => (Array.isArray(v) ? v : v ? [v] : []);
 const pick = <T extends string>(v: string | string[] | undefined, allowed: readonly T[], fallback: T): T => {
   const first = many(v)[0];
   return (allowed as readonly string[]).includes(first ?? "") ? (first as T) : fallback;
+};
+
+const slug = (v: string) => /^[a-z_]{1,40}$/.test(v);
+const year = (v: string | string[] | undefined): number | null => {
+  const n = Number(many(v)[0]);
+  return Number.isInteger(n) && n >= 1900 && n <= 2100 ? n : null;
 };
 
 /** The query from the URL (anything unknown is ignored). A checkbox "equiv" is sent with a hidden 0 so that "off" can be told from "not given". */
@@ -111,6 +129,12 @@ export function parseQuery(p: Params): RelationQuery {
     status: many(p.status).filter((s): s is StatusGroup => (STATUSES as readonly string[]).includes(s)),
     sign: many(p.sign).filter((s): s is SignGroup => (SIGNS as readonly string[]).includes(s)),
     est: many(p.est).filter((s): s is EstimateGroup => (ESTIMATES as readonly string[]).includes(s)),
+    from: year(p.from),
+    to: year(p.to),
+    design: many(p.design).filter(slug),
+    sample: many(p.sample).filter(slug),
+    sort: pick(p.sort, SORTS, "year"),
+    country: many(p.country).map((c) => c.toUpperCase()).filter((c) => /^[A-Z]{2,3}$/.test(c)),
   };
 }
 
@@ -126,6 +150,12 @@ export function queryToSearch(q: RelationQuery): string {
   for (const v of q.status) s.append("status", v);
   for (const v of q.sign) s.append("sign", v);
   for (const v of q.est) s.append("est", v);
+  if (q.from !== null) s.set("from", String(q.from));
+  if (q.to !== null) s.set("to", String(q.to));
+  for (const v of q.design) s.append("design", v);
+  for (const v of q.sample) s.append("sample", v);
+  for (const v of q.country) s.append("country", v);
+  if (q.sort !== DEFAULT_QUERY.sort) s.set("sort", q.sort);
   return s.toString();
 }
 
@@ -263,6 +293,12 @@ function passesFilters(r: PathRow, q: RelationQuery): boolean {
     if (sg === "unknown" || !q.sign.includes(sg)) return false;
   }
   if (q.est.length && !q.est.includes(estimateGroup(r))) return false;
+  const y = r.papers?.year ?? null;
+  if ((q.from !== null || q.to !== null) && (y === null || (q.from !== null && y < q.from) || (q.to !== null && y > q.to))) return false;
+  if (q.design.length && !q.design.includes(r.studies?.research_design ?? "")) return false;
+  const sample = sampleOf(r);
+  if (q.sample.length && !q.sample.includes(sample?.sample_type ?? "")) return false;
+  if (q.country.length && !(sample?.country_iso ?? []).some((c) => q.country.includes(c))) return false;
   return true;
 }
 
@@ -320,7 +356,15 @@ export function searchRelations(allRows: PathRow[], concepts: Concept[], q: Rela
     const states = new Set(sorted.map((r) => statusGroup(r)).filter((s) => s === "supported" || s === "not_supported"));
     return { paperId, paper: list[0]!.papers, rows: sorted, differs: states.size > 1 };
   });
-  groups.sort((x, y) => (y.paper?.year ?? 0) - (x.paper?.year ?? 0) || paperLabel(x.paper).localeCompare(paperLabel(y.paper)));
+  const byName = (x: PaperGroup, y: PaperGroup) => paperLabel(x.paper).localeCompare(paperLabel(y.paper));
+  const biggest = (g: PaperGroup, value: (r: PathRow) => number | null) => Math.max(-1, ...g.rows.map((r) => value(r) ?? -1));
+  const order: Record<SortKey, (x: PaperGroup, y: PaperGroup) => number> = {
+    year: (x, y) => (y.paper?.year ?? 0) - (x.paper?.year ?? 0) || byName(x, y),
+    n: (x, y) => biggest(y, sampleSize) - biggest(x, sampleSize) || byName(x, y),
+    effect: (x, y) => biggest(y, (r) => (r.estimate === null ? null : Math.abs(r.estimate))) - biggest(x, (r) => (r.estimate === null ? null : Math.abs(r.estimate))) || byName(x, y),
+    name: byName,
+  };
+  groups.sort(order[q.sort]);
 
   return {
     query: q,
@@ -376,11 +420,16 @@ function two(n: number): string {
   return `${n < 0 ? "−" : ""}${whole === "0" ? "" : whole}.${frac}`;
 }
 
-/** The sample size of the study the test comes from, or null when the paper did not give one. */
-export function sampleSize(row: Pick<PathRow, "studies">): number | null {
+/** The sample of the study the test comes from (a one-to-one embed arrives as an object). */
+export function sampleOf(row: Pick<PathRow, "studies">): SampleN | null {
   const samples = row.studies?.samples;
   const list = Array.isArray(samples) ? samples : samples ? [samples] : [];
-  return list.find((s) => s.n !== null)?.n ?? null;
+  return list.find((x) => x.n !== null) ?? list[0] ?? null;
+}
+
+/** The sample size of the study the test comes from, or null when the paper did not give one. */
+export function sampleSize(row: Pick<PathRow, "studies">): number | null {
+  return sampleOf(row)?.n ?? null;
 }
 
 export const formatSe = (row: Pick<PathRow, "se">): string => (row.se == null ? "" : `SE = ${two(row.se)}`);

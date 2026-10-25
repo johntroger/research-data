@@ -158,7 +158,7 @@ async function restAll<T>(pathAndQuery: string): Promise<T[]> {
 const PATH_COLUMNS =
   "id,paper_id,study_id,natural_key,hypothesis_code,iv_label_original,dv_label_original,iv_construct_id,dv_construct_id," +
   "mediator_labels,moderator_labels,effect_type,estimate_type,estimate,se,ci_low,ci_high,p_value,p_reported_as,status,observed_sign,significant,badge," +
-  "studies(study_label,research_design,samples(n)),papers(title,authors,year,journal,citekey,apa_citation),evidence(printed_page,pdf_page_index)";
+  "studies(study_label,research_design,samples(n,sample_type,country_iso)),papers(title,authors,year,journal,citekey,apa_citation),evidence(printed_page,pdf_page_index)";
 
 /** Every test (path) visitors may see, with its study, paper and evidence page. */
 export function listPathRows(): Promise<PathRow[]> {

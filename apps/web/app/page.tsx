@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CopyButton } from "@/app/library/copy-button";
 import { CorpusBlock } from "@/app/corpus-block";
 import { describeCorpus } from "@/lib/corpus";
+import { countryName, DESIGN_LABELS, SAMPLE_LABELS } from "@/lib/library";
 import { listConcepts, listLibraryItems, listPathRows } from "@/lib/data";
 import { countUse } from "@/lib/usage";
 import { academicSentence } from "@/lib/sentence";
@@ -10,6 +11,8 @@ import {
   EFFECT_LABEL,
   ESTIMATE_LABEL,
   ESTIMATES,
+  SORT_LABEL,
+  SORTS,
   formatStats,
   hasQuestion,
   isSingleConcept,
@@ -19,6 +22,7 @@ import {
   parseQuery,
   type PathRow,
   queryToSearch,
+  sampleOf,
   type RelationQuery,
   SAMPLE_QUERIES,
   searchRelations,
@@ -91,6 +95,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const query = parseQuery(await searchParams);
   const [rows, concepts, items] = await Promise.all([listPathRows(), listConcepts(), listLibraryItems()]);
   const corpus = describeCorpus(items);
+  const countries = [...new Set(rows.flatMap((r) => sampleOf(r)?.country_iso ?? []))].sort((x, y) => countryName(x).localeCompare(countryName(y), "vi"));
+  const studyFilterOn = query.from !== null || query.to !== null || query.design.length + query.sample.length + query.country.length > 0;
   const names = suggestions(rows, concepts);
   const conceptName = new Map(concepts.map((c) => [c.id, c.canonical_name]));
   const result = hasQuestion(query) ? searchRelations(rows, concepts, query) : null;
@@ -170,10 +176,56 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </label>
           ))}
         </fieldset>
+        <details open={studyFilterOn} data-testid="study-filters">
+          <summary>Lọc theo bài và mẫu: năm, thiết kế, loại mẫu, quốc gia{studyFilterOn ? " (đang lọc)" : ""}</summary>
+          <fieldset>
+            <legend>Năm xuất bản</legend>
+            <label>
+              Từ <input type="number" name="from" min={1900} max={2100} defaultValue={query.from ?? ""} />
+            </label>{" "}
+            <label>
+              Đến <input type="number" name="to" min={1900} max={2100} defaultValue={query.to ?? ""} />
+            </label>
+          </fieldset>
+          <fieldset>
+            <legend>Thiết kế study</legend>
+            {Object.entries(DESIGN_LABELS).map(([value, label]) => (
+              <label key={value}>
+                <input type="checkbox" name="design" value={value} defaultChecked={query.design.includes(value)} /> {label}
+              </label>
+            ))}
+          </fieldset>
+          <fieldset>
+            <legend>Loại mẫu</legend>
+            {Object.entries(SAMPLE_LABELS).map(([value, label]) => (
+              <label key={value}>
+                <input type="checkbox" name="sample" value={value} defaultChecked={query.sample.includes(value)} /> {label}
+              </label>
+            ))}
+          </fieldset>
+          <fieldset>
+            <legend>Quốc gia của mẫu</legend>
+            {countries.map((c) => (
+              <label key={c}>
+                <input type="checkbox" name="country" value={c} defaultChecked={query.country.includes(c)} /> {countryName(c)}
+              </label>
+            ))}
+          </fieldset>
+        </details>
         <div>
           <input type="hidden" name="equiv" value="0" />
           <label>
             <input type="checkbox" name="equiv" value="1" defaultChecked={query.equiv} /> Bao gồm tên gọi tương đương (khái niệm chuẩn và các tên khác)
+          </label>{" "}
+          <label>
+            Sắp xếp{" "}
+            <select name="sort" defaultValue={query.sort} data-testid="sort">
+              {SORTS.map((k) => (
+                <option key={k} value={k}>
+                  {SORT_LABEL[k]}
+                </option>
+              ))}
+            </select>
           </label>{" "}
           <label>
             <input type="checkbox" name="warn" value="1" defaultChecked={query.includeWarn} /> Tính cả kiểm định ⚠ trong thanh tổng hợp

@@ -70,6 +70,12 @@ describe("the query in the URL", () => {
       status: ["supported"],
       sign: ["negative"],
       est: [],
+      from: null,
+      to: null,
+      design: [],
+      sample: [],
+      country: [],
+      sort: "year",
     });
   });
 
@@ -294,5 +300,59 @@ describe("kinds of effect size", () => {
     const query = parseQuery({ a: "a", est: ["r", "bogus", "none"] });
     expect(query.est).toEqual(["r", "none"]);
     expect(queryToSearch(query)).toBe("a=a&est=r&est=none");
+  });
+});
+
+describe("filters on the paper and the sample", () => {
+  const paper = (year: number | null) => ({ title: "P", authors: [], year, journal: null, citekey: null, apa_citation: null });
+  const study = (design: string, sample_type: string, country: string[]) => ({ study_label: "S", research_design: design, samples: { n: 100, sample_type, country_iso: country } });
+  const data = [
+    row("A", "B", { papers: paper(2010), studies: study("survey", "students", ["US"]) }),
+    row("A", "B", { papers: paper(2021), studies: study("online_experiment", "mturk", ["US", "VN"]) }),
+    row("A", "B", { papers: paper(2024), studies: study("survey", "consumer_panel", ["VN"]) }),
+    row("A", "B", { papers: paper(null), studies: study("survey", "students", []) }),
+  ];
+  const ids = (extra: Partial<RelationQuery>) => findRows(data, [], q({ a: "a", b: "b", ...extra })).map((r) => data.indexOf(r));
+
+  it("filters by year range (a paper without a year never passes a year filter)", () => {
+    expect(ids({ from: 2020 })).toEqual([1, 2]);
+    expect(ids({ to: 2015 })).toEqual([0]);
+    expect(ids({ from: 2011, to: 2022 })).toEqual([1]);
+  });
+
+  it("filters by design, sample type and country, and combines them", () => {
+    expect(ids({ design: ["survey"] })).toEqual([0, 2, 3]);
+    expect(ids({ sample: ["students"] })).toEqual([0, 3]);
+    expect(ids({ country: ["VN"] })).toEqual([1, 2]);
+    expect(ids({ design: ["survey"], from: 2020, country: ["VN"] })).toEqual([2]);
+  });
+
+  it("keeps them in the URL, ignoring nonsense", () => {
+    const query = parseQuery({ a: "a", from: "2020", to: "abc", design: ["survey", "DROP TABLE"], country: ["vn", "xxxx"] });
+    expect(query).toMatchObject({ from: 2020, to: null, design: ["survey"], country: ["VN"] });
+    expect(queryToSearch(query)).toBe("a=a&from=2020&design=survey&country=VN");
+  });
+});
+
+describe("sorting the papers of a result", () => {
+  const paper = (name: string, year: number) => ({ title: name, authors: [{ family: name }], year, journal: null, citekey: null, apa_citation: null });
+  const withN = (n: number) => ({ study_label: "S", research_design: "survey", samples: { n } });
+  const data = [
+    row("A", "B", { paper_id: "p1", papers: paper("Bui", 2015), estimate: 0.2, studies: withN(900) }),
+    row("A", "B", { paper_id: "p2", papers: paper("An", 2022), estimate: -0.6, studies: withN(100) }),
+    row("A", "B", { paper_id: "p3", papers: paper("Cao", 2018), estimate: 0.4, studies: withN(300) }),
+  ];
+  const order = (sort: RelationQuery["sort"]) => searchRelations(data, [], q({ a: "a", b: "b", sort })).groups.map((g) => g.paper?.authors[0]?.family);
+
+  it("orders by year (newest first, the default), sample size, effect size or author name", () => {
+    expect(order("year")).toEqual(["An", "Cao", "Bui"]);
+    expect(order("n")).toEqual(["Bui", "Cao", "An"]);
+    expect(order("effect")).toEqual(["An", "Cao", "Bui"]);
+    expect(order("name")).toEqual(["An", "Bui", "Cao"]);
+  });
+
+  it("falls back to the default for an unknown sort and keeps a chosen one in the URL", () => {
+    expect(parseQuery({ a: "a", sort: "bogus" }).sort).toBe("year");
+    expect(queryToSearch(parseQuery({ a: "a", sort: "n" }))).toBe("a=a&sort=n");
   });
 });
