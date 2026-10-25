@@ -31,3 +31,32 @@ test("an unknown language is ignored", async ({ page }) => {
   await expect(page).toHaveURL(/lang=fr/);
   await expect(page.locator("html")).toHaveAttribute("lang", "vi");
 });
+
+// Letters only Vietnamese uses (not é, ñ, ô or ü of French, Spanish or German names), so authors' names do not trip it.
+const VIETNAMESE = /[ăđơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]/i;
+
+test("in English no page keeps a Vietnamese word of its own (data such as titles and quotes is English already)", async ({ page, context }) => {
+  await context.addCookies([{ name: "lang", value: "en", url: "http://localhost:3000" }]);
+  await page.goto("/library");
+  const paperHref = (await page.locator("ul.paper-list a").first().getAttribute("href"))!;
+  const pages = ["/", "/?a=trust&b=loyalty&role=all", "/?a=trust", "/library", "/matrix", "/concepts", "/map", "/about", "/login", paperHref];
+  for (const path of pages) {
+    await page.goto(path);
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    // Open every fold so its text counts too.
+    await page.evaluate(() => document.querySelectorAll("details").forEach((d) => d.setAttribute("open", "")));
+    // The checker's own detail lines (with the numbers) are stored in Vietnamese and marked lang="vi"; they are the one exception.
+    await page.evaluate(() => document.querySelectorAll('[lang="vi"]').forEach((e) => e.remove()));
+    const text = await page.locator("body").innerText();
+    const bad = text.split("\n").filter((line) => VIETNAMESE.test(line));
+    expect(bad, `Vietnamese text left on ${path}`).toEqual([]);
+  }
+});
+
+test("in English the exported Excel and Word files are English too", async ({ context }) => {
+  await context.addCookies([{ name: "lang", value: "en", url: "http://localhost:3000" }]);
+  const sheet = await context.request.get("/export?a=trust&b=loyalty&role=all");
+  expect(sheet.status()).toBe(200);
+  const word = await context.request.get("/export/word?a=trust&b=loyalty&role=all");
+  expect(word.status()).toBe(200);
+});

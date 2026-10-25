@@ -21,15 +21,6 @@ export type EstimateGroup = (typeof ESTIMATES)[number];
 /** How the papers of a result are ordered. "effect" sorts by the largest |estimate| a paper reports, whatever its kind: read the kinds first. */
 export const SORTS = ["year", "n", "effect", "name"] as const;
 export type SortKey = (typeof SORTS)[number];
-export const SORT_LABEL: Record<SortKey, string> = { year: "Năm (mới nhất trước)", n: "Cỡ mẫu (lớn nhất trước)", effect: "Cỡ hiệu ứng (|ước lượng| lớn nhất trước)", name: "Tác giả (A–Z)" };
-export const ESTIMATE_LABEL: Record<EstimateGroup, string> = {
-  std_beta: "β chuẩn hóa",
-  path_coefficient: "hệ số đường dẫn",
-  r: "r (tương quan)",
-  other: "khác (b, η², OR…)",
-  none: "chưa có số",
-};
-
 export interface RelationQuery {
   a: string;
   b: string;
@@ -453,16 +444,6 @@ export function formatStats(row: PathRow): string {
   const n = sampleSize(row);
   return [formatEstimate(row), formatSe(row), formatCi(row), formatP(row), n === null ? "" : `N = ${n.toLocaleString("en-US")}`].filter(Boolean).join(", ");
 }
-
-export const STATUS_LABEL: Record<PathRow["status"], string> = {
-  supported: "✓ Ủng hộ",
-  not_supported: "✗ Không ủng hộ",
-  partially_supported: "◐ Một phần",
-  mixed: "◐ Trộn",
-  not_hypothesized: "○ Không đặt giả thuyết",
-};
-
-export const EFFECT_LABEL: Record<PathRow["effect_type"], string> = { direct: "trực tiếp", indirect: "gián tiếp", interaction: "tương tác", total: "tổng", control: "biến kiểm soát" };
 
 /** Names for the autocomplete: canonical concepts first, then the variable names the authors used most often. */
 export function suggestions(rows: PathRow[], concepts: Concept[], limit = 300): string[] {

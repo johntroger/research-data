@@ -2,6 +2,12 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.104 (so với 3.9.103)
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Hoàn tất P5: dịch error và login, xóa nhãn tiếng Việt cũ, mô tả tiếng Anh cho 28 loại kiểm tra, e2e kiểm không sót chữ Việt ở bản EN | Bản tiếng Anh dùng được trọn vẹn |
+
 ### Version 3.9.103 (so với 3.9.102)
 
 | # | Thay đổi | Lý do |

@@ -53,7 +53,7 @@ export function focusedField(fields: ExtractedField[], focusKey: string | undefi
 
 /** The small table "why this badge": the checks that passed and the ones that did not (Mục 8.3). */
 function Why({ paperId, field, page, canView }: { paperId: string; field: ExtractedField; page: number; canView: boolean }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const checks = field.check_results.checks ?? [];
   const failed = checks.filter((c) => !c.passed);
   const passed = checks.filter((c) => c.passed);
@@ -68,7 +68,17 @@ function Why({ paperId, field, page, canView }: { paperId: string; field: Extrac
         <ul className="checks">
           {[...failed, ...passed].map((check) => (
             <li key={check.name} className={check.passed ? "check-pass" : "check-fail"}>
-              {check.passed ? "✓" : t("c.why.failed")} {check.detail}
+              {check.passed ? "✓" : t("c.why.failed")}{" "}
+              {lang === "vi" ? (
+                check.detail
+              ) : (
+                <>
+                  {t(`c.check.${check.name}`) === `c.check.${check.name}` ? check.name : t(`c.check.${check.name}`)}{" "}
+                  <span lang="vi" className="check-detail muted">
+                    ({check.detail})
+                  </span>
+                </>
+              )}
             </li>
           ))}
         </ul>

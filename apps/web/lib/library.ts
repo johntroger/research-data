@@ -43,37 +43,6 @@ export type FacetName = (typeof FACETS)[number];
 
 export const TRUST_LIMITS = { high: 0.1, mid: 0.25 } as const;
 
-export const PAPER_TYPE_LABELS: Record<string, string> = {
-  empirical_quant: "Thực nghiệm định lượng",
-  empirical_qual: "Thực nghiệm định tính",
-  mixed: "Phương pháp hỗn hợp",
-  conceptual: "Lý thuyết / khái niệm",
-  systematic_review: "Tổng quan hệ thống",
-  meta_analysis: "Phân tích tổng hợp (meta)",
-  literature_review: "Tổng quan tài liệu",
-};
-export const DESIGN_LABELS: Record<string, string> = {
-  survey: "Khảo sát",
-  online_experiment: "Thực nghiệm trực tuyến",
-  lab_experiment: "Thực nghiệm phòng lab",
-  field_experiment: "Thực nghiệm hiện trường",
-  longitudinal_panel: "Dữ liệu bảng / dọc",
-  secondary_data: "Dữ liệu thứ cấp",
-  qualitative: "Định tính",
-  other: "Khác",
-};
-export const SAMPLE_LABELS: Record<string, string> = {
-  students: "Sinh viên",
-  mturk: "MTurk",
-  prolific: "Prolific",
-  consumer_panel: "Panel người tiêu dùng",
-  online_convenience: "Mẫu thuận tiện trực tuyến",
-  social_media_users: "Người dùng mạng xã hội",
-  managers: "Nhà quản lý",
-  secondary: "Dữ liệu thứ cấp",
-  other: "Khác",
-};
-
 const list = (v: string | string[] | undefined): string[] => (v === undefined ? [] : Array.isArray(v) ? v : v.split(",")).map((s) => s.trim()).filter(Boolean);
 
 export function parseLibraryQuery(params: Record<string, string | string[] | undefined>): LibraryQuery {
@@ -166,10 +135,3 @@ export function facetOptions(items: LibraryItem[], q: LibraryQuery, facet: Facet
     .sort((a, b) => rank(a.value) - rank(b.value) || (facet === "years" ? b.value.localeCompare(a.value) : b.count - a.count || a.value.localeCompare(b.value)));
 }
 
-export function countryName(code: string): string {
-  try {
-    return new Intl.DisplayNames(["vi"], { type: "region" }).of(code) ?? code;
-  } catch {
-    return code;
-  }
-}
