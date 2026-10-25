@@ -46,6 +46,7 @@ h1 {
 
 .site-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 12px;
   padding: 12px 24px;
@@ -679,6 +680,7 @@ h1 {
 .header-right {
   margin-left: auto;
   display: flex;
+  flex-wrap: wrap;
   gap: 14px;
   align-items: baseline;
   font-size: 13px;

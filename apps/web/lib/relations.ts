@@ -221,13 +221,13 @@ function matches(side: Side | null, label: string, conceptId: string | null): bo
   return side.tokens.every((t) => n.includes(t)) || side.phrases.some((p) => n.includes(p));
 }
 
-/** The parts a concept plays in a test: independent variable, dependent variable, mediator, moderator. */
+/** The parts a concept plays in a test, as keys (iv, dv, med, mod); the page names them in its language. */
 function conceptRoles(row: PathRow, side: Side | null): string[] {
   const roles: string[] = [];
-  if (matches(side, row.iv_label_original, row.iv_construct_id)) roles.push("biến độc lập");
-  if (matches(side, row.dv_label_original, row.dv_construct_id)) roles.push("biến phụ thuộc");
-  if (row.mediator_labels.some((l) => matches(side, l, null))) roles.push("trung gian");
-  if (row.moderator_labels.some((l) => matches(side, l, null))) roles.push("điều tiết");
+  if (matches(side, row.iv_label_original, row.iv_construct_id)) roles.push("iv");
+  if (matches(side, row.dv_label_original, row.dv_construct_id)) roles.push("dv");
+  if (row.mediator_labels.some((l) => matches(side, l, null))) roles.push("med");
+  if (row.moderator_labels.some((l) => matches(side, l, null))) roles.push("mod");
   return roles;
 }
 

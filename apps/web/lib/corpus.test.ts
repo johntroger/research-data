@@ -19,14 +19,14 @@ describe("describeCorpus", () => {
     expect(describeCorpus(items)).toMatchObject({ papers: 4, yearMin: 1991, yearMax: 2026, recent: 2, noYear: 1, countries: 2 });
   });
 
-  it("counts papers per design, sample type and paper type, most frequent first, with readable labels", () => {
+  it("counts papers per design, sample type and paper type, most frequent first", () => {
     const c = describeCorpus(items);
     expect(c.designs).toEqual([
-      { label: "Khảo sát", n: 3 },
-      { label: "Thực nghiệm trực tuyến", n: 1 },
+      { key: "survey", n: 3 },
+      { key: "online_experiment", n: 1 },
     ]);
-    expect(c.samples[0]).toEqual({ label: "Sinh viên", n: 2 });
-    expect(c.types[0]).toEqual({ label: "Thực nghiệm định lượng", n: 2 });
+    expect(c.samples[0]).toEqual({ key: "students", n: 2 });
+    expect(c.types[0]).toEqual({ key: "empirical_quant", n: 2 });
   });
 
   it("copes with an empty corpus", () => {

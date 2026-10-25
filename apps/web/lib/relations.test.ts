@@ -132,8 +132,8 @@ describe("finding the tests of a relationship", () => {
       expect(findRows(data, [], q({ a: typed }))).toHaveLength(4);
       expect(findRows(data, [], q({ b: typed }))).toHaveLength(4); // the box does not matter
     }
-    expect(rolesInTest(data[2]!, [], q({ a: "brand trust" }))).toEqual(["trung gian"]);
-    expect(rolesInTest(data[0]!, [], q({ a: "brand trust" }))).toEqual(["biến độc lập"]);
+    expect(rolesInTest(data[2]!, [], q({ a: "brand trust" }))).toEqual(["med"]);
+    expect(rolesInTest(data[0]!, [], q({ a: "brand trust" }))).toEqual(["iv"]);
     expect(rolesInTest(data[0]!, [], q({ a: "brand trust", b: "loyalty" }))).toEqual([]); // two concepts: no roles
     expect(findRows(data, [], q({ a: "brand trust", status: ["not_supported"] }))).toHaveLength(0); // other filters still apply
   });

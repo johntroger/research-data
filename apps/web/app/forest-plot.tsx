@@ -1,8 +1,9 @@
 import { type Forest, forestRange } from "@/lib/forest";
-import { ESTIMATE_LABEL } from "@/lib/relations";
+import type { Translate } from "@/lib/i18n";
+import { label } from "@/lib/labels";
 
 /** A forest plot as plain SVG: one line per study, the estimate as a square, the interval as a whisker, zero as a dashed line. */
-export function ForestPlot({ forest }: { forest: Forest }) {
+export function ForestPlot({ forest, t }: { forest: Forest; t: Translate }) {
   const { min, max } = forestRange(forest.points);
   const rowH = 24;
   const left = 260;
@@ -13,9 +14,9 @@ export function ForestPlot({ forest }: { forest: Forest }) {
   return (
     <figure className="forest" data-testid="forest-plot">
       <figcaption>
-        <strong>Biểu đồ rừng</strong> ({ESTIMATE_LABEL[forest.kind]}, {forest.points.length} study có khoảng tin cậy hoặc sai số chuẩn). Đây là hình các study báo cáo, không phải meta-analysis: không có ước lượng gộp.
+        <strong>{t("forest.title")}</strong> {t("forest.caption", { kind: label(t, "estimate", forest.kind), n: forest.points.length })}
       </figcaption>
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Biểu đồ rừng của ${forest.points.length} study`}>
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={t("forest.aria", { n: forest.points.length })}>
         <line x1={x(0)} x2={x(0)} y1={8} y2={height - 28} stroke="currentColor" strokeDasharray="4 3" opacity={0.5} />
         {forest.points.map((p, i) => {
           const y = 20 + i * rowH;
@@ -29,13 +30,13 @@ export function ForestPlot({ forest }: { forest: Forest }) {
             </g>
           );
         })}
-        {[min, 0, max].map((t) => (
-          <text key={t} x={x(t)} y={height - 8} textAnchor="middle" fontSize={11} fill="currentColor">
-            {t === 0 ? "0" : t.toFixed(1)}
+        {[min, 0, max].map((v) => (
+          <text key={v} x={x(v)} y={height - 8} textAnchor="middle" fontSize={11} fill="currentColor">
+            {v === 0 ? "0" : v.toFixed(1)}
           </text>
         ))}
       </svg>
-      <p className="muted">Đường đứt: khoảng tính từ sai số chuẩn (ước lượng ± 1,96 SE) vì bài không in khoảng tin cậy.</p>
+      <p className="muted">{t("forest.note")}</p>
     </figure>
   );
 }

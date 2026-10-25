@@ -77,7 +77,7 @@ test("counts what is in the repository: only ✓ tests, and says how many were l
   await expect(page.getByTestId("summary-outcome")).toContainText("✓ Ủng hộ 1 · ✗ Không ủng hộ 1");
   await expect(page.getByTestId("summary-direction")).toContainText("－ Âm 1 · ∅ Không có ý nghĩa 1");
   await expect(page.getByTestId("summary-not-counted")).toContainText("1 kiểm định ⚠ hoặc ◇ chưa kiểm chứng");
-  await expect(page.getByTestId("summary-not-counted")).toContainText("1 thuộc thực nghiệm online");
+  await expect(page.getByTestId("summary-not-counted")).toContainText("1 thuộc thực nghiệm trực tuyến");
   // Every matching test is listed, counted or not; the two studies of paper one disagree.
   await expect(page.getByTestId(`paper-${p1}`)).toContainText("Zhao & Okafor (2023)");
   await expect(page.getByTestId(`paper-${p1}`)).toContainText("Kết quả khác nhau giữa các study");

@@ -67,7 +67,7 @@ export default async function PaperPage({
           {focusKey ? "" : `Mở sẵn tab ${TABS.find((t) => t.id === openTab)?.label}; `}bấm một giá trị để thấy bằng chứng trong PDF.
         </p>
       </div>
-      <EvidenceWorkspace paperId={paper.id} fields={fields} canDownload={Boolean(paper.pdf_path) && canDownloadPdf(isOwner, paper)} access={{ canView: Boolean(paper.pdf_path) && canViewPdf(), ...pdfLinks(paper) }} {...(focusKey ? { focusKey } : {})} />
+      <EvidenceWorkspace paperId={paper.id} fields={fields} canDownload={Boolean(paper.pdf_path) && canDownloadPdf(isOwner, paper)} access={{ canView: canViewPdf(), ...pdfLinks(paper) }} {...(focusKey ? { focusKey } : {})} />
     </>
   );
 }

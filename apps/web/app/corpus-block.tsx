@@ -1,29 +1,33 @@
 import Link from "next/link";
 import { type CorpusSummary, RECENT_FROM } from "@/lib/corpus";
+import type { Translate, TranslatePlural } from "@/lib/i18n";
+import { label, type LabelGroup } from "@/lib/labels";
 
-const parts = (xs: { label: string; n: number }[], limit = 4) => xs.slice(0, limit).map((x) => `${x.label} ${x.n}`).join(" · ");
-
-export function CorpusBlock({ corpus, open = false }: { corpus: CorpusSummary; open?: boolean }) {
+export function CorpusBlock({ corpus, t, tn, open = false }: { corpus: CorpusSummary; t: Translate; tn: TranslatePlural; open?: boolean }) {
+  const parts = (group: LabelGroup, xs: { key: string; n: number }[], limit = 4) => xs.slice(0, limit).map((x) => `${label(t, group, x.key)} ${x.n}`).join(" · ");
   return (
     <details className="corpus-block" open={open} data-testid="corpus">
       <summary>
-        Kho này gồm gì: {corpus.papers} bài
-        {corpus.yearMin !== null ? `, năm ${corpus.yearMin}–${corpus.yearMax}` : ""}
+        {t("corpus.summary", { papers: tn("n.papers", corpus.papers) })}
+        {corpus.yearMin !== null ? t("corpus.years", { min: corpus.yearMin, max: corpus.yearMax ?? "" }) : ""}
       </summary>
       <ul>
         <li data-testid="corpus-years">
-          {corpus.recent} bài từ {RECENT_FROM} trở lại; {corpus.papers - corpus.recent - corpus.noYear} bài trước đó
-          {corpus.noYear > 0 ? `; ${corpus.noYear} bài chưa rõ năm` : ""}.
+          {t("corpus.recent", { recent: corpus.recent, from: RECENT_FROM, before: corpus.papers - corpus.recent - corpus.noYear })}
+          {corpus.noYear > 0 ? t("corpus.noYear", { n: corpus.noYear }) : ""}.
         </li>
-        {corpus.types.length > 0 && <li>Loại bài: {parts(corpus.types)}.</li>}
-        {corpus.designs.length > 0 && <li>Thiết kế (số bài): {parts(corpus.designs, 5)}.</li>}
-        {corpus.samples.length > 0 && <li>Mẫu (số bài): {parts(corpus.samples, 5)}; {corpus.countries} quốc gia.</li>}
+        {corpus.types.length > 0 && <li>{t("corpus.types", { list: parts("ptype", corpus.types) })}</li>}
+        {corpus.designs.length > 0 && <li>{t("corpus.designs", { list: parts("design", corpus.designs, 5) })}</li>}
+        {corpus.samples.length > 0 && <li>{t("corpus.samples", { list: parts("sample", corpus.samples, 5), countries: corpus.countries })}</li>}
         <li data-testid="corpus-caveat">
-          <strong>Không phải mẫu hệ thống của y văn:</strong> kho gồm các bài trong thư viện Zotero của chủ dự án (marketing, đạo đức, hành vi người tiêu dùng; định lượng, tiếng Anh), chọn theo nhu cầu nghiên cứu, không qua tìm kiếm hay sàng lọc theo quy trình PRISMA. Số bài nhỏ nên một kết quả "ủng hộ" hay "không ủng hộ" chỉ nói về các bài này.
+          <strong>{t("corpus.caveat.lead")}</strong>
+          {t("corpus.caveat.rest")}
         </li>
       </ul>
       <p className="muted">
-        Xem từng bài và lọc theo năm, thiết kế, mẫu trong <Link href="/library">danh sách bài</Link>.
+        {t("corpus.more.before")}
+        <Link href="/library">{t("corpus.more.link")}</Link>
+        {t("corpus.more.after")}
       </p>
     </details>
   );

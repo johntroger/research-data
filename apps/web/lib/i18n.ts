@@ -22,7 +22,7 @@ export function fill(text: string, vars?: Vars): string {
 }
 
 export type Translate = (key: MessageKey, vars?: Vars) => string;
-/** For counts: uses `key.one` when the number is 1 and `key.other` otherwise (Vietnamese has both entries, with the same text). */
+/** For counts: uses `key.sg` when the number is 1 and `key.pl` otherwise (Vietnamese has both entries, with the same text). */
 export type TranslatePlural = (key: string, n: number, vars?: Vars) => string;
 
 export function translate(lang: Lang, key: MessageKey, vars?: Vars): string {
@@ -35,7 +35,7 @@ export function makeT(lang: Lang): Translate {
 
 export function makeTn(lang: Lang): TranslatePlural {
   return (key, n, vars) => {
-    const full = `${key}.${n === 1 ? "one" : "other"}` as MessageKey;
+    const full = `${key}.${n === 1 ? "sg" : "pl"}` as MessageKey;
     return translate(lang, full, { n, ...vars });
   };
 }

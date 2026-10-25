@@ -26,10 +26,10 @@ describe("the messages", () => {
     for (const [key, msg] of Object.entries(MESSAGES)) expect(msg.en, `${key} (en)`).not.toMatch(vietnamese);
   });
 
-  it("make plural pairs for every .one and .other", () => {
+  it("make plural pairs for every .sg and .pl", () => {
     for (const key of Object.keys(MESSAGES)) {
-      if (key.endsWith(".one")) expect(Object.keys(MESSAGES), key).toContain(key.replace(/\.one$/, ".other"));
-      if (key.endsWith(".other")) expect(Object.keys(MESSAGES), key).toContain(key.replace(/\.other$/, ".one"));
+      if (key.endsWith(".sg")) expect(Object.keys(MESSAGES), key).toContain(key.replace(/\.sg$/, ".pl"));
+      if (key.endsWith(".pl")) expect(Object.keys(MESSAGES), key).toContain(key.replace(/\.pl$/, ".sg"));
     }
   });
 });

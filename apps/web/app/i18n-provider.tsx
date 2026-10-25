@@ -18,6 +18,6 @@ export function I18nProvider({ lang, messages, children }: { lang: Lang; message
 export function useT() {
   const { lang, messages } = useContext(I18nContext);
   const t = (key: string, vars?: Vars) => fill(messages[key] ?? key, vars);
-  const tn = (key: string, n: number, vars?: Vars) => t(`${key}.${n === 1 ? "one" : "other"}`, { n, ...vars });
+  const tn = (key: string, n: number, vars?: Vars) => t(`${key}.${n === 1 ? "sg" : "pl"}`, { n, ...vars });
   return { lang, t, tn };
 }
