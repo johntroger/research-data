@@ -16,7 +16,7 @@ const RAW_PAPERS = path.join(REPO_ROOT, "raw_papers");
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const paper = await getPaper(id);
+  const paper = await getPaper(id, { fresh: true });
   if (!paper?.pdf_path) return new Response("Not found", { status: 404 });
 
   // Anyone may view; only the owner and open-licence papers may be saved (lib/pdf-access, D14).
