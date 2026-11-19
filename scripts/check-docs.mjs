@@ -1,21 +1,19 @@
 // Checks relative links (and #anchors) in the project's Markdown documents.
 // Usage: pnpm docs:check   — exits with code 1 when a link is broken.
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
+// Every working document: the root ones and all of docs/ (a new file there is checked without being listed here).
 const FILES = [
   "PROJECT_PLAN.md",
   "CHANGELOG.md",
   "CLAUDE.md",
   "README.md",
-  "docs/architecture.md",
-  "docs/integrations.md",
-  "docs/data-schema.md",
-  "docs/quality-assurance.md",
-  "docs/ux-spec.md",
-  "docs/risks.md",
-  "docs/codebook.md",
+  ...readdirSync(path.join(ROOT, "docs"))
+    .filter((f) => f.endsWith(".md"))
+    .sort()
+    .map((f) => `docs/${f}`),
 ];
 
 /** GitHub-style heading anchor: lower-case, spaces → "-", punctuation removed (letters with diacritics kept). */
