@@ -10,11 +10,18 @@ export interface ApaSource {
   doi: string | null;
 }
 
-const initials = (given: string | null | undefined) =>
+/** "Mary Ann" → "M. A."; a hyphenated name keeps its hyphen, "Jean-Paul" → "J.-P." (APA 7, 9.8). */
+export const initials = (given: string | null | undefined) =>
   (given ?? "")
-    .split(/[\s]+/)
+    .split(/\s+/)
     .filter(Boolean)
-    .flatMap((part) => part.split("-").map((p) => `${p[0]!.toUpperCase()}.`))
+    .map((part) =>
+      part
+        .split("-")
+        .filter(Boolean)
+        .map((p) => `${p[0]!.toUpperCase()}.`)
+        .join("-"),
+    )
     .join(" ");
 
 const name = (a: ApaSource["authors"][number]) => {

@@ -57,7 +57,7 @@ describe("apaReference", () => {
   it("formats authors, year, title, source and DOI", () => {
     expect(
       apaReference({ title: "Brand gratitude.", authors: [{ given: "Jean-Paul", family: "Koskie" }, { given: "Ann Marie", family: "Lee" }], year: 2024, journal: "Journal of Brands", volume: "33", issue: "2", pages: "1-17", doi: "10.1/x" }),
-    ).toBe("Koskie, J. P., & Lee, A. M. (2024). Brand gratitude. Journal of Brands, 33(2), 1-17. https://doi.org/10.1/x");
+    ).toBe("Koskie, J.-P., & Lee, A. M. (2024). Brand gratitude. Journal of Brands, 33(2), 1-17. https://doi.org/10.1/x");
   });
   it("copes with missing parts", () => expect(apaReference({ title: null, authors: [], year: null, journal: null, volume: null, issue: null, pages: null, doi: null })).toBe("(n.d.)."));
 });
