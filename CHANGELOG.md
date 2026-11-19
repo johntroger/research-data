@@ -2,6 +2,17 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.113 (so với 3.9.112)
+
+Sửa nhóm D (lãng phí token) sau đợt rà soát 19/11/2026.
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Nhật ký từng bước của Giai đoạn 2, A.1–A.6, Giai đoạn 4 và P1–P5 (42 dòng dài) chuyển **nguyên văn** sang `docs/step-log.md`; kế hoạch giữ tóm tắt một dòng mỗi nhóm kèm liên kết; mục lục thêm `step-log.md` và `usage.md`. `PROJECT_PLAN.md` từ 112 KB còn khoảng 50 KB | `CLAUDE.md` bắt đọc kế hoạch đầu mỗi phiên; phần lớn là hồ sơ bước đã xong, trùng với CHANGELOG |
+| 2 | Gỡ 8 tệp `PROJECT_PLAN_v*_backup.md` (648 KB) khỏi repo; vẫn lấy lại được bằng `git show 20b81db:<tên tệp>` | Lọt vào mọi lượt tìm kiếm trong repo; không ai dùng để làm việc |
+| 3 | Gói việc có `text/`: tác tử đọc bài từ văn bản từng trang, chỉ mở PDF cho bảng, hình và bố cục (trước đây bảo đọc toàn bộ PDF). Không phải quy tắc trích xuất nên **giữ phiên bản prompt full-1.5.0**: 40 gói hiện có vẫn qua `manual check` | Tác tử đọc cùng nội dung hai lần |
+| 4 | Ngoài repo: memory rút gọn còn quyền chủ động và mẹo vận hành (trạng thái đọc ở kế hoạch); skill cá nhân `pdf-to-markdown` trùng với bản của plugin được chuyển sang `~/.claude/skills-disabled/`; mô tả skill `graphify` thu hẹp (chỉ khi gõ `/graphify` hoặc dự án có `graphify-out/`), bản gốc sao lưu cạnh đó | Memory tự mâu thuẫn và chép lại tài liệu; một skill có ba bản; graphify (43 KB) có thể tự kích hoạt cho mọi câu hỏi về mã |
+
 ### Version 3.9.112 (so với 3.9.111)
 
 Sửa nhóm C (thiếu nhất quán) sau đợt rà soát 19/11/2026. Chỉ tài liệu, cấu hình kiểm tra và chú thích mã; không đổi hành vi web trừ hai nhãn.
