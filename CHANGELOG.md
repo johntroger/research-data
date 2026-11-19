@@ -13,6 +13,7 @@ Sửa nhóm B (độ chính xác chuyên môn) sau đợt rà soát 19/11/2026. 
 | 3 | Hiển thị số (Mục 8.1): bỏ số 0 đầu chỉ với p, r, β chuẩn hóa, hệ số đường dẫn, η², R²; giữ với b, d, OR, loại không rõ; ít nhất hai chữ số thập phân, không làm tròn SE / CI; p giữ chữ số như in; bỏ chữ "95%" trước CI ở Ma trận | Trước đây "b = .5", "OR = 2.1", SE .045 thành ".05", và CI luôn ghi 95% dù mức không được lưu |
 | 4 | Biểu đồ rừng: không vẽ nhóm "khác" (b, d, OR, η² lẫn nhau); vẽ mọi kiểm định của một study (ghi tên biến khi một study có nhiều dòng), ngưỡng tính theo số study | Trộn OR (tâm 1) với b trên một trục quanh 0 là sai; giữ "dòng đầu tiên" của mỗi study là tùy tiện |
 | 5 | Trích dẫn APA: tên có gạch nối giữ gạch nối ("J.-P.") | APA 7 mục 9.8 |
+| 6 | Next.js 16.4.2 → 16.4.6 | Hai lỗ hổng mức trung bình (lộ dữ liệu cache với `'use cache'`, vá từ 16.4.5); từ 19/11/2026 `next build` dừng hẳn với bản cũ nên Vercel không deploy được. Còn một lỗ hổng trung bình của `uuid` qua `exceljs` (không chặn build) |
 
 ### Version 3.9.110 (so với 3.9.109)
 
