@@ -101,7 +101,7 @@ async function fetchRest<T>(pathAndQuery: string): Promise<T> {
 const PAPER_COLUMNS = "id,doi,title,pdf_path,page_count,oa_status,license_source,authors,year,journal,volume,issue,pages,paper_type,file_hash,oa_url,oa_license";
 
 export function listPapers(): Promise<Paper[]> {
-  return rest<Paper[]>(`papers?select=${PAPER_COLUMNS}&order=created_at.desc`);
+  return restAll<Paper>(`papers?select=${PAPER_COLUMNS}&order=created_at.desc,id`);
 }
 
 /** How many visible fields of each paper are ✓ / ⚠ / ◇ (a view that obeys the visitor's row-level security). */
@@ -113,7 +113,7 @@ export interface BadgeCounts {
 }
 
 export async function listBadgeCounts(): Promise<Map<string, BadgeCounts>> {
-  const rows = await rest<BadgeCounts[]>("paper_badge_counts?select=paper_id,verified,attention,interpreted");
+  const rows = await restAll<BadgeCounts>("paper_badge_counts?select=paper_id,verified,attention,interpreted&order=paper_id");
   return new Map(rows.map((r) => [r.paper_id, r]));
 }
 
@@ -123,12 +123,11 @@ export async function getPaper(id: string): Promise<Paper | null> {
   return rows[0] ?? null;
 }
 
+const FIELD_COLUMNS = "id,natural_key,field_name,tier,value,evidence_quote,pdf_page_index,printed_page,badge,check_results,highlight";
+
 /** Every field of a paper, page by page: the REST API returns at most 1000 rows per request and a long paper has more (it used to lose the end of the list). */
 export function listFields(paperId: string): Promise<ExtractedField[]> {
-  return restAll<ExtractedField>(
-    `extracted_fields?select=id,natural_key,field_name,tier,value,evidence_quote,pdf_page_index,printed_page,badge,check_results,highlight` +
-      `&paper_id=eq.${paperId}&order=natural_key,id`,
-  );
+  return restAll<ExtractedField>(`extracted_fields?select=${FIELD_COLUMNS}&paper_id=eq.${paperId}&order=natural_key,id`);
 }
 
 /** Short display name for a paper until real metadata (Crossref) arrives in Giai đoạn 1. */
@@ -140,9 +139,9 @@ export function paperLabel(paper: Paper): string {
 export async function listLibraryItems(): Promise<LibraryItem[]> {
   const [papers, studies, samples, matrices, counts] = await Promise.all([
     listPapers(),
-    restAll<{ paper_id: string; research_design: string | null }>("studies?select=paper_id,research_design"),
-    restAll<{ paper_id: string; sample_type: string | null; country_iso: string[] }>("samples?select=paper_id,sample_type,country_iso"),
-    restAll<{ paper_id: string }>("correlation_matrices?select=paper_id"),
+    restAll<{ paper_id: string; research_design: string | null }>("studies?select=paper_id,research_design&order=id"),
+    restAll<{ paper_id: string; sample_type: string | null; country_iso: string[] }>("samples?select=paper_id,sample_type,country_iso&order=id"),
+    restAll<{ paper_id: string }>("correlation_matrices?select=paper_id&order=id"),
     listBadgeCounts(),
   ]);
   const by = <T extends { paper_id: string }>(rows: T[]) => {
@@ -170,8 +169,17 @@ export async function listLibraryItems(): Promise<LibraryItem[]> {
 
 // --- Relationship Search (step 3a.1) ---------------------------------------------------------------
 
+/**
+ * A paged query must say its order, ending on a unique column (id, or paper_id + natural_key): without one, Postgres may hand
+ * the pages back in different orders and rows are lost or repeated at the 1000-row boundaries.
+ */
+export function hasOrder(pathAndQuery: string): boolean {
+  return /[?&]order=[^&]+/.test(pathAndQuery);
+}
+
 /** All rows of a query, page by page: the REST API returns at most 1000 rows per request. */
 function restAll<T>(pathAndQuery: string): Promise<T[]> {
+  if (!hasOrder(pathAndQuery)) throw new Error(`Paged query without an order: ${pathAndQuery.split("?")[0]}`);
   return memoised(`all:${pathAndQuery}`, () => fetchAll<T>(pathAndQuery));
 }
 
@@ -204,8 +212,8 @@ export function listPathRows(): Promise<PathRow[]> {
 /** What the summary matrix (step 3b.2) shows beside each paper: its theories, the sample of each study and every test. */
 export async function listMatrixData(): Promise<{ theories: TheoryRow[]; samples: SampleRow[]; paths: MatrixPath[] }> {
   const [theories, samples, paths] = await Promise.all([
-    restAll<TheoryRow>("paper_theories?select=paper_id,theory_name_original,application_role"),
-    restAll<SampleRow>("samples?select=paper_id,study_id,n,country_iso,sample_type,studies(study_label,position,research_design)"),
+    restAll<TheoryRow>("paper_theories?select=paper_id,theory_name_original,application_role&order=id"),
+    restAll<SampleRow>("samples?select=paper_id,study_id,n,country_iso,sample_type,studies(study_label,position,research_design)&order=id"),
     restAll<MatrixPath>(`path_results?select=${PATH_COLUMNS},r2_dv&order=paper_id,natural_key`),
   ]);
   return { theories, samples, paths };
@@ -215,8 +223,8 @@ export async function listMatrixData(): Promise<{ theories: TheoryRow[]; samples
 export async function getPaperSheet(paperId: string, fields: ExtractedField[], moderatorWord: string): Promise<Sheet | null> {
   if (!/^[0-9a-f-]{36}$/i.test(paperId)) return null;
   const [theories, samples, paths, summaries, papers] = await Promise.all([
-    restAll<TheoryRow>(`paper_theories?select=paper_id,theory_name_original,application_role&paper_id=eq.${paperId}`),
-    restAll<SampleRow>(`samples?select=paper_id,study_id,n,country_iso,sample_type,studies(study_label,position,research_design)&paper_id=eq.${paperId}`),
+    restAll<TheoryRow>(`paper_theories?select=paper_id,theory_name_original,application_role&paper_id=eq.${paperId}&order=id`),
+    restAll<SampleRow>(`samples?select=paper_id,study_id,n,country_iso,sample_type,studies(study_label,position,research_design)&paper_id=eq.${paperId}&order=id`),
     restAll<MatrixPath>(`path_results?select=${PATH_COLUMNS},r2_dv&paper_id=eq.${paperId}&order=natural_key`),
     rest<SummaryRow[]>(`paper_summaries?select=research_question,question_quote,question_page_index,question_match,findings&paper_id=eq.${paperId}`),
     rest<{ abstract: string | null; abstract_source: string | null }[]>(`papers?select=abstract,abstract_source&id=eq.${paperId}`),
@@ -228,7 +236,7 @@ export async function getPaperSheet(paperId: string, fields: ExtractedField[], m
 export async function listPaperLines(paperId: string, moderatorWord?: string): Promise<{ studyId: string; label: string; lines: PathLine[] }[] | null> {
   if (!/^[0-9a-f-]{36}$/i.test(paperId)) return null;
   const [samples, paths] = await Promise.all([
-    restAll<SampleRow>(`samples?select=paper_id,study_id,n,country_iso,sample_type,studies(study_label,position,research_design)&paper_id=eq.${paperId}`),
+    restAll<SampleRow>(`samples?select=paper_id,study_id,n,country_iso,sample_type,studies(study_label,position,research_design)&paper_id=eq.${paperId}&order=id`),
     restAll<MatrixPath>(`path_results?select=${PATH_COLUMNS},r2_dv&paper_id=eq.${paperId}&order=natural_key`),
   ]);
   const row = buildMatrix([paperId], [], samples, paths, moderatorWord).get(paperId);
@@ -257,7 +265,7 @@ export async function getOverview(): Promise<Overview> {
 /** The captions of the tables ("Table 7. Results: ... parsimonious scale"), by paper and table label; found by machine in the PDF (pnpm worker captions). */
 export async function listTableCaptions(): Promise<Map<string, string>> {
   try {
-    const rows = await restAll<{ paper_id: string; table_label: string; caption: string | null }>("paper_tables?select=paper_id,table_label,caption&caption=not.is.null");
+    const rows = await restAll<{ paper_id: string; table_label: string; caption: string | null }>("paper_tables?select=paper_id,table_label,caption&caption=not.is.null&order=id");
     return new Map(rows.map((r) => [`${r.paper_id}|${r.table_label}`, r.caption!]));
   } catch {
     return new Map(); // the column may not be there yet; the page then shows the table label alone
