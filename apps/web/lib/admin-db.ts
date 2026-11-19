@@ -2,7 +2,7 @@
  * Direct database access for the admin pages (step 1b.5), which need what visitors must not see: hidden
  * fields and the extraction runs. It is a plain Postgres connection, so it only exists where the database is
  * reachable: on the local machine in development, or wherever SUPABASE_DB_URL is set on purpose. A deployed
- * site has neither, and the admin pages answer 404 there (until real admin sign-in exists, Giai đoạn 3).
+ * site has neither: there the admin pages read with the signed-in owner's session (lib/quality-session, step A.3), or answer 404.
  */
 import pg from "pg";
 

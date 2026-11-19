@@ -1,7 +1,7 @@
 import pg from "pg";
 import { loadEnv } from "../config.js";
 
-/** Local Supabase database (Supabase CLI default). The cloud `prod` URL comes from .env in Giai đoạn 2. */
+/** Local Supabase database (Supabase CLI default). SUPABASE_DB_URL overrides it; prodDbUrl() builds the cloud one for --target prod. */
 export const LOCAL_DB_URL = "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
 
 export function dbUrl(): string {

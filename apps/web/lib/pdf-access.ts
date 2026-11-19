@@ -4,8 +4,8 @@
  * only the project owner and papers whose licence is open may be DOWNLOADED. Viewing needs the file's bytes in the visitor's browser, so
  * "no download" means: no download button, no download route, no link to the browser's own viewer (which has a save button), and a link
  * that expires in 5 minutes; it cannot stop someone who is determined to save what their browser has been shown.
- * "Owner" is, until real sign-in exists (Giai đoạn 2), the machine that can reach the database directly: the same
- * rule that hides /admin from a deployed site. Anything unclear is a refusal.
+ * "Owner" comes from getOwner() (lib/supabase-server, lib/owner): a signed-in owner session, or the developer machine that can reach
+ * the database directly. Anything unclear is a refusal.
  */
 export interface PdfPaper {
   title: string | null;

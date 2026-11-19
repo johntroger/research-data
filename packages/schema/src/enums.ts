@@ -1,5 +1,5 @@
 /**
- * Allowed values from docs/codebook.md (v1.0.0). Change the codebook first, then these lists.
+ * Allowed values from docs/codebook.md (version in CODEBOOK_VERSION, index.ts). Change the codebook first, then these lists.
  */
 
 export const PAPER_TYPES = [

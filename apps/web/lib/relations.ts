@@ -5,7 +5,7 @@
  *
  * A and B are matched against the variable names the authors used (every word typed must start a word of the name) and,
  * with "equivalent names" on, against the canonical concept and its aliases, so "risk" finds Perceived Risk and Risk
- * Perception. Only 4 of 410 paths are mapped to a canonical concept so far, hence the names come first.
+ * Perception. About half of the paths are mapped to a canonical concept (docs/concept-mapping-p3.md), hence the names come first.
  */
 
 export type Role = "direct" | "mediated" | "moderated" | "all";
@@ -339,10 +339,11 @@ const authorName = (a: { family?: string | null; given?: string | null }) => a.f
 
 /** "Singh (2012)", "Singh & Iglesias (2012)", "Singh et al. (2012)"; the title when there are no authors. */
 export function paperLabel(paper: PaperInfo | null): string {
-  if (!paper) return "(bài không rõ)";
+  // A test always comes with its paper (RLS lets visitors see both); "?" only guards against a broken join, in any language.
+  if (!paper) return "?";
   const names = paper.authors.map(authorName).filter(Boolean);
   const who = names.length === 0 ? null : names.length === 1 ? names[0]! : names.length === 2 ? `${names[0]} & ${names[1]}` : `${names[0]} et al.`;
-  if (!who) return paper.title ?? "(bài không rõ)";
+  if (!who) return paper.title ?? "?";
   return paper.year ? `${who} (${paper.year})` : who;
 }
 
@@ -352,7 +353,7 @@ export function searchRelations(allRows: PathRow[], concepts: Concept[], q: Rela
   const notCountedRows = rows.filter((r) => !counted.includes(r));
   const byDesign: Record<string, number> = {};
   for (const r of notCountedRows) {
-    const design = r.studies?.research_design ?? "(không rõ)";
+    const design = r.studies?.research_design ?? "unknown"; // the page names it in its language (design.unknown)
     byDesign[design] = (byDesign[design] ?? 0) + 1;
   }
   const outcome: Summary["outcome"] = { supported: 0, not_supported: 0, mixed: 0, not_hypothesized: 0 };

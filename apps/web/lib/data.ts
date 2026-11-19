@@ -130,7 +130,7 @@ export function listFields(paperId: string): Promise<ExtractedField[]> {
   return restAll<ExtractedField>(`extracted_fields?select=${FIELD_COLUMNS}&paper_id=eq.${paperId}&order=natural_key,id`);
 }
 
-/** Short display name for a paper until real metadata (Crossref) arrives in Giai đoạn 1. */
+/** Short display name for a paper: its title, else the PDF file name (a paper whose metadata has not been found yet). */
 export function paperLabel(paper: Paper): string {
   return paper.title ?? paper.pdf_path?.split("/").pop()?.replace(/\.pdf$/i, "") ?? paper.id;
 }

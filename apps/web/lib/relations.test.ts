@@ -252,7 +252,7 @@ describe("display", () => {
     expect(paperLabel({ title: "T", authors: [{ family: "Singh" }, { family: "Iglesias" }], year: 2012, journal: null, citekey: null, apa_citation: null })).toBe("Singh & Iglesias (2012)");
     expect(paperLabel({ title: "T", authors: [{ family: "A" }, { family: "B" }, { family: "C" }], year: null, journal: null, citekey: null, apa_citation: null })).toBe("A et al.");
     expect(paperLabel({ title: "Only a title", authors: [], year: null, journal: null, citekey: null, apa_citation: null })).toBe("Only a title");
-    expect(paperLabel(null)).toBe("(bài không rõ)");
+    expect(paperLabel(null)).toBe("?"); // no Vietnamese in a label that the English page also shows
   });
 
   it("writes numbers the APA 7 way: no zero before a decimal that cannot exceed 1, a real minus", () => {
