@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  actions: write # only for the keep-alive step below
 
 concurrency:
   group: backup
@@ -24,6 +25,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      # GitHub turns off a scheduled workflow of a public repository after 60 days without repository activity, and the backup
+      # (and the nightly database visit that keeps Supabase Free awake) would stop silently. Enabling the workflow again each run
+      # refreshes it (the call updates the workflow's updated_at); a failure here never blocks the backup.
+      - name: Keep this schedule alive
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/backup.yml/enable"
       - uses: actions/checkout@v4
       - name: Dump prod and upload to R2
         env:
