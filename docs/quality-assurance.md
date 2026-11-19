@@ -47,16 +47,20 @@ ceive', 'experi- ence', 'gratifica - tions' đều thành một từ); phép so 
 | PDF scan không có text layer | Gắn cờ `needs_ocr`; mọi trường T1/T2 của bài mang ⚠ |
 
 * **Độ đầy đủ (chống bỏ sót; từ 1b.4 mã họ như H1 được coi là có kết quả khi có đường dẫn mang mã con H1a, H1b…, còn H10 không phải con của H1; và bảng được gọi là bảng tương quan nhưng chứa bình phương tương quan, nhận ra qua chữ "shared variance" / "squared correlation" ngay trong tiêu đề và chú thích của chính bảng đó, không bị báo thiếu ma trận vì không có r để trích):** quét text tìm mọi mã giả thuyết (`H\d+[a-z]?`) và tiêu đề bảng (`Table \d+`), so với danh mục của Pass 1. Mục nào thiếu thì **tự động trích bổ sung riêng mục đó** (một lời gọi nhỏ); vẫn thiếu thì ghi rõ "bài có H5 nhưng chưa trích được" để người dùng biết mà xem.
-* **Tính lại thống kê (kiểu statcheck, Nuijten et al., 2016):** p từ t / F / z / χ² và df; t từ β và SE; SE từ CI; t / F từ M, SD, n. Lệch lớn, nhất là khi kết luận ý nghĩa bị đảo, thì gắn ⚠. Nếu giá trị khớp PDF mà vẫn lệch khi tính lại, ghi **"có thể là lỗi của bài gốc"**.
+* **Tính lại thống kê (kiểu statcheck, Nuijten et al., 2016):** p từ t / F / z / χ² và df; t từ β và SE; SE từ CI; t / F từ M, SD, n. Lệch lớn, nhất là khi kết luận ý nghĩa bị đảo, thì gắn ⚠. Nếu giá trị khớp PDF mà vẫn lệch khi tính lại, ghi **"có thể là lỗi của bài gốc"**. Hiện đã làm: p từ t / F / z, t từ ước lượng và SE, SE từ CI. Các giới hạn có chủ đích (v3.9.111):
+  * **p một phía** chỉ được chấp nhận khi bài nói dùng kiểm định một phía ("one-tailed", "one-sided", "directional test"); F không bao giờ chia đôi.
+  * **df của t** không biết chính xác (hồi quy có df = n − k − 1, schema không ghi k): kiểm trong khoảng df từ n − 1 − k đến n − 1, với k = số biến kiểm soát đã trích + 1, không có thì cho tới 10.
+  * **t = ước lượng / SE** chỉ kiểm khi cả hai cùng thang đo (b chưa chuẩn hóa, hệ số đường dẫn PLS); β chuẩn hóa hay được in cạnh SE của b nên không kiểm.
+  * **SE từ CI** giả định CI 95%; mức 90% hay 99% chỉ được thử khi bài nhắc tới mức đó, trừ CI 90% của RMSEA (chỉ số phù hợp mô hình, không liên quan hệ số). Thử mọi mức thì một khoảng trích sai dòng có thể lọt qua (đã gặp trên dữ liệu thật).
 * **Metadata** lấy từ Crossref / Zotero, không để AI sinh.
 * **Xác định `printed_page`** (lưu kèm `printed_page_method`), theo thứ tự: (1) PDF `/PageLabels`; (2) dãy số trang nhất quán tìm thấy ở header/footer (bằng code, bỏ qua năm / số tập); (3) trang đầu theo Crossref cộng độ lệch; (4) Gemini đọc số trang ở header/footer (chỉ khi 3 cách trên không có kết quả); (5) cuối cùng là số thứ tự trang PDF. Annotation Zotero (`annotationPageLabel`) dùng để đối chiếu khi có.
 * **Đọc text layer:** tách bố cục hai cột (đọc hết cột trái rồi mới sang cột phải; nhận ra khe giữa cả khi hẹp dưới 12 pt, và đặt tiêu đề chạy trước hai cột); đưa vài đoạn chữ xoay dọc ở lề (watermark "Downloaded from…" của nhà xuất bản) ra khỏi nội dung; còn **bảng in ngang** (từ 20 mảnh chữ xoay 90° và 150 ký tự trở lên) được xoay lại toạ độ để đọc như trang thường, theo cả hai chiều xoay.
 
 ### 6.4. Lớp C: Kiểm tra chéo trong cùng bài (không dùng AI)
 * n ở phần phương pháp = n trong bảng (khi áp dụng được).
-* Quan hệ chỉ có một biến dự báo: β chuẩn hóa ≈ r trong ma trận tương quan.
+* Quan hệ chỉ có một biến dự báo: β chuẩn hóa ≈ r trong ma trận tương quan. Chỉ khi không có đường trực tiếp khác, biến kiểm soát hay biến đồng biến nào vào cùng biến phụ thuộc; không áp dụng cho CB-SEM (β là tương quan giữa biến tiềm ẩn, khác r quan sát do sai số đo).
 * α, CR ∈ [0, 1]; AVE ≤ 1; √AVE trên đường chéo khớp với AVE báo cáo.
-* Tổng n các ô điều kiện thực nghiệm = n của Study (sau loại mẫu).
+* Tổng n các ô điều kiện thực nghiệm = n của Study (sau loại mẫu); thiết kế trong chủ thể hoặc hỗn hợp (within / repeated / mixed trong mô tả thiết kế) thì tổng = n × số mức trong chủ thể.
 * Vi phạm thì gắn ⚠ cho các trường liên quan, kèm lý do.
 
 ### 6.5. Lớp D: Huy hiệu tin cậy

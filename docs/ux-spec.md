@@ -54,7 +54,7 @@ Phong cách **Tối giản học thuật (Clean Academic Deep-Work Workspace)**;
 3. Ghi lại thời gian hoàn thành, lỗi, nhận xét; chỉnh thiết kế ở Giai đoạn 3b, trước khi mở công khai.
 
 ### 8.1. Quy chuẩn hiển thị số liệu thống kê (MỚI)
-* Theo APA 7: **bỏ số 0 đứng đầu** với giá trị không vượt quá 1 (p, r, β chuẩn hóa); ký hiệu thống kê in nghiêng (*β*, *p*, *r*, *n*).
+* Theo APA 7: **bỏ số 0 đứng đầu** với giá trị không vượt quá 1 (p, r, β chuẩn hóa, hệ số đường dẫn, η², R²), **giữ** với giá trị có thể vượt 1 (b chưa chuẩn hóa, d, OR, loại ước lượng không rõ); SE và CI theo quy tắc của ước lượng đi kèm. Ít nhất hai chữ số thập phân (".30", vì số lưu trong database mất số 0 cuối bài đã in), không làm tròn bớt chữ số đã có; p in như tác giả in. CI không ghi mức (90%, 95%…) vì dữ liệu không lưu mức. Ký hiệu thống kê in nghiêng (*β*, *p*, *r*, *n*).
 * Font có chữ số cùng độ rộng (tabular figures) để cột số thẳng hàng.
 * p hiển thị như tác giả báo cáo (`p_reported_as`) khi không có giá trị chính xác.
 

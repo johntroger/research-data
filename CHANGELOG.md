@@ -2,6 +2,18 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.111 (so với 3.9.110)
+
+Sửa nhóm B (độ chính xác chuyên môn) sau đợt rà soát 19/11/2026. Chạy khô bộ kiểm chứng mới trên 34 bài đã lưu: **0 huy hiệu đổi** (các sửa ở dòng 1–2 là phòng ngừa, không cần đăng lại dữ liệu).
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Tính lại p: chấp nhận p một phía khi bài nói dùng kiểm định một phía; kiểm t trong khoảng df [n − 1 − k, n − 1] | Bài PLS-SEM đúng dùng kiểm định một phía bị gắn ⚠ "có thể là lỗi của bài gốc"; df = n − 1 làm p nhỏ hơn thật ở mẫu nhỏ |
+| 2 | Kiểm tra chéo: t = ước lượng / SE chỉ cho b và hệ số PLS; β ≈ r chỉ khi không có biến kiểm soát / đồng biến và không phải CB-SEM; tổng n ô điều kiện chấp nhận n × số mức trong chủ thể; SE từ CI thử mức 90% / 99% chỉ khi bài nhắc mức đó (bỏ qua CI của RMSEA) | Các kiểm tra cũ dễ báo ⚠ sai. Bản thử đầu chấp nhận mọi mức CI đã làm một dòng nhiều khả năng trích sai (CI [.26, .53] cho β = .50) thành ✓, nên đã siết lại |
+| 3 | Hiển thị số (Mục 8.1): bỏ số 0 đầu chỉ với p, r, β chuẩn hóa, hệ số đường dẫn, η², R²; giữ với b, d, OR, loại không rõ; ít nhất hai chữ số thập phân, không làm tròn SE / CI; p giữ chữ số như in; bỏ chữ "95%" trước CI ở Ma trận | Trước đây "b = .5", "OR = 2.1", SE .045 thành ".05", và CI luôn ghi 95% dù mức không được lưu |
+| 4 | Biểu đồ rừng: không vẽ nhóm "khác" (b, d, OR, η² lẫn nhau); vẽ mọi kiểm định của một study (ghi tên biến khi một study có nhiều dòng), ngưỡng tính theo số study | Trộn OR (tâm 1) với b trên một trục quanh 0 là sai; giữ "dòng đầu tiên" của mỗi study là tùy tiện |
+| 5 | Trích dẫn APA: tên có gạch nối giữ gạch nối ("J.-P.") | APA 7 mục 9.8 |
+
 ### Version 3.9.110 (so với 3.9.109)
 
 Sửa nhóm lỗi A sau đợt rà soát toàn dự án (19/11/2026).
