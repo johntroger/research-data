@@ -8,7 +8,7 @@ import type { DataRelease } from "./release";
 import type { LibraryItem } from "./library";
 import { buildSheet, type Sheet, type SummaryRow } from "./paper-sheet";
 import { buildMatrix, type MatrixPath, type PathLine, type SampleRow, type TheoryRow } from "./matrix";
-import type { Concept, PathRow } from "./relations";
+import type { Concept, PaperInfo, PathRow } from "./relations";
 
 export interface Paper {
   id: string;
@@ -199,14 +199,30 @@ async function fetchAll<T>(pathAndQuery: string): Promise<T[]> {
   }
 }
 
-const PATH_COLUMNS =
+const PAPER_INFO_COLUMNS = "title,authors,year,journal,citekey,apa_citation,doi";
+
+/** A test with its study and evidence page, without its paper (see attachPapers). */
+const PATH_BASE_COLUMNS =
   "id,paper_id,study_id,natural_key,hypothesis_code,iv_label_original,dv_label_original,iv_construct_id,dv_construct_id," +
   "mediator_labels,moderator_labels,model_covariates,effect_type,estimate_type,estimate,se,ci_low,ci_high,p_value,p_reported_as,status,observed_sign,significant,badge," +
-  "studies(study_label,research_design,samples(n,sample_type,country_iso)),papers(title,authors,year,journal,citekey,apa_citation,doi),evidence(printed_page,pdf_page_index,table_or_figure)";
+  "studies(study_label,research_design,samples(n,sample_type,country_iso)),evidence(printed_page,pdf_page_index,table_or_figure)";
+
+/** The same with the paper embedded: for the tests of one paper, where the repetition costs nothing. */
+const PATH_COLUMNS = `${PATH_BASE_COLUMNS},papers(${PAPER_INFO_COLUMNS})`;
+
+/**
+ * Gives every test of a list over all papers its paper, from one read of the papers table. Embedding the paper in each row
+ * repeated its authors and title on every test: a third of the 1.4 MB that the 987 tests weighed (step E, 19/11/2026).
+ */
+async function attachPapers<T extends { paper_id: string }>(rows: T[]): Promise<(T & { papers: PaperInfo | null })[]> {
+  const papers = await restAll<PaperInfo & { id: string }>(`papers?select=id,${PAPER_INFO_COLUMNS}&order=id`);
+  const byId = new Map(papers.map(({ id, ...info }) => [id, info]));
+  return rows.map((r) => ({ ...r, papers: byId.get(r.paper_id) ?? null }));
+}
 
 /** Every test (path) visitors may see, with its study, paper and evidence page. */
-export function listPathRows(): Promise<PathRow[]> {
-  return restAll<PathRow>(`path_results?select=${PATH_COLUMNS}&order=paper_id,natural_key`);
+export async function listPathRows(): Promise<PathRow[]> {
+  return attachPapers(await restAll<Omit<PathRow, "papers">>(`path_results?select=${PATH_BASE_COLUMNS}&order=paper_id,natural_key`));
 }
 
 /** What the summary matrix (step 3b.2) shows beside each paper: its theories, the sample of each study and every test. */
@@ -214,9 +230,9 @@ export async function listMatrixData(): Promise<{ theories: TheoryRow[]; samples
   const [theories, samples, paths] = await Promise.all([
     restAll<TheoryRow>("paper_theories?select=paper_id,theory_name_original,application_role&order=id"),
     restAll<SampleRow>("samples?select=paper_id,study_id,n,country_iso,sample_type,studies(study_label,position,research_design)&order=id"),
-    restAll<MatrixPath>(`path_results?select=${PATH_COLUMNS},r2_dv&order=paper_id,natural_key`),
+    restAll<Omit<MatrixPath, "papers">>(`path_results?select=${PATH_BASE_COLUMNS},r2_dv&order=paper_id,natural_key`).then(attachPapers),
   ]);
-  return { theories, samples, paths };
+  return { theories, samples, paths: paths as MatrixPath[] };
 }
 
 /** The summary sheet of one paper (what it contributes, each study, each hypothesis, limits), from the tests and samples the visitor may see. */

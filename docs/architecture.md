@@ -134,6 +134,8 @@ Cloudflare R2 (Free 10 GB) còn nhiều chỗ hơn Supabase (Free 500 MB cho dat
 
 Quy tắc: không thêm cột blob, PDF hay JSON lớn vào Supabase; khi cần lưu tệp thì lưu ở R2 và chỉ giữ khóa đối tượng trong database. Theo dõi dung lượng database ở Supabase Dashboard > Database trước mỗi lần nhập nhiều bài.
 
+**Hiệu năng: lọc trong máy chủ web hay trong database (đo 19/11/2026).** Trang chủ, bản đồ và các lệnh xuất đọc **mọi** kiểm định khách được thấy rồi lọc bằng JavaScript (`lib/relations.ts`), mỗi hàm giữ kết quả 60 giây. Với 36 bài (987 kiểm định), dữ liệu khoảng 0,9 MB sau khi bỏ thông tin bài lặp lại ở từng dòng (trước là 1,4 MB); thời gian đến byte đầu trên `vercel.app` từ Việt Nam là 0,35–0,6 giây khi hàm đã chạy, khoảng 4 giây lần đầu sau deploy. Dữ liệu tăng gần tuyến tính theo số bài, nên ở mục tiêu 300 bài sẽ khoảng 8 MB mỗi lần tải. **Ngưỡng làm lại:** khi `path_results` vượt khoảng 5.000 dòng, hoặc thời gian đến byte đầu trung vị của trang tìm kiếm vượt 0,8 giây, thì chuyển phần lọc theo tên biến và bộ lọc vào database (view hoặc hàm SQL có chỉ mục), máy chủ web chỉ nhận các dòng khớp.
+
 ### 9.4. Chiến lược kiểm thử (MỚI)
 
 | Loại | Phạm vi | Công cụ |
