@@ -3,7 +3,7 @@
  * Pure logic, no I/O: the page loads the visible path rows and the canonical concepts, and this module parses the
  * query, finds the matching tests, groups them by paper and counts them. Everything counted is "in the repository".
  *
- * A and B are matched against the variable names the authors used (every word typed must appear in the name) and,
+ * A and B are matched against the variable names the authors used (every word typed must start a word of the name) and,
  * with "equivalent names" on, against the canonical concept and its aliases, so "risk" finds Perceived Risk and Risk
  * Perception. Only 4 of 410 paths are mapped to a canonical concept so far, hence the names come first.
  */
@@ -171,6 +171,15 @@ export function normalise(text: string): string {
     .trim();
 }
 
+/**
+ * Does the normalised `name` hold `part` at the start of a word? "trust" is in "brand trust" and "trustworthiness", but not in
+ * "distrust"; "satisf" is in "customer satisfaction" but not in "dissatisfaction". A plain substring test counted the opposite
+ * concept (distrust, dissatisfaction, unethical…) as the one typed.
+ */
+export function startsWord(name: string, part: string): boolean {
+  return ` ${name}`.includes(` ${part}`);
+}
+
 interface Side {
   tokens: string[];
   phrases: string[];
@@ -186,7 +195,7 @@ function expand(term: string, concepts: Concept[], equiv: boolean): Side | null 
   if (equiv) {
     for (const c of concepts) {
       const names = [c.canonical_name, ...c.aliases].map(normalise).filter(Boolean);
-      if (names.some((name) => tokens.every((t) => name.includes(t)))) {
+      if (names.some((name) => tokens.every((t) => startsWord(name, t)))) {
         side.conceptIds.add(c.id);
         side.phrases.push(...names);
       }
@@ -211,7 +220,7 @@ function matches(side: Side | null, label: string, conceptId: string | null): bo
   if (side === null) return true;
   if (conceptId !== null && side.conceptIds.has(conceptId)) return true;
   const n = normalise(label);
-  return side.tokens.every((t) => n.includes(t)) || side.phrases.some((p) => n.includes(p));
+  return side.tokens.every((t) => startsWord(n, t)) || side.phrases.some((p) => startsWord(n, p));
 }
 
 /** The parts a concept plays in a test, as keys (iv, dv, med, mod); the page names them in its language. */

@@ -9,6 +9,7 @@ import {
   formatStats,
   groupRepeats,
   formatP,
+  matchedConcepts,
   sampleSize,
   normalise,
   paperLabel,
@@ -109,6 +110,23 @@ describe("finding the tests of a relationship", () => {
   it("matches the names the authors used when every word typed is in the name, ignoring case and accents", () => {
     expect(labels(findRows(rows, [], q({ a: "perceived RISK", b: "intention" })))).toEqual(["Perceived Risk -> Purchase Intention"]);
     expect(labels(findRows([row("Trải nghiệm", "Lòng tin")], [], q({ a: "trai nghiem", b: "long tin" })))).toHaveLength(1);
+  });
+
+  it("matches a typed word only at the start of a word, so the opposite concept is not counted as the one typed", () => {
+    const data = [
+      row("Brand Trust", "Customer Satisfaction"),
+      row("Brand Distrust", "Customer Dissatisfaction"),
+      row("Trustworthiness", "Satisfaction with the brand"),
+      row("Ethical brand", "Unethical behaviour"),
+    ];
+    expect(labels(findRows(data, [], q({ a: "trust" })))).toEqual(["Brand Trust -> Customer Satisfaction", "Trustworthiness -> Satisfaction with the brand"]);
+    expect(findRows(data, [], q({ a: "satisf" }))).toHaveLength(2); // a word typed in part still finds the full word
+    expect(labels(findRows(data, [], q({ a: "distrust" })))).toEqual(["Brand Distrust -> Customer Dissatisfaction"]);
+    expect(labels(findRows(data, [], q({ a: "ethical" })))).toEqual(["Ethical brand -> Unethical behaviour"]); // the IV, not "Unethical"
+    expect(findRows(data, [], q({ a: "brand", b: "ethical" }))).toHaveLength(0); // "Unethical behaviour" is not an ethical DV
+    // The concept layer follows the same rule: an alias "Brand Distrust" is not brought in by "trust".
+    const concepts: Concept[] = [{ id: "distrust", canonical_name: "Brand Distrust", aliases: [] }];
+    expect(matchedConcepts(q({ a: "trust" }), concepts)).toEqual([]);
   });
 
   it("reads the direction: A to B, B to A, or either", () => {
