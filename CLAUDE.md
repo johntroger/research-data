@@ -2,7 +2,7 @@
 
 ## Kế hoạch dự án
 - Nguồn sự thật: [PROJECT_PLAN.md](PROJECT_PLAN.md) (phiên bản hiện hành là mục trên cùng của [CHANGELOG.md](CHANGELOG.md)) gồm tổng quan, lộ trình, quyết định và **mục lục** trỏ tới các file chi tiết trong `docs/`. Đọc file này trước khi bắt đầu bất kỳ công việc nào, rồi mở đúng file `docs/` của mục cần làm. Số mục ("Mục 6.3"…) giữ nguyên như bản gốc.
-- `PROJECT_PLAN_v*_backup.md` chỉ là bản lưu trữ, không dùng để làm việc.
+- Chi tiết từng bước đã làm nằm ở [docs/step-log.md](docs/step-log.md); chỉ đọc khi cần. Các bản kế hoạch cũ v2.0–v3.7 chỉ còn trong lịch sử git (`git show 20b81db:PROJECT_PLAN_v3.7_backup.md`), không dùng để làm việc.
 - Khi kế hoạch thay đổi: sửa đúng file chứa mục đó (`PROJECT_PLAN.md` hoặc `docs/*.md`), ghi lại thay đổi trong [CHANGELOG.md](CHANGELOG.md), rồi chạy `pnpm docs:check`.
 - **Quyết định trước, làm kỹ thuật sau:** các quyết định D1–D16 đã chốt (Mục 13). Việc cần một quyết định mới (đổi kế hoạch, thêm cơ chế, tài khoản hay dịch vụ cloud mới, chi tiền) thì hỏi chủ dự án trước khi làm.
 
