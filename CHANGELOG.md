@@ -2,6 +2,23 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.112 (so với 3.9.111)
+
+Sửa nhóm C (thiếu nhất quán) sau đợt rà soát 19/11/2026. Chỉ tài liệu, cấu hình kiểm tra và chú thích mã; không đổi hành vi web trừ hai nhãn.
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | Bỏ số phiên bản cố định khỏi `PROJECT_PLAN.md` và `CLAUDE.md`: phiên bản hiện hành là mục trên cùng của CHANGELOG; thêm dòng trạng thái ở đầu kế hoạch | Hai file ghi 3.9.1 trong khi CHANGELOG đã ở 3.9.111 |
+| 2 | `CLAUDE.md`: thay quy tắc "chưa triển khai kỹ thuật" bằng "quyết định mới thì hỏi trước"; bỏ câu `schema.js` sẽ được viết lại; nguồn trích xuất thống nhất theo thứ tự ưu tiên; tách quy tắc gói việc và danh sách thư mục được phép. Quy trình từng bước giữ nguyên | Quy tắc cũ mâu thuẫn với thực tế (mọi quyết định đã chốt, web đã chạy) |
+| 3 | `PROJECT_PLAN.md`: Mục 13 thành "Các quyết định đã chốt"; D8 theo bước 4.8 (giữ `vercel.app`); đánh dấu trạng thái thật ở bảng MoSCoW, Giai đoạn 5–6, OCR; ghi lịch thực tế; sắp lại nhật ký bước A.1–A.6 và 4.x → P1 → P5; sửa đường dẫn gói việc mất dấu `\` | Bảng và nhật ký cũ nói những việc đã làm là chưa làm, và ngược lại |
+| 4 | `README.md`: địa chỉ web, nguồn trích xuất hiện tại, trạng thái | Còn ghi "Giai đoạn 0", "AI (Gemini)" |
+| 5 | `docs/architecture.md` Mục 9.1, 9.2, 9.4: công nghệ thật đang dùng, cây thư mục và lệnh thật, cách kiểm thử thật (CI không chạy test database và e2e) | Liệt kê Tailwind, shadcn, pgvector, citation-js… không dùng; nhắc `relation_index`, `test:synthetic` không tồn tại |
+| 6 | `docs/ux-spec.md` Mục 7.1: quy tắc xem / tải PDF sau 25/10, tên tệp thật, mức giới hạn tốc độ thật, cách giữ dữ liệu khách | Còn mô tả luật cũ và 30 lượt/giờ |
+| 7 | `docs/usage.md` viết lại: luồng thêm bài theo nguồn hiện tại, các lệnh sau khi nhập (highlights, captions, summaries, map-labels, release, backup-files) và ghi rõ **chưa có đường đưa bài mới lên prod** (prod vẫn là 36 bài từ bước 2.3) | Hướng dẫn cũ dừng ở Giai đoạn 3a, thiếu các bước nay bắt buộc |
+| 8 | `docs:check` quét mọi tệp trong `docs/`; CI chạy thêm `codebook:check` | Bốn tệp không được kiểm liên kết; kiểm codebook chỉ chạy tay |
+| 9 | `.env.example` thêm `SUPABASE_PROD_URL`, `SUPABASE_PROD_ANON_KEY`, `SUPABASE_DB_URL`, `R2_ACCOUNT_ID`, `R2_BUCKET`, Upstash | Mã và script đọc các biến này nhưng mẫu không có |
+| 10 | Chú thích mã lỗi thời (`relations.ts`, `pdf-access.ts`, `admin-db.ts`, `enums.ts`, `data.ts`, `db/client.ts`); nhãn "(bài không rõ)", "(không rõ)" ghi cứng nay theo ngôn ngữ trang | Chú thích còn nói "4/410 đường dẫn đã ánh xạ", "chưa có đăng nhập"; chữ Việt lọt vào bản tiếng Anh |
+
 ### Version 3.9.111 (so với 3.9.110)
 
 Sửa nhóm B (độ chính xác chuyên môn) sau đợt rà soát 19/11/2026. Chạy khô bộ kiểm chứng mới trên 34 bài đã lưu: **0 huy hiệu đổi** (các sửa ở dòng 1–2 là phòng ngừa, không cần đăng lại dữ liệu).
