@@ -175,9 +175,6 @@ importers:
       eslint:
         specifier: ^10.13.0
         version: 10.13.0
-      pdf-lib:
-        specifier: ^1.17.1
-        version: 1.17.1
       supabase:
         specifier: ^2.121.0
         version: 2.121.0

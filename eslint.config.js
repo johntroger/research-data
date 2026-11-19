@@ -11,6 +11,8 @@ export default tseslint.config(
       "**/.next-prod/**",
       "**/next-env.d.ts",
       "legacy/**",
+      // Throwaway scripts kept out of git (.git/info/exclude); not part of the project.
+      "apps/worker/scratch/**",
       "raw_papers/**",
       "extracted_data/**",
     ],
