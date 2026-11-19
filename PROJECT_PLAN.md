@@ -235,7 +235,7 @@ Chủ dự án là người dùng chính, nên **web chạy local với Supabase
    * **Bước 2.4 ✅ (23/10/2026): sao lưu hằng đêm.** GitHub Actions `backup.yml` (02:17 giờ Việt Nam, chạy tay được): `pg_dump -Fc` schema `public` của prod → bucket R2 riêng `research-data-backups` (`backups/db-<UTC>.dump`), giữ 30 bản. Token R2 `research-data-backup-rw` chỉ thấy bucket này (đã thử bị từ chối ở bucket PDF và bucket dự án khác); 7 secrets của repo đặt bằng `scripts\set-github-secrets.ps1`; chủ dự án cấp quyền `workflow` cho GitHub CLI. Đã thử: chạy tay thành công (dump 2,36 MB, kiểm kích thước); **phục hồi bản thật vào database tạm, số dòng 9 bảng chính khớp prod**; dọn bản cũ đã thử bằng 3 tệp giả với `keep=2` (xóa đúng 3 tệp cũ, tệp lạ trong bucket không bị đụng). Cách phục hồi ở `docs/architecture.md` Mục 9.3. **Bước 2.4b ✅ (23/10/2026):** `pnpm worker backup-files [--yes] [--keep N]` (chạy tay) lưu các tệp gốc của `extracted_data/` (67 tệp, 0,7 MB nén; bỏ `backups/` 398 MB và `audit/`) lên `extracted/` trong bucket sao lưu, tải lại so SHA-256, giữ 12 bản; giải nén thử khớp 67/67. **Chưa làm:** kiểm RLS sau một lần phục hồi thật; chạy `backup-files` sau mỗi đợt nhập bài (nhắc trong `docs/usage.md` khi cần).
 2. Bucket R2 private, CORS cho pdf.js; Unpaywall + `license_source` gán quyền truy cập PDF (Mục 7, D14).
 3. Bước S8–S11: chuẩn hóa khái niệm, upload R2, publish, **ghi ngược Zotero** (tag + child note; bật quyền ghi cho API key Zotero ở bước này).
-4. GitHub Actions (Mục 9.3): `pg_dump` hằng đêm lên R2; ping giữ Supabase hoạt động; kiểm tra bài bị rút hằng tháng.
+4. GitHub Actions (Mục 9.3): `pg_dump` hằng đêm lên R2; ping giữ Supabase hoạt động; kiểm tra bài bị rút hằng tháng (**chưa làm**, Mục 9.3).
 5. Token R2 phân quyền: token **chỉ đọc** cho web, token **đọc/ghi** chỉ cho worker; mỗi token giới hạn trong bucket của dự án.
 * **Bàn giao:** một lệnh `pnpm worker sync` đưa bài từ Zotero lên cloud và ghi kết quả ngược về Zotero.
 
@@ -305,7 +305,7 @@ Nhóm *Must* đã làm ở Giai đoạn 3a; giai đoạn này làm nhóm *Should
 * **P2.5 ✅ (25/10/2026): kiểm tra cuối P2 trên web thật.** Sau deploy: tìm một khái niệm, lọc năm, thiết kế, quốc gia, loại ước lượng và sắp xếp đều chạy (ví dụ "trust": 60 kiểm định từ 7 bài; từ 2020: 32 kiểm định từ 2 bài). Đối chiếu một dòng thật với PDF: bài CSR, cảm xúc và lòng trung thành, Bảng 3, Study 1, tổng hiệu ứng CSR → loyalty: PDF ghi 0.70, SE 0.07, CI [0.56, 0.84], đúng với cơ sở dữ liệu; N study 1 = 252. Việc còn lại của nhóm P2 đã xong; chưa làm: biểu đồ rừng (để P5), mức tin cậy của CI (chưa được lưu).
 * **Làm rõ "public cho mọi người" (chủ dự án yêu cầu 24/10/2026).** Chủ dự án muốn web dùng được mà **không cần đăng nhập**. Đã kiểm trên địa chỉ thật: một người lạ không cookie dùng được đủ tìm quan hệ, thư viện, ma trận, trang bài (dữ liệu, câu trích, số trang) và xuất Excel, Word (đều 200); chỉ **trang quản trị** và **PDF bài không có giấy phép mở** cần đăng nhập (D14 giữ nguyên, chủ dự án chọn "chỉ làm rõ", không mở PDF bài đóng). Vì liên kết "Đăng nhập" nằm ở đầu mọi trang dễ gây hiểu nhầm, nay **dời xuống chân trang** ("Chủ dự án: đăng nhập"), thêm dòng đầu trang chủ "Mở cho mọi người, không cần tài khoản hay đăng nhập" và một đoạn ở trang Giới thiệu; đầu trang chỉ còn hiện email và nút Đăng xuất khi chủ đã đăng nhập. **Chưa làm (chủ dự án chưa chọn):** mở cho Google lập chỉ mục (`ALLOW_INDEXING=1`, nên làm sau khi có kênh liên hệ gỡ bỏ ở 4.8).
 1. Kết nối Vercel với GitHub theo Mục 9.5 (Root Directory, Ignored Build Step, branch protection, biến môi trường tối thiểu).
-2. GitHub Actions: `ci.yml` và `regression.yml` (Mục 9.3); bật secret scanning + push protection.
+2. GitHub Actions: `ci.yml` ✅ và `regression.yml` (chưa làm) (Mục 9.3); bật secret scanning + push protection.
 3. Đo hiệu năng thực tế (trang < 0,8 s; lọc < 200 ms p95); bật thống kê truy cập không cookie (Cloudflare Web Analytics hoặc Vercel Analytics) để theo dõi mức sử dụng: số lượt Relationship Search, số lần mở bằng chứng trong PDF, số bảng được xuất.
 
 ### 📍 Giai đoạn 5: Lớp tổng hợp tri thức
@@ -345,7 +345,7 @@ Chủ dự án **không mã hóa, không duyệt** (công cụ tham khảo, ngư
 | **Web MVP công khai** | | **~40–46 giờ** | **khoảng 3 tháng (giữa tháng 1/2027)** |
 
 * Giai đoạn 5–6 lên lịch sau khi Web MVP được dùng thực tế.
-* Sau khi vận hành: chủ dự án chỉ cần thêm bài vào Zotero; không có công việc duyệt định kỳ. Kiểm tra bài bị rút chạy tự động. Người dùng tự đối chiếu với bài gốc khi dùng dữ liệu.
+* Sau khi vận hành: chủ dự án chỉ cần thêm bài vào Zotero; không có công việc duyệt định kỳ. Kiểm tra bài bị rút **chưa có** (dự kiến chạy tự động hằng tháng, Mục 9.3); trước khi có, người dùng tự kiểm trạng thái rút bài ở trang nhà xuất bản. Người dùng tự đối chiếu với bài gốc khi dùng dữ liệu.
 
 ---
 

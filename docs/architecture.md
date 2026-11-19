@@ -98,11 +98,11 @@ Mọi tác vụ định kỳ đặt tập trung ở GitHub Actions để dễ th
 
 | Workflow | Lịch | Việc làm |
 | :--- | :--- | :--- |
-| `backup.yml` ✅ | Hằng đêm 02:17 giờ Việt Nam (19:17 UTC), chạy tay được với `keep` | `scripts/backup-prod.sh`: `pg_dump -Fc` schema `public` của Supabase `prod` (qua pooler, ảnh `postgres:17`) → bucket R2 riêng `research-data-backups` thành `backups/db-<giờ UTC>.dump`, kiểm kích thước sau khi tải lên, giữ 30 bản mới nhất (chỉ xóa tệp đúng mẫu tên của chính nó) |
+| `backup.yml` ✅ | Hằng đêm 02:17 giờ Việt Nam (19:17 UTC), chạy tay được với `keep` | `scripts/backup-prod.sh`: `pg_dump -Fc` schema `public` của Supabase `prod` (qua pooler, ảnh `postgres:17`) → bucket R2 riêng `research-data-backups` thành `backups/db-<giờ UTC>.dump`, kiểm kích thước sau khi tải lên, giữ 30 bản mới nhất (chỉ xóa tệp đúng mẫu tên của chính nó). Bước đầu gọi API bật lại chính workflow này để GitHub không tự tắt lịch chạy sau 60 ngày repo không có hoạt động (repo public); bước đó lỗi thì sao lưu vẫn chạy |
 | `keepalive.yml` | (không cần) | `backup.yml` mở database mỗi đêm nên đã giữ project Supabase Free không bị tạm dừng; chỉ làm workflow riêng nếu bỏ sao lưu hằng đêm |
-| `retraction-check.yml` | Hằng tháng | Kiểm tra lại trạng thái rút bài qua Crossref cho mọi bài; gắn cảnh báo lên bài và mọi kết quả liên quan |
-| `ci.yml` | Mỗi pull request / push | Lint, type-check, unit test (Mục 9.4) |
-| `regression.yml` | Khi `packages/schema` hoặc prompt thay đổi | Chạy bộ bài giả lập (Mục 6.6); có trần chi phí riêng |
+| `retraction-check.yml` ⛔ chưa làm | Hằng tháng (dự kiến) | Kiểm tra lại trạng thái rút bài qua Crossref cho mọi bài; gắn cảnh báo lên bài và mọi kết quả liên quan. **Chưa có**: cột `papers.retraction_status` đã có trong database nhưng chưa có gì ghi vào, web chưa hiện cảnh báo |
+| `ci.yml` ✅ | Mỗi pull request / push lên `main` | Type-check, lint, test đơn vị, `docs:check`, build web (Mục 9.4); chưa chạy test database và e2e |
+| `regression.yml` ⛔ chưa làm | Khi `packages/schema` hoặc prompt thay đổi (dự kiến) | Chạy bộ bài giả lập (Mục 6.6); có trần chi phí riêng. **Chưa có**: bộ bài giả lập chỉ chạy trong test đơn vị với phản hồi giả lập |
 
 Các khóa bí mật (Supabase, R2, Gemini) lưu trong **GitHub Actions Secrets**, không bao giờ in ra log.
 
@@ -142,7 +142,7 @@ Quy tắc: không thêm cột blob, PDF hay JSON lớn vào Supabase; khi cần 
 | Hồi quy chất lượng trích xuất | Bộ bài giả lập | `test:synthetic` |
 
 * **Dữ liệu dùng trong test phải là văn bản tự viết** (bài báo giả lập, PDF tự tạo). Repo public, nên không đưa nội dung bài báo có bản quyền vào test.
-* Gọi Gemini trong test dùng phản hồi giả lập (mock); chỉ `regression.yml` gọi API thật, và có trần chi phí riêng.
+* Gọi Gemini trong test dùng phản hồi giả lập (mock); `regression.yml` (chưa làm, Mục 9.3) mới là nơi gọi API thật, có trần chi phí riêng.
 
 ### 9.5. Quy trình triển khai: GitHub → Vercel (MỚI)
 
@@ -159,7 +159,7 @@ Máy chủ dự án                   GitHub (research-data, public)        Verc
 * **Nhánh khác / pull request** → Vercel tạo **bản xem trước** (preview) với địa chỉ riêng để thử; trang chính không bị ảnh hưởng.
 * **Quy tắc gộp:** chỉ gộp vào `main` khi `ci.yml` qua hết và chủ dự án đã xác nhận (xem bản preview hoặc đồng ý trong chat). Bật **branch protection** cho `main`.
 * **Quay lui:** bản mới bị lỗi thì dùng tính năng *Instant Rollback* của Vercel để quay về bản trước ngay lập tức, rồi mới sửa code.
-* **Cấu hình Vercel:** Root Directory = `apps/web`; chỉ build lại khi `apps/web/` hoặc `packages/schema/` thay đổi (Ignored Build Step). Biến môi trường (Supabase anon key, token R2 chỉ đọc, URL…) khai báo trong **Vercel Project Settings**, không nằm trong code.
+* **Cấu hình Vercel:** Root Directory = `apps/web`; chỉ build lại khi `apps/web/`, `packages/schema/`, lockfile hoặc `package.json` / `pnpm-workspace.yaml` ở gốc thay đổi **so với bản deploy thành công gần nhất** (Ignored Build Step trong `apps/web/vercel.json`, dùng `VERCEL_GIT_PREVIOUS_SHA`; không xác định được bản trước thì luôn build). So với commit liền trước (`HEAD^`) là sai: đẩy nhiều commit một lần mà commit cuối không đụng web thì bản build bị bỏ qua. Biến môi trường (Supabase anon key, token R2 chỉ đọc, URL…) khai báo trong **Vercel Project Settings**, không nằm trong code.
 
 **Luồng dữ liệu (không đi qua GitHub, không cần build lại):**
 ```

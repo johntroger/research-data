@@ -2,6 +2,18 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.110 (so với 3.9.109)
+
+Sửa nhóm lỗi A sau đợt rà soát toàn dự án (19/11/2026).
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | `apps/web/vercel.json`: `ignoreCommand` so với **bản deploy thành công gần nhất** (`VERCEL_GIT_PREVIOUS_SHA`) thay vì commit liền trước; không xác định được bản trước thì luôn build; thêm `package.json` và `pnpm-workspace.yaml` ở gốc vào danh sách theo dõi | Đẩy hai commit cùng lúc (sửa web rồi sửa CHANGELOG) làm Vercel bỏ qua bản build, phải thêm commit "kích hoạt triển khai" (1e1f6a1) |
+| 2 | Tìm theo quan hệ: từ gõ vào phải khớp **ở đầu một từ** của tên biến (và của tên khái niệm chuẩn), không còn khớp chuỗi con ở giữa từ | "trust" từng khớp "distrust", "satisfaction" khớp "dissatisfaction", "ethical" khớp "unethical": khái niệm trái nghĩa bị cộng vào dòng tổng hợp. Đo trên 987 kiểm định prod: chỉ "age" đổi (bỏ 8 dòng "Brand heritage"), các từ khóa chính không đổi |
+| 3 | `lib/data.ts`: mọi truy vấn phân trang có `order` kết thúc ở cột duy nhất; danh sách bài và số huy hiệu cũng phân trang; truy vấn thiếu thứ tự bị từ chối (test quét mã nguồn) | Không có thứ tự, Postgres có thể trả các trang theo thứ tự khác nhau, mất hoặc lặp dòng khi vượt 1.000 dòng; danh sách bài từng cụt ở 1.000 |
+| 4 | `backup.yml`: bước đầu gọi API bật lại chính workflow (quyền `actions: write`, lỗi thì sao lưu vẫn chạy) | GitHub tự tắt workflow theo lịch của repo public sau 60 ngày không có hoạt động; sao lưu và lượt mở database giữ Supabase Free thức sẽ dừng âm thầm |
+| 5 | `docs/architecture.md` Mục 9.3, `PROJECT_PLAN.md` (Giai đoạn 2, 4, Mục 10.1): ghi rõ `retraction-check.yml` và `regression.yml` **chưa làm** | Tài liệu nói kiểm tra bài bị rút "chạy tự động" trong khi chưa có workflow nào |
+
 ### Version 3.9.109 (so với 3.9.108)
 
 | # | Thay đổi | Lý do |
