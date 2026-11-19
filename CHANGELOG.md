@@ -2,6 +2,18 @@
 
 > Tách từ `PROJECT_PLAN.md` (Mục 0) ở bước 0.9. Phiên bản mới nhất ở trên cùng.
 
+### Version 3.9.114 (so với 3.9.113)
+
+Sửa nhóm E, F, G sau đợt rà soát 19/11/2026.
+
+| # | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| 1 | `lib/data.ts`: danh sách kiểm định của mọi bài (trang chủ, bản đồ, ma trận, xuất) không nhúng thông tin bài vào từng dòng nữa; đọc bảng bài một lần và ghép. Trên prod: 1,4 MB → 0,9 MB, kết quả trùng từng dòng với cách cũ (987/987) | Tác giả và tiêu đề lặp lại ở mọi kiểm định chiếm một phần ba dữ liệu |
+| 2 | `docs/architecture.md`: số đo thật (0,35–0,6 s đến byte đầu khi hàm đã chạy) và ngưỡng chuyển phần lọc vào database (khoảng 5.000 kiểm định, hoặc trung vị > 0,8 s) | Lọc bằng JavaScript trên toàn bộ kiểm định không theo kịp mục tiêu 300 bài; ghi ngưỡng thay vì làm sớm |
+| 3 | Không đổi: Vitest `isolate: false` (thử hai lượt: 24,8 s và 17,9 s so với 18,4 s mặc định) | Không nhanh hơn ổn định, thêm rủi ro test dùng chung trạng thái |
+| 4 | Gỡ ba lệnh bộ khung bước 0.x (`extract:skeleton`, `verify:skeleton`, `publish:skeleton` và tệp CLI của chúng; các module vẫn dùng trong test được giữ), `pdf-lib` thừa ở gốc, `.next-a6` trong cấu hình, thư mục `database/` rỗng; ESLint bỏ qua `apps/worker/scratch/` | Không còn dùng; tám cảnh báo lint đều từ script nháp ngoài git |
+| 5 | `apps/web/CLAUDE.md` (`@AGENTS.md`) để Claude Code đọc cảnh báo của Next.js; `AGENTS.md` ở gốc tóm tắt quy tắc của `CLAUDE.md` cho các tác tử khác | Claude Code không tự đọc `AGENTS.md`; một tác tử mở trong repo không có quy tắc nào |
+
 ### Version 3.9.113 (so với 3.9.112)
 
 Sửa nhóm D (lãng phí token) sau đợt rà soát 19/11/2026.
