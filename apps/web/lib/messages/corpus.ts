@@ -19,8 +19,8 @@ export const corpus = defineMessages({
   "corpus.more.after": { vi: ".", en: "." },
   "forest.title": { vi: "Biểu đồ rừng", en: "Forest plot" },
   "forest.caption": {
-    vi: "({kind}, {n} study có khoảng tin cậy hoặc sai số chuẩn). Đây là hình các study báo cáo, không phải meta-analysis: không có ước lượng gộp.",
-    en: "({kind}, {n} studies with a confidence interval or standard error). This is a picture of what the studies report, not a meta-analysis: there is no pooled estimate.",
+    vi: "({kind}, {tests} kiểm định từ {n} study có khoảng tin cậy hoặc sai số chuẩn; một study có thể có nhiều dòng). Đây là hình các study báo cáo, không phải meta-analysis: không có ước lượng gộp.",
+    en: "({kind}, {tests} tests from {n} studies with a confidence interval or standard error; a study may have several lines). This is a picture of what the studies report, not a meta-analysis: there is no pooled estimate.",
   },
   "forest.aria": { vi: "Biểu đồ rừng của {n} study", en: "Forest plot of {n} studies" },
   "forest.note": { vi: "Đường đứt: khoảng tính từ sai số chuẩn (ước lượng ± 1,96 SE) vì bài không in khoảng tin cậy.", en: "Dashed line: interval computed from the standard error (estimate ± 1.96 SE) because the paper does not print a confidence interval." },

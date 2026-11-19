@@ -35,9 +35,23 @@ describe("buildForest", () => {
     expect(fromSe.high).toBeCloseTo(0.496, 3);
   });
 
-  it("counts one test per study", () => {
+  it("counts studies, not tests, for the minimum", () => {
     const same = { study_id: "s-same" };
     expect(buildForest([row(same), row(same), row(same), row(same), row(same)])).toBeNull();
+  });
+
+  it("draws every test of a study, named by its variables, instead of keeping an arbitrary first one", () => {
+    const two = [row({ study_id: "s-x", iv_label_original: "Trust", estimate: 0.4 }), row({ study_id: "s-x", iv_label_original: "Love", estimate: 0.2 })];
+    const forest = buildForest([...two, row(), row(), row()])!;
+    expect(forest.studies).toBe(4);
+    expect(forest.points).toHaveLength(5);
+    expect(forest.points.filter((p) => p.label.endsWith("Trust → B") || p.label.endsWith("Love → B"))).toHaveLength(2);
+    expect(forest.points.filter((p) => p.label.includes("→"))).toHaveLength(2); // a study with one test keeps the short label
+  });
+
+  it("never draws the mixed 'other' kind (b, d, odds ratios, η² cannot share one axis around zero)", () => {
+    const mixed = [row({ estimate_type: "odds_ratio", estimate: 1.8, ci_low: 1.2, ci_high: 2.6 }), row({ estimate_type: "unstd_b" }), row({ estimate_type: "eta_squared" }), row({ estimate_type: "d" }), row({ estimate_type: "unstd_b" })];
+    expect(buildForest(mixed)).toBeNull();
   });
 });
 

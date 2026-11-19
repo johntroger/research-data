@@ -14,9 +14,9 @@ export function ForestPlot({ forest, t }: { forest: Forest; t: Translate }) {
   return (
     <figure className="forest" data-testid="forest-plot">
       <figcaption>
-        <strong>{t("forest.title")}</strong> {t("forest.caption", { kind: label(t, "estimate", forest.kind), n: forest.points.length })}
+        <strong>{t("forest.title")}</strong> {t("forest.caption", { kind: label(t, "estimate", forest.kind), n: forest.studies, tests: forest.points.length })}
       </figcaption>
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={t("forest.aria", { n: forest.points.length })}>
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={t("forest.aria", { n: forest.studies })}>
         <line x1={x(0)} x2={x(0)} y1={8} y2={height - 28} stroke="currentColor" strokeDasharray="4 3" opacity={0.5} />
         {forest.points.map((p, i) => {
           const y = 20 + i * rowH;

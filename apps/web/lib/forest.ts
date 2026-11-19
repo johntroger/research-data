@@ -21,7 +21,15 @@ export interface ForestPoint {
 export interface Forest {
   kind: EstimateGroup;
   points: ForestPoint[];
+  /** Different studies among the points (a study may give several tests of the question, each drawn as its own line). */
+  studies: number;
 }
+
+/**
+ * Kinds that can share one linear axis around zero. "other" mixes b, d, odds ratios and η² (an odds ratio centres on 1 and needs
+ * a log scale, η² has no sign), so it is never drawn.
+ */
+const DRAWABLE: EstimateGroup[] = ["std_beta", "path_coefficient", "r"];
 
 function interval(r: PathRow): { low: number; high: number; fromSe: boolean } | null {
   if (r.estimate === null) return null;
@@ -32,21 +40,25 @@ function interval(r: PathRow): { low: number; high: number; fromSe: boolean } | 
 
 /** The forest to draw for these tests, or null when no kind of estimate has enough studies with an interval. */
 export function buildForest(rows: PathRow[]): Forest | null {
-  const byKind = new Map<EstimateGroup, ForestPoint[]>();
-  const seen = new Set<string>();
+  // Every test with an interval, by kind. All tests of a study are kept: picking one would be arbitrary (the first in the list).
+  const byKind = new Map<EstimateGroup, PathRow[]>();
   for (const r of rows) {
     const kind = estimateGroup(r);
-    const iv = interval(r);
-    if (kind === "none" || !iv || r.estimate === null) continue;
-    const key = `${kind}|${r.study_id}`;
-    if (seen.has(key)) continue; // one test per study and kind
-    seen.add(key);
-    const label = `${paperLabel(r.papers)}, ${r.studies?.study_label ?? "?"}`;
-    byKind.set(kind, [...(byKind.get(kind) ?? []), { id: r.id, label, estimate: r.estimate, ...iv }]);
+    if (!DRAWABLE.includes(kind) || !interval(r)) continue;
+    byKind.set(kind, [...(byKind.get(kind) ?? []), r]);
   }
-  const best = [...byKind.entries()].sort((a, b) => b[1].length - a[1].length)[0];
-  if (!best || best[1].length < FOREST_MIN_STUDIES) return null;
-  return { kind: best[0], points: best[1].sort((a, b) => a.estimate - b.estimate) };
+  const studiesOf = (list: PathRow[]) => new Set(list.map((r) => r.study_id)).size;
+  const best = [...byKind.entries()].sort((a, b) => studiesOf(b[1]) - studiesOf(a[1]))[0];
+  if (!best || studiesOf(best[1]) < FOREST_MIN_STUDIES) return null;
+  const perStudy = new Map<string, number>();
+  for (const r of best[1]) perStudy.set(r.study_id, (perStudy.get(r.study_id) ?? 0) + 1);
+  const points = best[1].map((r) => {
+    const base = `${paperLabel(r.papers)}, ${r.studies?.study_label ?? "?"}`;
+    // A study with several tests of the question: name the variables so the lines can be told apart.
+    const label = (perStudy.get(r.study_id) ?? 0) > 1 ? `${base}: ${r.iv_label_original} → ${r.dv_label_original}` : base;
+    return { id: r.id, label, estimate: r.estimate!, ...interval(r)! };
+  });
+  return { kind: best[0], points: points.sort((a, b) => a.estimate - b.estimate), studies: studiesOf(best[1]) };
 }
 
 /** The x range of the plot: symmetric around zero for correlations and coefficients, padded a little, never narrower than ±0.5. */
