@@ -80,11 +80,15 @@ describe("page texts in the packet", () => {
     expect(page).toContain("Second");
     expect(page).toContain("VISUAL ROWS");
     expect(text(files, "INSTRUCTIONS.md")).toMatch(/folder `text\/` has the text of every page/);
+    // The paper is read once, from the texts; the PDF only where they cannot carry it.
+    expect(text(files, "INSTRUCTIONS.md")).toMatch(/Open the PDF only for tables, figures and layout/);
+    expect(text(files, "INSTRUCTIONS.md")).not.toMatch(/Read the whole PDF/);
   });
 
   it("is the same packet as before when there are no page texts", () => {
     const files = buildPacket(base);
     expect(files.some((f) => f.path.startsWith("text/"))).toBe(false);
     expect(text(files, "INSTRUCTIONS.md")).not.toMatch(/text\//);
+    expect(text(files, "INSTRUCTIONS.md")).toMatch(/Read the whole PDF, all pages/);
   });
 });

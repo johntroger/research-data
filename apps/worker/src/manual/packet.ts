@@ -59,6 +59,16 @@ function pageTextRule(input: PacketInput): string {
   );
 }
 
+/**
+ * How to read the paper. With the page texts, the paper is read once from them and the PDF is opened only where the text cannot carry
+ * it (tables, figures, layout): reading both from start to end doubled the work of the agent. Not an extraction rule, so the prompt
+ * version stays the same.
+ */
+function readingRule(input: PacketInput): string {
+  if (!input.pageTexts) return "* Read the whole PDF, all pages. When a table is hard to read as text, look at the page image.";
+  return "* Read every page, from the text files in `text/` (they hold the full text of each page). Open the PDF only for tables, figures and layout, the pages where the text alone is unclear; do not read the whole PDF as well.";
+}
+
 const oneLine = (text: string) => text.replace(/\s*\n\s*/g, " ");
 
 function instructions(input: PacketInput): string {
@@ -79,7 +89,7 @@ ${FULL_INSTRUCTIONS}
 
 ## Extra rules for this setting
 
-* Read the whole PDF, all pages. When a table is hard to read as text, look at the page image.
+${readingRule(input)}
 * If numbers are only in a figure or image and you cannot read them reliably, return null for them. Never guess.
 * Each output file contains ONE JSON object, exactly matching the JSON Schema named for that file: no markdown fences, no comments, no text around it, UTF-8.
 * Field names, enum values and nesting must follow the schema exactly. Use null for unreported values where the schema allows it.
