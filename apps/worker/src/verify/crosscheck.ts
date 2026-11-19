@@ -42,7 +42,17 @@ export interface CrossCheckResult {
   stats: StatResult[];
 }
 
-export function crossCheck(data: FullData, refs: GroupRefs, rows: FieldVerification[]): CrossCheckResult {
+export interface CrossCheckOptions {
+  /** The paper says its tests are one-tailed (statcheck.mentionsOneTailed over the whole text). */
+  oneTailed?: boolean;
+  /** Levels of CI other than 95% that the paper names (statcheck.mentionedCiLevels). */
+  ciLevels?: number[];
+}
+
+/** Words of an experimental design that make a participant appear in several cells. */
+const WITHIN = /\b(within|repeated|mixed)\b/i;
+
+export function crossCheck(data: FullData, refs: GroupRefs, rows: FieldVerification[], options: CrossCheckOptions = {}): CrossCheckResult {
   const findings: Finding[] = [];
   const stats: StatResult[] = [];
   const group = (o: object) => refs.get(o) ?? "";
@@ -72,23 +82,30 @@ export function crossCheck(data: FullData, refs: GroupRefs, rows: FieldVerificat
       }
     }
 
-    // Experimental cells add up to the study n (per dependent variable).
+    // Experimental cells add up to the study n (per dependent variable). In a within-subjects or mixed design every participant
+    // is in several cells, so the sum is n times the number of within levels (a divisor of the number of cells).
+    const within = WITHIN.test(study.design.experimental_design ?? "");
     const byDv = new Map<string, StudyDetail["condition_cells"]>();
     for (const c of study.condition_cells) byDv.set(c.dv_label_original, [...(byDv.get(c.dv_label_original) ?? []), c]);
     for (const [dv, cells] of byDv) {
       if (n === null || cells.some((c) => c.n === null)) continue;
       const total = cells.reduce((sum, c) => sum + c.n!, 0);
-      if (total !== n) {
+      const levels = total / n;
+      const fitsWithin = within && Number.isInteger(levels) && levels >= 1 && cells.length % levels === 0;
+      if (total !== n && !fitsWithin) {
         const detail = `Tổng n các ô điều kiện của "${dv}" là ${total}, khác cỡ mẫu ${n} của ${study.study_label}`;
         for (const c of cells) findings.push({ group: group(c), fieldNames: ["n"], check: attention("cells_sum_to_n", false, detail) });
         findings.push({ group: sg, fieldNames: ["n"], check: attention("cells_sum_to_n", false, detail) });
       }
     }
 
-    // Standardised beta of a DV with a single predictor ≈ its correlation with that predictor.
+    // Standardised beta of a DV with a single predictor ≈ its correlation with that predictor. Only when nothing else predicts the
+    // DV: no other direct path, no control variable, no covariate listed. Not for CB-SEM, whose β is a latent correlation and
+    // differs from the observed r of a correlation table by the measurement error.
+    const cbSem = study.design.analysis_method.includes("cb_sem");
     for (const p of study.paths) {
-      if (p.effect_type !== "direct" || p.estimate_type !== "std_beta" || p.estimate === null) continue;
-      const incoming = study.paths.filter((o) => o.effect_type === "direct" && norm(o.dv_label_original) === norm(p.dv_label_original));
+      if (cbSem || p.effect_type !== "direct" || p.estimate_type !== "std_beta" || p.estimate === null || p.model_covariates.length > 0) continue;
+      const incoming = study.paths.filter((o) => (o.effect_type === "direct" || o.effect_type === "control") && norm(o.dv_label_original) === norm(p.dv_label_original));
       if (incoming.length !== 1) continue;
       for (const m of study.correlation_matrices) {
         const i = m.variables.findIndex((v) => norm(v) === norm(p.iv_label_original));
@@ -120,7 +137,7 @@ export function crossCheck(data: FullData, refs: GroupRefs, rows: FieldVerificat
     }
 
     // Statcheck on paths (t / z with the study n as df, estimate / SE, SE from CI).
-    for (const p of study.paths) stats.push(...pathStats(p, group(p), n, findings, numbersFound));
+    for (const p of study.paths) stats.push(...pathStats(p, group(p), n, findings, numbersFound, options));
 
     // Statcheck on experimental cells: the same test is repeated on every cell of an experiment.
     const done = new Set<string>();
@@ -131,7 +148,7 @@ export function crossCheck(data: FullData, refs: GroupRefs, rows: FieldVerificat
       if (done.has(id)) continue;
       done.add(id);
       const g = group(c);
-      const r = checkReportedP(stat, c.p_reported_as);
+      const r = checkReportedP(stat, c.p_reported_as, options);
       const errorSource = r.status === "consistent" || r.status === "not_checked" ? null : numbersFound(g, ["test_stat"]) ? "original_paper" : "extraction";
       stats.push({ group: g, stat: `${stat.type}(${stat.df.join(", ")}) = ${stat.value}`, reported: c.p_reported_as, status: r.status, recomputed: r.recomputed, errorSource, detail: r.detail });
       if (r.status !== "not_checked") findings.push({ group: g, fieldNames: ["test_stat"], check: statCheck(r.status, r.detail, errorSource) });
@@ -151,22 +168,27 @@ function pathStats(
   n: number | null,
   findings: Finding[],
   numbersFound: (g: string, names: string[]) => boolean,
+  options: CrossCheckOptions,
 ): StatResult[] {
   const out: StatResult[] = [];
   if (p.t_or_z !== null && p.p_reported_as) {
-    // PLS and SEM print t from bootstrapping; with the study n as df it is the usual t distribution.
-    const stat: TestStat = n && n > 2 ? { type: "t", value: p.t_or_z, df: [n - 1] } : { type: "z", value: p.t_or_z, df: [] };
-    const r = checkReportedP(stat, p.p_reported_as);
+    // PLS and SEM print t from bootstrapping; with the study n as df it is the usual t distribution. A regression has df = n − k − 1
+    // with k predictors, which the schema does not record: the covariates listed give k when there are any, else up to 10 are allowed.
+    const k = p.model_covariates.length > 0 ? p.model_covariates.length + 1 : 10;
+    const stat: TestStat = n && n > 2 ? { type: "t", value: p.t_or_z, df: [n - 1], dfMin: Math.max(1, n - 1 - k) } : { type: "z", value: p.t_or_z, df: [] };
+    const r = checkReportedP(stat, p.p_reported_as, options);
     const errorSource = r.status === "consistent" || r.status === "not_checked" ? null : numbersFound(g, ["t_or_z"]) ? "original_paper" : "extraction";
     out.push({ group: g, stat: `${stat.type} = ${p.t_or_z}`, reported: p.p_reported_as, status: r.status, recomputed: r.recomputed, errorSource, detail: r.detail });
     if (r.status !== "not_checked") findings.push({ group: g, fieldNames: ["t_or_z"], check: statCheck(r.status, r.detail, errorSource) });
   }
-  if (p.estimate !== null && p.se !== null && p.se > 0 && p.t_or_z !== null) {
+  // estimate / SE = t only when both are on the same scale: an unstandardised b, or a PLS path with its bootstrap SD. A standardised
+  // β is often printed beside the SE of b (AMOS, SPSS), and r, d, OR, η² are not tested this way.
+  if ((p.estimate_type === "unstd_b" || p.estimate_type === "path_coefficient") && p.estimate !== null && p.se !== null && p.se > 0 && p.t_or_z !== null) {
     const r = checkTFromEstimate(p.estimate, p.se, p.t_or_z);
     findings.push({ group: g, fieldNames: ["t_or_z", "se"], check: attention("t_from_estimate_se", r.ok, r.detail) });
   }
   if (p.se !== null && p.ci_low !== null && p.ci_high !== null && p.ci_method !== "bootstrap") {
-    const r = checkSeFromCi(p.ci_low, p.ci_high, p.se);
+    const r = checkSeFromCi(p.ci_low, p.ci_high, p.se, options.ciLevels);
     findings.push({ group: g, fieldNames: ["se", "ci_low", "ci_high"], check: attention("se_from_ci", r.ok, r.detail) });
   }
   return out;

@@ -74,6 +74,33 @@ describe("cross-checks catch planted errors", () => {
     expect(row(a, "study_1:h2:brand_trust->purchase_intention:direct:estimate").checks.some((c) => c.name === "beta_matches_r")).toBe(false);
   });
 
+  it("does not compare a beta with r when the model has controls or covariates, or is CB-SEM", () => {
+    const key = "study_1:h1:influencer_credibility->brand_trust:direct:estimate";
+    const hasCheck = (a: ReturnType<typeof analysePaper>) => row(a, key).checks.some((c) => c.name === "beta_matches_r");
+    expect(hasCheck(analyse(p01))).toBe(true); // the key alone: one predictor, compared
+    const wrongR = (d: FullData) => (d.studies[0]!.correlation_matrices[0]!.cells[0]!.r = 0.2);
+    expect(hasCheck(analyse(p01, (d) => { wrongR(d); d.studies[0]!.paths[0]!.model_covariates = ["Age"]; }))).toBe(false);
+    expect(hasCheck(analyse(p01, (d) => { wrongR(d); d.studies[0]!.design.analysis_method = ["cb_sem"]; }))).toBe(false);
+    expect(hasCheck(analyse(p01, (d) => {
+      wrongR(d);
+      const h1 = d.studies[0]!.paths[0]!;
+      d.studies[0]!.paths.push({ ...h1, hypothesis_code: null, iv_label_original: "Age", effect_type: "control" });
+    }))).toBe(false);
+  });
+
+  it("cells of a within-subjects design add up to n times the within levels", () => {
+    const doubled = (d: FullData) => {
+      for (const c of d.studies[0]!.condition_cells) c.n = c.n! * 2; // every participant counted in two cells
+    };
+    const key = "study_1:cell:no_brand:consumer_skepticism:n";
+    expect(failed(row(analyse(p02, doubled), key))).toContain("cells_sum_to_n"); // a between-subjects design: wrong
+    const within = analyse(p02, (d) => {
+      doubled(d);
+      d.studies[0]!.design.experimental_design = "2 × 2 mixed design (brand: within-subjects)";
+    });
+    expect(failed(row(within, key))).not.toContain("cells_sum_to_n");
+  });
+
   it("measurement table and descriptives give different reliability", () => {
     const a = analyse(p01, (d) => {
       const m = d.studies[0]!.correlation_matrices[0]!;
@@ -118,9 +145,15 @@ describe("recomputed statistics", () => {
   it("t implied by estimate / SE and SE implied by the CI", () => {
     const a = analyse(p01, (d) => {
       const h1 = d.studies[0]!.paths[0]!;
+      h1.estimate_type = "unstd_b";
       h1.se = 0.2; // 0.48 / 0.2 = 2.4, the paper prints 8.40
     });
     expect(failed(row(a, "study_1:h1:influencer_credibility->brand_trust:direct:t_or_z"))).toContain("t_from_estimate_se");
+    // A standardised β is often printed beside the SE of b: estimate / SE is not t there, so it is not checked.
+    const std = analyse(p01, (d) => {
+      d.studies[0]!.paths[0]!.se = 0.2;
+    });
+    expect(failed(row(std, "study_1:h1:influencer_credibility->brand_trust:direct:t_or_z"))).not.toContain("t_from_estimate_se");
     const b = analyse(p01, (d) => {
       const h1 = d.studies[0]!.paths[0]!;
       h1.se = 0.057;

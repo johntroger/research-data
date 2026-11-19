@@ -6,6 +6,7 @@ import type { PdfTextLayer } from "../pdf/text-layer.js";
 import type { FieldVerification } from "./checks.js";
 import { findMissing, type MissingItem } from "./completeness.js";
 import { applyFindings, crossCheck, type StatResult } from "./crosscheck.js";
+import { mentionedCiLevels, mentionsOneTailed } from "./statcheck.js";
 import { type FullData, type GroupRefs, verifyFull } from "./verify-full.js";
 
 export interface PaperAnalysis {
@@ -21,7 +22,8 @@ export interface PaperAnalysis {
 export function analysePaper(layer: PdfTextLayer, data: FullData): PaperAnalysis {
   const refs: GroupRefs = new Map();
   const rows = verifyFull(layer, data, refs);
-  const { findings, stats } = crossCheck(data, refs, rows);
+  const text = layer.pages.map((p) => p.text).join("\n");
+  const { findings, stats } = crossCheck(data, refs, rows, { oneTailed: mentionsOneTailed(text), ciLevels: mentionedCiLevels(text) });
   const missing = findMissing(layer, data);
   return { fields: applyFindings(rows, findings), refs, stats, missing, completeness: missing.length ? "incomplete" : "complete" };
 }
