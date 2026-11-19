@@ -4,7 +4,9 @@ import {
   type Concept,
   DEFAULT_QUERY,
   findRows,
+  formatCi,
   formatEstimate,
+  formatSe,
   estimateGroup,
   formatStats,
   groupRepeats,
@@ -257,12 +259,25 @@ describe("display", () => {
     expect(apaNumber(0.31)).toBe(".31");
     expect(apaNumber(-0.31)).toBe("−.31");
     expect(apaNumber(1.23)).toBe("1.23");
-    expect(apaNumber(0)).toBe("0");
+    expect(apaNumber(0)).toBe(".00");
+    expect(apaNumber(0.3)).toBe(".30"); // the zero the paper printed and the number lost
+    expect(apaNumber(0.312)).toBe(".312"); // extra decimals are kept, never rounded away
+    expect(apaNumber(0.0001)).toBe(".0001"); // no exponent
+    expect(apaNumber(0.31, false)).toBe("0.31");
     expect(formatEstimate({ estimate: -0.31, estimate_type: "std_beta" })).toBe("β = −.31");
-    expect(formatEstimate({ estimate: 0.5, estimate_type: "unstd_b" })).toBe("b = .5");
-    expect(formatEstimate({ estimate: 2.1, estimate_type: "odds_ratio" })).toBe("OR = 2.1");
-    expect(formatEstimate({ estimate: 0.2, estimate_type: null })).toBe("est. = .2");
+    expect(formatEstimate({ estimate: 0.31, estimate_type: "path_coefficient" })).toBe("β = .31");
+    expect(formatEstimate({ estimate: 0.06, estimate_type: "eta_squared" })).toBe("η² = .06");
+  });
+
+  it("keeps the leading zero for statistics that can exceed 1 (APA 7, Mục 8.1)", () => {
+    expect(formatEstimate({ estimate: 0.5, estimate_type: "unstd_b" })).toBe("b = 0.50");
+    expect(formatEstimate({ estimate: 2.1, estimate_type: "odds_ratio" })).toBe("OR = 2.10");
+    expect(formatEstimate({ estimate: 0.45, estimate_type: "d" })).toBe("d = 0.45");
+    expect(formatEstimate({ estimate: 0.2, estimate_type: null })).toBe("est. = 0.20");
     expect(formatEstimate({ estimate: null, estimate_type: "std_beta" })).toBe("");
+    const b = { estimate_type: "unstd_b" as const, se: 0.045, ci_low: 0.12, ci_high: 1.4 };
+    expect(formatSe(b)).toBe("SE = 0.045"); // the SE of b: same scale as b, not rounded to .05
+    expect(formatCi(b)).toBe("CI [0.12, 1.40]");
   });
 
   it("shows p as the authors printed it, without the leading zero", () => {
@@ -272,6 +287,7 @@ describe("display", () => {
     expect(formatP({ p_reported_as: ".05", p_value: null })).toBe("p = .05");
     expect(formatP({ p_reported_as: "n.s.", p_value: null })).toBe("n.s.");
     expect(formatP({ p_reported_as: null, p_value: 0.045 })).toBe("p = .045");
+    expect(formatP({ p_reported_as: "< 0.010", p_value: null })).toBe("p < .010"); // digits as printed
     expect(formatP({ p_reported_as: null, p_value: null })).toBe("");
   });
 
@@ -288,7 +304,7 @@ describe("formatStats: everything the paper gave, in APA order", () => {
     const full = row("A", "B", { estimate: -0.31, se: 0.05, ci_low: -0.42, ci_high: -0.2, studies: { study_label: "Study 1", research_design: "survey", samples: [{ n: 1312 }] } });
     expect(formatStats(full)).toBe("β = −.31, SE = .05, CI [−.42, −.20], p < .001, N = 1,312");
     const bare = row("A", "B", { estimate: 0.3, studies: { study_label: "Study 1", research_design: "survey", samples: [{ n: null }] } });
-    expect(formatStats(bare)).toBe("β = .3, p < .001");
+    expect(formatStats(bare)).toBe("β = .30, p < .001");
     expect(sampleSize(bare)).toBeNull();
     expect(sampleSize({ studies: { study_label: "S", research_design: null, samples: { n: 261 } } })).toBe(261); // a one-to-one embed is an object
     expect(sampleSize({ studies: null })).toBeNull();

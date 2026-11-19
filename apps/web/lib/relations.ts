@@ -402,18 +402,30 @@ export function searchRelations(allRows: PathRow[], concepts: Concept[], q: Rela
   };
 }
 
-/** APA 7: no leading zero for a value that cannot exceed 1 (β, r, p), and a real minus sign. */
-export function apaNumber(n: number): string {
+/**
+ * A number as APA 7 writes it (Mục 8.1): a real minus sign, at least two decimals (the stored number lost the zeros the paper
+ * printed, ".30" became 0.3; more decimals are kept, never rounded away) and no leading zero only when the statistic cannot exceed 1
+ * (`bounded`: p, r, standardised β, η², R²). An unstandardised b, d, an odds ratio or an SE of b keep it: "b = 0.31", "OR = 1.40".
+ */
+export function apaNumber(n: number, bounded = true): string {
   const abs = Math.abs(n);
-  const text = String(abs).replace(/^0\./, "."); // 0 stays "0"; 0.31 becomes ".31"
-  return `${n < 0 ? "−" : ""}${text}`;
+  const text = /e/i.test(String(abs)) ? abs.toFixed(6).replace(/0+$/, "") : String(abs);
+  const [whole = "0", frac = ""] = text.split(".");
+  const body = `${whole}.${frac.padEnd(2, "0")}`;
+  return `${n < 0 ? "−" : ""}${bounded && whole === "0" ? body.slice(1) : body}`;
 }
+
+/** Kinds of estimate that cannot exceed 1 in absolute value, so APA 7 drops their leading zero. */
+const BOUNDED_ESTIMATES = new Set(["std_beta", "path_coefficient", "r", "eta_squared"]);
+
+/** Whether the estimate of this row (and its SE and CI, on the same scale) is written without a leading zero. */
+export const isBoundedEstimate = (row: Pick<PathRow, "estimate_type">): boolean => BOUNDED_ESTIMATES.has(row.estimate_type ?? "");
 
 const SYMBOL: Record<string, string> = { std_beta: "β", path_coefficient: "β", unstd_b: "b", r: "r", d: "d", odds_ratio: "OR", eta_squared: "η²" };
 
 export function formatEstimate(row: Pick<PathRow, "estimate" | "estimate_type">): string {
   if (row.estimate === null) return "";
-  return `${SYMBOL[row.estimate_type ?? ""] ?? "est."} = ${apaNumber(row.estimate)}`;
+  return `${SYMBOL[row.estimate_type ?? ""] ?? "est."} = ${apaNumber(row.estimate, isBoundedEstimate(row))}`;
 }
 
 /**
@@ -426,8 +438,8 @@ export function formatP(row: Pick<PathRow, "p_reported_as" | "p_value">): string
     const m = /^([<>=≤≥])?\s*(\d*)\.\s*(\d+)$/.exec(printed);
     if (!m) return printed;
     const value = Number(`${m[2] || "0"}.${m[3]}`);
-    // A printed 0.000 means "smaller than .001", never exactly zero (APA 7).
-    return value === 0 ? "p < .001" : `p ${m[1] ?? "="} ${apaNumber(value)}`;
+    // A printed 0.000 means "smaller than .001", never exactly zero (APA 7). The digits are kept as printed (".010" stays ".010").
+    return value === 0 ? "p < .001" : `p ${m[1] ?? "="} ${m[2] && m[2] !== "0" ? m[2] : ""}.${m[3]}`;
   }
   if (row.p_value === null) return "";
   return row.p_value === 0 ? "p < .001" : `p = ${apaNumber(row.p_value)}`;
@@ -455,12 +467,6 @@ export function groupRepeats(rows: PathRow[]): { main: PathRow; repeats: PathRow
   return [...groups.values()].map(([main, ...repeats]) => ({ main: main!, repeats }));
 }
 
-/** Two decimals, no leading zero (APA 7). */
-function two(n: number): string {
-  const [whole = "0", frac = ""] = Math.abs(n).toFixed(2).split(".");
-  return `${n < 0 ? "−" : ""}${whole === "0" ? "" : whole}.${frac}`;
-}
-
 /** The sample of the study the test comes from (a one-to-one embed arrives as an object). */
 export function sampleOf(row: Pick<PathRow, "studies">): SampleN | null {
   const samples = row.studies?.samples;
@@ -473,8 +479,10 @@ export function sampleSize(row: Pick<PathRow, "studies">): number | null {
   return sampleOf(row)?.n ?? null;
 }
 
-export const formatSe = (row: Pick<PathRow, "se">): string => (row.se == null ? "" : `SE = ${two(row.se)}`);
-export const formatCi = (row: Pick<PathRow, "ci_low" | "ci_high">): string => (row.ci_low == null || row.ci_high == null ? "" : `CI [${two(row.ci_low)}, ${two(row.ci_high)}]`);
+/** SE and CI are on the scale of the estimate, so they follow its leading-zero rule; they are not rounded (".045" stays ".045"). */
+export const formatSe = (row: Pick<PathRow, "se" | "estimate_type">): string => (row.se == null ? "" : `SE = ${apaNumber(row.se, isBoundedEstimate(row))}`);
+export const formatCi = (row: Pick<PathRow, "ci_low" | "ci_high" | "estimate_type">): string =>
+  row.ci_low == null || row.ci_high == null ? "" : `CI [${apaNumber(row.ci_low, isBoundedEstimate(row))}, ${apaNumber(row.ci_high, isBoundedEstimate(row))}]`;
 
 /** "β = −.31, SE = .05, CI [−.42, −.20], p < .001, N = 312": everything the paper gave, in APA order. */
 export function formatStats(row: PathRow): string {

@@ -3,7 +3,7 @@
  * that opens to the tests of each study. Pure logic, no I/O: the page loads the rows, this module groups and formats them.
  * The "main result" counts only ✓ / ★ hypothesis tests; tests that are not are shown as "chưa kiểm chứng", never counted.
  */
-import { apaNumber, formatEstimate, formatP, isVerified, type PathRow } from "./relations";
+import { apaNumber, formatCi, formatEstimate, formatP, isVerified, type PathRow } from "./relations";
 
 export interface TheoryRow {
   paper_id: string;
@@ -95,11 +95,8 @@ export function outcomeOf(paths: PathRow[]): Outcome {
 }
 
 /** Two decimals, no leading zero (APA 7). */
-const two = (n: number) => {
-  const [whole = "0", frac = ""] = Math.abs(n).toFixed(2).split(".");
-  return `${n < 0 ? "−" : ""}${whole === "0" ? "" : whole}.${frac}`;
-};
-const ci = (p: MatrixPath) => (p.ci_low != null && p.ci_high != null ? `95% CI [${two(p.ci_low)}, ${two(p.ci_high)}]` : "");
+// The level of a CI is not recorded (it may be 90% or 99%), so it is not named.
+const ci = (p: MatrixPath) => formatCi(p);
 
 /** `moderatorWord` is the word for "moderator" in the language of the page (the line is built on the server for a client component). */
 export function pathLine(p: MatrixPath, moderatorWord = "điều tiết"): PathLine {

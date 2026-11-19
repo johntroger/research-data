@@ -58,7 +58,7 @@ test("the detail lists the tests by study with APA numbers and a link to the evi
   const row = page.getByTestId(`matrix-${paperId}`);
   await row.getByText(/Xem kiểm định theo Study \(3\)/).click();
   await expect(row.getByText("Study 1", { exact: true })).toBeVisible();
-  await expect(row).toContainText("β = .35, 95% CI [.20, .50], p < .001");
+  await expect(row).toContainText("β = .35, CI [.20, .50], p < .001");
   const link = row.getByRole("link", { name: "mở" }).first();
   await expect(link).toHaveAttribute("href", new RegExp(`/papers/${paperId}\\?focus=study_1%3Apath%3Ah1`));
 });

@@ -38,7 +38,7 @@ describe("theoryChips", () => {
 describe("pathLine", () => {
   it("writes the statistic in APA style with the confidence interval", () => {
     const l = pathLine(path({ ci_low: 0.2, ci_high: 0.5, r2_dv: 0.41 }));
-    expect(l.statistic).toBe("β = .35, 95% CI [.20, .50], p < .001");
+    expect(l.statistic).toBe("β = .35, CI [.20, .50], p < .001"); // the level of the CI is not recorded, so it is not named
     expect(l.r2).toBe("R² = .41");
     expect(l.relation).toBe("Trust → Loyalty");
   });

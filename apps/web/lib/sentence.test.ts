@@ -35,7 +35,7 @@ describe("academicSentence", () => {
     expect(academicSentence({ ...base, significant: null })).toBeNull();
   });
   it("writes 'estimate' when the estimate type is unknown", () => {
-    expect(academicSentence({ ...base, estimate_type: null })).toContain("(estimate = .35, p < .001;");
+    expect(academicSentence({ ...base, estimate_type: null })).toContain("(estimate = 0.35, p < .001;"); // an unknown kind may exceed 1: leading zero kept
   });
   it("accepts a hand-reviewed test and omits the page when unknown", () => {
     expect(academicSentence({ ...base, badge: "human_reviewed", evidence: null })).toContain("(β = .35, p < .001; Nguyen et al., 2023).");
