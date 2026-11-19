@@ -26,19 +26,19 @@
 
 **Luồng kỹ thuật:**
 1. Người dùng bấm **"Tải PDF gốc"** (ở thẻ bài báo, trang chi tiết, Split-Screen, kết quả Relationship Search). Nút chỉ hiện khi người đó có quyền theo bảng ở Mục 7.
-2. Trình duyệt gọi **API route của Next.js** (`/api/papers/[id]/pdf`). Route kiểm tra quyền: bài OA mở thì cho mọi người; bài còn lại thì chỉ cho phiên đăng nhập của chủ dự án.
-3. Route tạo **presigned URL của R2 có hạn 5 phút**, kèm header `Content-Disposition: attachment` và tên tệp dễ đọc theo mẫu `Tacgia_Nam_Tieu-de-rut-gon.pdf` (VD: `Nguyen_2023_Perceived-risk-and-purchase-intention.pdf`).
+2. Trình duyệt gọi **API route của Next.js** (`/api/papers/[id]/pdf`; quy tắc ở `lib/pdf-access.ts`, một hàm duy nhất quyết định cho cả nút và route). **Xem:** mọi người, mọi bài có PDF (D14 sửa 25/10/2026). **Tải** (`?download=1`): chủ dự án đã đăng nhập, hoặc bài có giấy phép mở; còn lại trả 403.
+3. Route tạo **presigned URL của R2 có hạn 5 phút**: xem thì `Content-Disposition: inline`, tải thì `attachment` kèm tên tệp từ tiêu đề bài (chữ ASCII, tối đa 80 ký tự, VD: `Perceived-risk-and-purchase-intention.pdf`).
 4. Trình duyệt **tải thẳng từ R2**, không đi qua Vercel. Lý do: hàm serverless của Vercel giới hạn dung lượng phản hồi khoảng 4,5 MB, vượt là lỗi; tải từ R2 cũng không tốn băng thông.
 
 **Các nút liên quan:**
 * **Xem** (mở trong trình đọc pdf.js) và **Tải về** là hai nút riêng.
-* Không có quyền: nút chuyển thành **"Mở DOI"** hoặc **"Bản OA"** (link Unpaywall).
+* Không được tải: không có nút tải và không có liên kết sang trình xem PDF của trình duyệt (có nút Lưu); kèm **"Mở DOI"** và **"Bản OA"** (link Unpaywall, chỉ với bài OA).
 * *(Giai đoạn sau)* **Tải nhiều bài**: chọn nhiều bài rồi tải một tệp ZIP (Cloudflare Worker ghép ZIP dạng streaming), kèm `references.bib` và `references.ris` (dùng citekey Better BibTeX). Khách chỉ tải ZIP được các bài OA; tệp `.bib` / `.ris` thì cho tất cả.
 
 **Bảo vệ (web công khai):**
-* **Giới hạn tốc độ theo IP** cho API tải PDF và API tìm kiếm (VD: 30 lượt tải / giờ / IP) để chặn tải hàng loạt và bot.
+* **Giới hạn tốc độ theo IP** (`lib/rate-limit.ts`, bước A.5): trang 120 lượt/phút, tìm kiếm 60/phút, link PDF 20/phút, tải PDF 10/giờ, xuất Excel/Word/CSV 10/giờ; quá mức trả 429 kèm `Retry-After`.
 * Link hết hạn sau 5 phút; không bao giờ để lộ đường dẫn R2 cố định.
-* Không ghi dữ liệu cá nhân của khách; chỉ thống kê tổng số lượt tải theo bài (không lưu IP quá 24 giờ, chỉ dùng cho giới hạn tốc độ).
+* Không ghi dữ liệu cá nhân của khách: giới hạn tốc độ chỉ giữ mã băm có muối của IP, tối đa 1 giờ; thống kê chỉ là số đếm theo ngày và loại (`usage_daily`, không IP, không cookie).
 
 ---
 

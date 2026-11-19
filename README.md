@@ -1,6 +1,8 @@
 # Research Data
 
-Công cụ tham khảo giúp nhà nghiên cứu tra cứu các bài báo khoa học trong lĩnh vực **social media marketing, thương hiệu, đạo đức marketing và hành vi khách hàng**. AI (Gemini) trích xuất có cấu trúc lý thuyết, khái niệm, thang đo, giả thuyết và số liệu thống kê từ PDF; các lớp kiểm tra tự động đối chiếu từng giá trị với bài gốc. Mọi giá trị đều mở được đúng chỗ trong PDF để người dùng tự kiểm tra.
+Công cụ tham khảo giúp nhà nghiên cứu tra cứu các bài báo khoa học trong lĩnh vực **social media marketing, thương hiệu, đạo đức marketing và hành vi khách hàng**. Tác tử AI (Claude, Codex; Gemini API dự phòng) trích xuất có cấu trúc lý thuyết, khái niệm, thang đo, giả thuyết và số liệu thống kê từ PDF; các lớp kiểm tra tự động không dùng AI đối chiếu từng giá trị với bài gốc. Mọi giá trị đều mở được đúng chỗ trong PDF để người dùng tự kiểm tra.
+
+**Web:** https://research-data-five.vercel.app (công khai, không cần đăng nhập).
 
 > **Lưu ý:** dữ liệu do AI trích xuất, chỉ để tham khảo. Người dùng có trách nhiệm đối chiếu với bài gốc trước khi sử dụng trong nghiên cứu.
 
@@ -8,7 +10,7 @@ Công cụ tham khảo giúp nhà nghiên cứu tra cứu các bài báo khoa h�
 
 ## Trạng thái
 
-Đang ở **Giai đoạn 0** (dựng nền tảng): bộ khung chạy được đã xong (đọc PDF → Gemini trích xuất → máy đối chiếu với PDF → database → web xem bằng chứng). Xem kế hoạch trong [PROJECT_PLAN.md](PROJECT_PLAN.md) (tổng quan, lộ trình, mục lục), chi tiết trong [docs/](docs/) và lịch sử thay đổi trong [CHANGELOG.md](CHANGELOG.md).
+Web công khai đang chạy (Next.js trên Vercel, Supabase, Cloudflare R2); kho dữ liệu lớn dần khi thêm bài. Mã nguồn gồm `packages/schema` (schema Zod dùng chung), `apps/worker` (CLI nạp bài, kiểm chứng, đăng) và `apps/web`. Xem kế hoạch trong [PROJECT_PLAN.md](PROJECT_PLAN.md) (tổng quan, lộ trình, mục lục), chi tiết trong [docs/](docs/) và lịch sử thay đổi trong [CHANGELOG.md](CHANGELOG.md).
 
 ## Giấy phép
 

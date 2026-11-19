@@ -58,18 +58,18 @@
 | Thành phần | Công nghệ |
 | :--- | :--- |
 | Ngôn ngữ | **TypeScript** toàn bộ, một runtime Node.js |
-| Schema | **Zod** → `zod-to-json-schema` (Gemini) + kiểu DB + kiểu Web |
-| Worker | Node.js CLI, chạy local, do Claude Code xây dựng và vận hành |
-| Nguồn tài liệu | **Zotero Web API v3** + Zotero 7 Local API; Better BibTeX |
-| Trích xuất | Gemini API (trả phí): Flash / Pro, Batch API, Context Caching (tùy kết quả đo) |
-| Text layer PDF | **`pdfjs-dist`** hoặc **`unpdf`** (giấy phép Apache / MIT) |
-| Metadata | Crossref REST API, Unpaywall API, citation-js (CSL → APA 7 / BibTeX) |
-| Embedding | Gemini embedding, giảm chiều 768, lưu `halfvec` |
-| CSDL | Supabase PostgreSQL + pgvector, RLS, Supabase Auth; **1 project cloud (`prod`)** + **Supabase CLI local (`dev`, chạy trên Docker)**; migrations bằng Supabase CLI |
-| Lưu trữ PDF phục vụ hiển thị | Cloudflare R2 (private) + Signed URL |
-| Web | Next.js App Router, Tailwind CSS, shadcn/ui, TanStack Table, react-pdf / pdf.js |
-| Biểu đồ | Recharts hoặc Visx (forest plot, heatmap), Cytoscape.js (mạng quan hệ) |
-| Xuất file | `docx`, `exceljs` |
+| Schema | **Zod 4** (`packages/schema`); chuyển sang JSON Schema cho Gemini và gói việc bằng hàm riêng `toGeminiJsonSchema` (`json-schema.ts`) |
+| Worker | Node.js CLI (`pnpm worker <lệnh>`, chạy bằng `tsx`), chạy local, do Claude Code xây dựng và vận hành |
+| Nguồn tài liệu | **Zotero Web API v3** (chỉ đọc) |
+| Trích xuất | Tác tử theo gói việc (Claude, Codex, Antigravity; D16) → `manual import`; dự phòng Gemini API (`@google/genai`, đồng bộ hoặc Batch) |
+| Text layer PDF | **`unpdf`** (pdf.js) ở worker và trình xem PDF của web; `pdfjs-dist` cho OCR; **`tesseract.js`** cho OCR chạy tay |
+| Metadata | Crossref REST API, Unpaywall API; trích dẫn APA, RIS, BibTeX tự viết (`apps/web/lib/apa.ts`, `references.ts`) |
+| Embedding | Chưa dùng (tìm kiếm ngữ nghĩa để Giai đoạn 6) |
+| CSDL | Supabase PostgreSQL, RLS, Supabase Auth (link email, chỉ chủ dự án); **1 project cloud (`prod`)** + **Supabase CLI local (`dev`, chạy trên Docker)**; migrations bằng Supabase CLI. Chưa dùng pgvector |
+| Lưu trữ PDF phục vụ hiển thị | Cloudflare R2 (private) + presigned URL 5 phút (`@aws-sdk/client-s3`) |
+| Web | Next.js 16 App Router, React 19, CSS thuần (`app/globals.css`), pdf.js qua `unpdf`; giới hạn tốc độ bằng Upstash Redis |
+| Biểu đồ | SVG tự vẽ (biểu đồ rừng, bản đồ bằng chứng); chưa có mạng quan hệ |
+| Xuất file | `exceljs`, `docx`, CSV, RIS, BibTeX |
 | Triển khai & vận hành | GitHub → Vercel; GitHub Actions cho CI, kiểm thử hồi quy và mọi tác vụ định kỳ (Mục 9.3) |
 | Kiểm thử | Vitest, Playwright (Mục 9.4) |
 
@@ -78,20 +78,23 @@
 ```
 research-data/
 ├─ packages/
-│  └─ schema/          ← Zod schema, codebook, prompt (dùng chung)
+│  └─ schema/          ← Zod schema, enum theo codebook, danh sách khái niệm chuẩn (dùng chung)
 ├─ apps/
-│  ├─ worker/          ← CLI: sync, estimate, extract, verify, publish, write-back, rerun, test:synthetic
-│  └─ web/             ← Next.js (gồm trang quản trị: sửa trực tiếp, Cần chú ý, chất lượng)
+│  ├─ worker/          ← CLI `pnpm worker`: extract, manual export/check/import, republish, highlights, oa, metadata,
+│  │                     map-labels, captions, summaries, release, backup-files, quality, ocr… (danh sách ở đầu src/cli/worker.ts)
+│  └─ web/             ← Next.js (tìm quan hệ, thư viện, ma trận, khái niệm, bản đồ, trang bài; quản trị: chất lượng, lượt dùng)
 ├─ supabase/
-│  └─ migrations/      ← migrations SQL theo schema_version
+│  ├─ migrations/      ← migrations SQL
+│  └─ seed.sql         ← danh sách khái niệm và lý thuyết chuẩn (sinh bằng pnpm canonical:build)
 ├─ fixtures/synthetic/ ← bộ bài giả lập tự tạo (PDF giả + đáp án), commit được vào repo public
-├─ docs/               ← codebook.md, quality-assurance.md, architecture.md, data-schema.md, ux-spec.md, integrations.md
+├─ scripts/            ← kiểm liên kết tài liệu, kiểm codebook, sao lưu prod, đặt biến môi trường / secrets
+├─ docs/               ← codebook.md, quality-assurance.md, architecture.md, data-schema.md, ux-spec.md, integrations.md, usage.md…
+├─ legacy/             ← schema.v1.js cũ, chỉ để tham khảo
 ├─ raw_papers/         ← (không commit) PDF dự phòng ngoài Zotero
-└─ extracted_data/     ← (không commit) phản hồi thô
+└─ extracted_data/     ← (không commit) bản trích xuất đã lưu, OCR, sao lưu
 ```
 
-* Code hiện có (`schema.js` dạng CommonJS) được **viết lại** thành `packages/schema` theo Zod, không vá tiếp.
-* `.gitignore` bổ sung: `extracted_data/`, `raw_papers/`, `.env*` (trừ `.env.example`).
+* `.gitignore` loại: `extracted_data/`, `raw_papers/`, `.env*` (trừ `.env.example`), thư mục build.
 
 ### 9.3. Tác vụ định kỳ (GitHub Actions, MỚI)
 Mọi tác vụ định kỳ đặt tập trung ở GitHub Actions để dễ theo dõi (Cloudflare Cron không dùng trong MVP).
@@ -101,7 +104,7 @@ Mọi tác vụ định kỳ đặt tập trung ở GitHub Actions để dễ th
 | `backup.yml` ✅ | Hằng đêm 02:17 giờ Việt Nam (19:17 UTC), chạy tay được với `keep` | `scripts/backup-prod.sh`: `pg_dump -Fc` schema `public` của Supabase `prod` (qua pooler, ảnh `postgres:17`) → bucket R2 riêng `research-data-backups` thành `backups/db-<giờ UTC>.dump`, kiểm kích thước sau khi tải lên, giữ 30 bản mới nhất (chỉ xóa tệp đúng mẫu tên của chính nó). Bước đầu gọi API bật lại chính workflow này để GitHub không tự tắt lịch chạy sau 60 ngày repo không có hoạt động (repo public); bước đó lỗi thì sao lưu vẫn chạy |
 | `keepalive.yml` | (không cần) | `backup.yml` mở database mỗi đêm nên đã giữ project Supabase Free không bị tạm dừng; chỉ làm workflow riêng nếu bỏ sao lưu hằng đêm |
 | `retraction-check.yml` ⛔ chưa làm | Hằng tháng (dự kiến) | Kiểm tra lại trạng thái rút bài qua Crossref cho mọi bài; gắn cảnh báo lên bài và mọi kết quả liên quan. **Chưa có**: cột `papers.retraction_status` đã có trong database nhưng chưa có gì ghi vào, web chưa hiện cảnh báo |
-| `ci.yml` ✅ | Mỗi pull request / push lên `main` | Type-check, lint, test đơn vị, `docs:check`, build web (Mục 9.4); chưa chạy test database và e2e |
+| `ci.yml` ✅ | Mỗi pull request / push lên `main` | Type-check, lint, test đơn vị, `docs:check`, `codebook:check`, build web (Mục 9.4); chưa chạy test database và e2e |
 | `regression.yml` ⛔ chưa làm | Khi `packages/schema` hoặc prompt thay đổi (dự kiến) | Chạy bộ bài giả lập (Mục 6.6); có trần chi phí riêng. **Chưa có**: bộ bài giả lập chỉ chạy trong test đơn vị với phản hồi giả lập |
 
 Các khóa bí mật (Supabase, R2, Gemini) lưu trong **GitHub Actions Secrets**, không bao giờ in ra log.
@@ -137,9 +140,11 @@ Quy tắc: không thêm cột blob, PDF hay JSON lớn vào Supabase; khi cần 
 | :--- | :--- | :--- |
 | Unit test | Bộ kiểm chứng (fuzzy match câu văn, khớp số `.35` / `0.35` / `0,35`, kiểm tra ma trận tương quan, kiểm tra `condition_cells`); xác định `printed_page`; quy tắc logic | Vitest |
 | Schema test | Mọi schema Zod chuyển được sang `responseSchema` hợp lệ của Gemini; ví dụ JSON mẫu qua được validate | Vitest |
-| Database test | Migrations chạy được từ đầu trên Supabase local; RLS: khách đọc được mọi dữ liệu trừ trường bị ẩn (không khớp PDF), không ghi được; chỉ tài khoản quản trị ghi được; truy vấn `relation_index` trả đúng kết quả cho dữ liệu mẫu | Supabase CLI + Vitest |
-| End-to-end | Khách: Relationship Search → mở Split-Screen → tải PDF OA (bài không OA chỉ hiện link DOI). Quản trị: đăng nhập → sửa một trường → trích xuất lại → trường đã sửa không bị ghi đè | Playwright |
-| Hồi quy chất lượng trích xuất | Bộ bài giả lập | `test:synthetic` |
+| Database test | Migrations chạy được từ đầu trên Supabase local; RLS: khách đọc được mọi dữ liệu trừ trường bị ẩn (không khớp PDF), không ghi được; chủ dự án đọc mọi hàng nhưng cũng không ghi qua web; đăng lại không đè trường đã sửa tay | `pnpm test:db` (Supabase local + Vitest) |
+| End-to-end | Khách: tìm quan hệ → mở trang bài → xem PDF (tải chỉ bài giấy phép mở); xuất Excel, Word, CSV, RIS; đăng nhập chủ bằng link email (hộp thư thử Mailpit) | `pnpm test:e2e` (dev), `pnpm test:e2e:prod` (bản build production, giới hạn tốc độ) |
+| Hồi quy chất lượng trích xuất | Bộ bài giả lập chạy qua bộ kiểm chứng với đáp án làm "phản hồi giả" (trong test đơn vị) | Vitest; gọi API thật (`regression.yml`) chưa làm |
+
+* **CI** (`ci.yml`) chỉ chạy type-check, lint, test đơn vị, `docs:check`, `codebook:check` (so `docs/data-schema.md` với `docs/codebook.md`, chưa so với schema Zod) và build; test database và e2e cần Supabase local (Docker) nên chạy tay trên máy trước khi đẩy thay đổi lớn.
 
 * **Dữ liệu dùng trong test phải là văn bản tự viết** (bài báo giả lập, PDF tự tạo). Repo public, nên không đưa nội dung bài báo có bản quyền vào test.
 * Gọi Gemini trong test dùng phản hồi giả lập (mock); `regression.yml` (chưa làm, Mục 9.3) mới là nơi gọi API thật, có trần chi phí riêng.

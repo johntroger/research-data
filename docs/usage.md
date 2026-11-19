@@ -1,55 +1,41 @@
-# Dùng thật (Giai đoạn 3a.6)
+# Dùng hằng ngày
 
-> Hướng dẫn thêm một bài mới vào kho và dùng web để làm nghiên cứu. Quy trình theo Mục 10.0; chi tiết nguồn trích xuất ở Mục 4.5 (`docs/integrations.md`).
+> Thêm một bài mới vào kho, đưa lên web công khai và dùng web để làm nghiên cứu. Nguồn trích xuất và thứ tự ưu tiên ở `CLAUDE.md` và Mục 4.5 (`docs/integrations.md`); kiểm mẫu độ đúng ở Mục 6.10–6.12 (`docs/quality-assurance.md`).
 
-## Thêm một bài mới
+## Thêm một bài mới (máy local)
+
+Cần Docker Desktop đang chạy và `pnpm db:start`.
 
 | Bước | Ai | Lệnh / việc |
 | :--- | :--- | :--- |
-| 1 | Bạn | Thả bài vào thư mục Zotero của dự án (hiện: "Dissertation / 1 - Social Media Marketing Ethics"). Bài ngoài thư mục chỉ khi bạn đồng ý rõ (CLAUDE.md). |
-| 2 | Claude Code | `pnpm worker extract` nạp bài (đọc PDF, metadata Crossref/Zotero; không tốn API) |
-| 3 | Claude Code | `pnpm worker manual export --paper X --code Y` tạo gói việc ngoài repo (`C:\Projects\Research Data Packets\Y`) |
-| 4 | Bạn | Mở **Codex trong thư mục gói** (không mở repo, vì repo có `.env`), gõ câu lệnh làm việc; ghi lại số phút và số vòng sửa |
-| 5 | Claude Code | `pnpm worker manual check <gói>` kiểm câu trả lời (không cần cơ sở dữ liệu) |
-| 6 | Claude Code | `pnpm worker manual import <gói> --tool codex --model gpt-6.1-sol-medium` xem trước; sau khi bạn duyệt thêm `--yes` (sao lưu pg_dump, đăng bài) |
-| 7 | Claude Code | `pnpm worker highlights --paper X` tính khung tô sáng PDF (không tốn API) |
+| 1 | Bạn | Thả bài vào một thư mục Zotero được phép (danh sách trong `CLAUDE.md`). Bài ngoài các thư mục đó chỉ khi bạn đồng ý rõ. |
+| 2 | Claude Code | `pnpm worker extract` nạp bài vào database local (đọc PDF, text layer; không tốn API). Metadata thiếu hoặc sai: `pnpm worker metadata --paper X` (Crossref). |
+| 3 | Claude Code | `pnpm worker manual export --paper X --code Y` tạo gói việc ngoài repo (`PACKETS_DIR`, mặc định `C:\Projects\Research Data Packets\Y`), kèm `text/page-NN.txt`. |
+| 4 | Claude Code / bạn | Trích xuất theo thứ tự: **tác tử Claude** (tiến trình con, chỉ làm trong thư mục gói); bài có tỷ lệ vấn đề > 20% thì báo bạn rồi thử **Codex** (bạn mở Codex **trong thư mục gói**, không mở repo vì repo có `.env`), rồi Antigravity. Gemini API chỉ khi bạn đồng ý chi tiền (trần 25 USD, đã chi 14,86). |
+| 5 | Claude Code | `pnpm worker manual check <gói>` kiểm câu trả lời theo schema (không cần database). |
+| 6 | Claude Code | `pnpm worker manual import <gói> --tool <claude\|codex> --model <tên>` xem trước; sau khi duyệt thêm `--yes` (tự sao lưu `pg_dump` vào `extracted_data/backups/`). |
+| 7 | Claude Code | `pnpm worker highlights --paper X` (khung tô sáng PDF), `pnpm worker captions --paper X` (chú thích bảng), `pnpm worker summaries export / import --paper X` (câu hỏi nghiên cứu, kết luận chính). Không tốn API. |
+| 8 | Claude Code | Khái niệm chuẩn có thêm tên mới: sửa `packages/schema/src/canonical-data.ts`, `pnpm canonical:build`, rồi `pnpm worker map-labels --yes`. |
 
-Gemini API chỉ là dự phòng (trần 25 USD, đã chi 14,86); không chạy nếu bạn chưa đồng ý.
+Bộ kiểm chứng đổi (quy tắc mới trong `apps/worker/src/verify`): `pnpm worker republish --yes` đăng lại mọi bản đã lưu với quy tắc mới, không tốn API.
+
+## Đưa lên web công khai (prod)
+
+**Chưa có lệnh một bước** (`pnpm worker sync`, Giai đoạn 2 mục 3, chưa làm). Từ bước 2.3 (23/10/2026, 36 bài) chưa có bài mới nào lên prod, nên các bước dưới đây chưa được chạy trọn một lần; làm lần đầu thì đi từng bước và kiểm lại trên web.
+
+1. **PDF lên R2:** khóa `pdf/<sha256>.pdf` trong bucket `research-data-pdfs` (như bước 2.2a, bằng `wrangler`; token đọc/ghi cho worker chưa tạo).
+2. **Dữ liệu bài lên prod:** chưa có đường chính thức. Cách dự kiến (chưa thử): chạy `manual import` / `republish` với `SUPABASE_DB_URL` trỏ tới prod. Sao lưu prod trước.
+3. **Các lệnh có sẵn `--target prod`:** `oa`, `metadata`, `map-labels`, `captions`, `summaries import` (đều xem trước, thêm `--yes` để ghi).
+4. **Đóng bản dữ liệu:** `pnpm worker release --target prod --note "..." --yes` sau mỗi đợt đổi dữ liệu (liên kết cố định `&v=` dựa vào đây).
+5. **Sao lưu bản trích xuất:** `pnpm worker backup-files --yes` (bản trích xuất đã lưu, OCR lên bucket sao lưu).
+
+Web đọc dữ liệu qua REST, giữ mỗi câu trả lời tối đa 60 giây, nên dữ liệu mới hiện trên web trong khoảng một phút, không cần deploy lại.
 
 ## Dùng web
 
-1. Bật Docker Desktop, rồi `pnpm db:start` nếu cơ sở dữ liệu chưa chạy.
-2. `pnpm --filter @research-data/web dev`, mở http://localhost:3000.
-3. **Trang chủ** là Relationship Search: gõ biến A, biến B, chọn chiều và vai trò, đọc thanh tổng hợp (chỉ tính ✓ và ★ theo mặc định).
-4. Bấm một kiểm định để mở bài: tab → giá trị → bảng "Vì sao" → PDF tô khung vàng ở câu trích. **Luôn đối chiếu với PDF** trước khi dùng một con số.
-5. "Tải Excel" xuất đúng danh sách đang lọc (cột huy hiệu, trang in, tuyên bố trách nhiệm). "Tải PDF" lưu bài gốc.
-
-## Khi nào coi là "đã dùng đủ" để đóng 3a
-
-- Có thêm ít nhất 3 bài được trích xuất bằng Codex ngoài 6 bài hiện có (hoặc 3 bài Gemini cũ được làm lại bằng Codex: xem quyết định ở báo cáo bước này).
-- Đã dùng Relationship Search cho ít nhất một câu hỏi nghiên cứu thật và mở bằng chứng trong PDF cho các kết quả quan trọng.
-- Báo cáo: số phút mỗi bài, tỷ lệ ✓ / ⚠ / ◇, các góp ý trong [usage-log.md](usage-log.md).
+* Web công khai: https://research-data-five.vercel.app. Chạy trên máy: `pnpm web:dev`, mở http://localhost:3000 (đọc database local; `/admin/quality` chỉ có ở máy dev hoặc khi đăng nhập chủ).
+* **Trang chủ** là tìm theo quan hệ: gõ biến A, biến B (hoặc một biến để xem mọi quan hệ của nó), chọn chiều và vai trò; thanh tổng hợp chỉ tính ✓ và ★ theo mặc định. Từ gõ vào khớp ở đầu từ ("trust" không khớp "distrust").
+* Bấm một kiểm định để mở bài: Tóm tắt nhanh ở đầu, chi tiết và bằng chứng bên dưới, PDF tô khung ở câu trích. **Luôn đối chiếu với PDF** trước khi dùng một con số.
+* Xuất: Excel, Word APA 7, CSV (giá trị gốc), RIS / BibTeX; đúng danh sách đang lọc, kèm số hiệu bản dữ liệu.
 
 Góp ý giao diện: nói trong lúc dùng, Claude Code ghi vào [usage-log.md](usage-log.md); cuối đợt gom lại và đề xuất sửa từng việc một.
-
-## Hàng đợi bài mới (21/10/2026)
-
-15 bài từ 7 thư mục Zotero mới đã nạp (không tốn API) và đã có gói Codex sẵn trong `C:\Projects\Research Data Packets\`. Thứ tự đề xuất (bài thực nghiệm ngắn trước, bài lý thuyết sau); có thể mở nhiều phiên Codex song song, mỗi phiên một thư mục gói.
-
-| # | Gói | Bài | Trang |
-| :--- | :--- | :--- | :--- |
-| 1 | chain-effects | The Chain of Effects from Brand Trust and Brand Affect to Brand Performance (2001) | 14 |
-| 2 | brand-integrity | Inferring brand integrity from marketing communications (2020) | 11 |
-| 3 | ewom-scale | e-WOM Scale (2010) | 19 |
-| 4 | ethics-retail | The Ethics of Online Retailing: Scale Development (2007) | 18 |
-| 5 | brand-transparency | Brand Transparency as a Driver of Socially Conscious Purchasing | 18 |
-| 6 | beyond-info | Beyond information availability: consumer perceived brand transparency (2024) | 15 |
-| 7 | csr-emotions | CSR, emotions, and consumer loyalty in the food retail sector (2021) | 19 |
-| 8 | ethical-csr | Ethical CSR and customer loyalty (2021) | 23 |
-| 9 | cool-brands | The role of brand gratitude with cool brands (2024) | 17 |
-| 10 | customer-gratitude | The Role of Customer Gratitude in Relationship Marketing (2009) | 19 |
-| 11 | price-brand | Effects of Price, Brand, and Store Information on Buyers' Product Evaluations (1991) | 13 |
-| 12 | complaining | Complaining to the Masses: Protest Framing (2006) | 11 |
-| 13 | elevation | Experimentally distinguishing elevation from gratitude (2014) | 15 |
-| 14 | brand-community | Brand Community (2001, định tính) | 22 |
-| 15 | gratitude-model | A social-cognitive model of trait and state levels of gratitude (2008, lý thuyết) | 37 |
